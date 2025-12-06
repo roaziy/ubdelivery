@@ -1,5 +1,7 @@
 import Image from "next/image";
+
 import Header from "../components/LandingPage/header/header";
+import Footer from "../components/LandingPage/footer/footer";
 
 export default function Home() {
   return (
@@ -29,6 +31,7 @@ export default function Home() {
           />
         </div>
       </section>
+      <Footer />
     </div>
   );
 }

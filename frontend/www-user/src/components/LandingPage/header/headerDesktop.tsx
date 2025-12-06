@@ -17,6 +17,7 @@ export default function HeaderDesktop() {
                         width={180} 
                         height={28} 
                         className="max-w-[180px] max-h-[28.09px]"
+                        draggable={false}
                     />
                 </Link>
                 <div className="container max-w-[450px] mx-auto flex justify-between">

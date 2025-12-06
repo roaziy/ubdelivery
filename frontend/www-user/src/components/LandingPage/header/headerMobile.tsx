@@ -21,6 +21,7 @@ export default function HeaderMobile() {
                             width={140} 
                             height={22} 
                             className="w-[140px] h-auto"
+                            draggable={false}
                         />
                     </Link>
                     <div className="flex items-center gap-3">
