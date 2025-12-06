@@ -26,3 +26,7 @@ body {
   color: var(--foreground);
   font-family: Montserrat, sans-serif;
 }
+
+::selection {
+  background-color: rgba(88, 186, 95, 0.2);
+}
