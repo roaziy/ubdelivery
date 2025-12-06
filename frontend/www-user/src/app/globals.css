@@ -10,6 +10,7 @@
   /* --color-foreground: var(--foreground); */
   --font-sans: var(--font-Montserrat-sans);
   /* --font-mono: var(--font-geist-mono); */
+  --color-mainGreen: #58BA5F;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -23,5 +24,5 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  /* font-family: Arial, Montserrat, sans-serif; */
+  font-family: Montserrat, sans-serif;
 }
