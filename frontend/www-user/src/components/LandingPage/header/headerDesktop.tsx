@@ -4,11 +4,11 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 
-export default function Header() {
+export default function HeaderDesktop() {
     const pathname = usePathname();
 
     return (
-        <header className="w-full bg-white shadow-lg shadow-gray-200/50">
+        <div className="hidden md:block">
             <div className="container max-w-[1250px] mx-auto px-4 py-4 flex justify-between items-center select-none">
                 <Link href="/" draggable={false}>
                     <Image 
@@ -39,6 +39,6 @@ export default function Header() {
                     Нэвтрэх
                 </button>
             </div>
-        </header>
+        </div>
     );
 }

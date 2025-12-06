@@ -1,5 +1,5 @@
 // import Image from "next/image";
-import Header from "../components/LandingPage/header";
+import Header from "../components/LandingPage/header/header";
 
 export default function Home() {
   return (
