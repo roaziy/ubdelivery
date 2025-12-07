@@ -58,7 +58,7 @@ export default function HeaderHomeTopper() {
                 </div>
 
                 {/* Location & Profile */}
-                <div className="flex items-center gap-4">
+                <div className="items-center gap-4 flex">
                     <div className="hidden md:flex items-center gap-2 text-sm text-gray-600">
                         <IoLocationSharp className="text-mainGreen" size={20} />
                         <span>Улаанбаатар</span>
@@ -70,7 +70,7 @@ export default function HeaderHomeTopper() {
                         >
                             Гарах
                         </button>
-                        <IoPersonCircle className="text-mainGreen" size={36} />
+                        <IoPersonCircle className="text-mainGreen hidden md:flex" size={36} />
                     </div>
                 </div>
             </div>
