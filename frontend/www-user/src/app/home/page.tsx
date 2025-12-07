@@ -1,4 +1,4 @@
-import Footer from "@/components/LandingPage/footer/footer";
+import FooterHome from "@/components/home/footerHome";
 import HeaderHomeTopper from "@/components/home/header/headerHomeTopper";
 import HeaderHomeBottom from "@/components/home/header/headerHomeBottom";
 
@@ -56,7 +56,7 @@ export default function HomePage() {
                             <RestaurantCard />
                         </div>
                         <div className="flex justify-center mt-6">
-                            <button className="px-6 py-2 border border-mainGreen text-mainGreen rounded-full text-sm hover:bg-mainGreen hover:text-white transition-colors">
+                            <button className="px-6 py-2 border border-mainGreen text-mainGreen rounded-full text-sm hover:bg-mainGreen hover:text-white transition-colors mb-16">
                                 Бүгдийг харах
                             </button>
                         </div>
@@ -65,7 +65,7 @@ export default function HomePage() {
             </main>
 
             {/* Footer */}
-            <Footer />
+            <FooterHome />
         </div>
     );
 }
