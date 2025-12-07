@@ -35,7 +35,7 @@ export default function HeaderMobile() {
                     </div>
                 </div>
                 {isMenuOpen && (
-                    <nav className="flex flex-col gap-6 pt-4 pb-2 text-sm border-t border-gray-200 mt-3 ">
+                    <nav className="flex flex-col gap-6 pt-4 pb-2 text-sm border-t border-gray-200 mt-3">
                         <Link 
                             href="/home" 
                             draggable={false}
