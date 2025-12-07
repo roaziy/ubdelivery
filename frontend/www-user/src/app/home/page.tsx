@@ -1,96 +1,65 @@
-'use client'
+'use client';
 
-import Image from "next/image";
-import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { IoLocationSharp, IoSearch, IoPersonCircle } from "react-icons/io5";
+import { FaRegClock } from "react-icons/fa";
 
-export default function OrderPage() {
-    const router = useRouter();
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
+import Footer from "@/components/LandingPage/footer/footer";
+import HeaderHomeTopper from "@/components/home/header/headerHomeTopper";
+import HeaderHomeBottom from "@/components/home/header/headerHomeBottom";
 
-    useEffect(() => {
-        // Check if user is logged in
-        const loggedIn = sessionStorage.getItem('isLoggedIn');
-        if (!loggedIn) {
-            router.push('/login');
-        } else {
-            setIsLoggedIn(true);
-        }
-    }, [router]);
+// Sample food data
+const foodItems = [
+    { id: 1, name: "Хүн аймар гоё пицза, Хүн аймар гоё пицза", restaurant: "Pizzahut mongolia", price: 35000, rating: 32 },
+    { id: 2, name: "Хүн аймар гоё пицза, Хүн аймар гоё пицза", restaurant: "Pizzahut mongolia", price: 35000, rating: 32 },
+    { id: 3, name: "Хүн аймар гоё пицза, Хүн аймар гоё пицза", restaurant: "Pizzahut mongolia", price: 35000, rating: 32 },
+    { id: 4, name: "Хүн аймар гоё пицза, Хүн аймар гоё пицза", restaurant: "Pizzahut mongolia", price: 35000, rating: 32 },
+];
 
-    const handleLogout = () => {
-        sessionStorage.removeItem('isLoggedIn');
-        sessionStorage.removeItem('phoneNumber');
-        router.push('/');
-    };
+const categories = ['Өнөөдрийн онцлох', 'Пицза', 'Монгол хоол', 'Солонгос хоол', 'Япон хоол', 'Түргэн хоол'];
 
-    if (!isLoggedIn) {
-        return null; // or loading spinner
-    }
+const restaurants = [
+    { id: 1, name: "Modern Nomads", type: "Монгол уламжлалт хоол", hours: "09:00 - 20:00", rating: 5 },
+    { id: 2, name: "Modern Nomads", type: "Монгол уламжлалт хоол", hours: "09:00 - 20:00", rating: 5 },
+    { id: 3, name: "Modern Nomads", type: "Монгол уламжлалт хоол", hours: "09:00 - 20:00", rating: 5 },
+    { id: 4, name: "Modern Nomads", type: "Монгол уламжлалт хоол", hours: "09:00 - 20:00", rating: 5 },
+];
+
+const deals = [
+    { id: 1, title: "Нэгийн үнээр хоёрыг", subtitle: "Энэхүү хүн аймар гоё", discount: "20% off" },
+    { id: 2, title: "Нэгийн үнээр хоёрыг", subtitle: "Энэхүү хүн аймар гоё", discount: "20% off" },
+    { id: 3, title: "Нэгийн үнээр хоёрыг", subtitle: "Энэхүү хүн аймар гоё", discount: "20% off" },
+];
+
+export default function HomePage() {
+    const [activeCategory, setActiveCategory] = useState(0);
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            {/* Header */}
-            <header className="fixed top-0 left-0 w-full bg-white shadow-lg shadow-gray-200/50 z-20">
-                <div className="container max-w-[1250px] mx-auto px-4 py-4 flex justify-between items-center select-none">
-                    <Link href="/order" draggable={false}>
-                        <Image 
-                            src="/LandingPage/logo.svg" 
-                            alt="UB Delivery Logo" 
-                            width={180} 
-                            height={28} 
-                            className="max-w-[180px] max-h-[28.09px]"
-                            draggable={false}
-                        />
-                    </Link>
-
-                    {/* Search Bar */}
-                    <div className="hidden md:flex flex-1 max-w-[500px] mx-8">
-                        <div className="flex items-center bg-gray-100 rounded-full px-4 py-2 w-full">
-                            <IoSearch className="text-gray-500 mr-2" size={20} />
-                            <input 
-                                type="text" 
-                                placeholder="Рестораун, хоол хайх..." 
-                                className="flex-1 bg-transparent outline-none text-sm"
-                            />
-                        </div>
-                    </div>
-
-                    {/* Location & Profile */}
-                    <div className="flex items-center gap-4">
-                        <div className="hidden md:flex items-center gap-2 text-sm text-gray-600">
-                            <IoLocationSharp className="text-mainGreen" size={20} />
-                            <span>Улаанбаатар</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <button 
-                                onClick={handleLogout}
-                                className="text-sm text-gray-600 hover:text-mainGreen transition-colors"
-                            >
-                                Гарах
-                            </button>
-                            <IoPersonCircle className="text-mainGreen" size={36} />
-                        </div>
-                    </div>
-                </div>
-            </header>
+        <div className="min-h-screen bg-white flex flex-col">
+            {/* Desktop Header */}
+            <HeaderHomeTopper />
+            {/* Mobile Header Placeholder */}
+            <HeaderHomeBottom />
 
             {/* Main Content */}
-            <main className="pt-24 px-4 pb-8">
-                <div className="container max-w-[1250px] mx-auto">
-                    {/* Categories */}
+            <main className="flex-1 pt-20 md:pt-24">
+                <div className="container max-w-[1250px] mx-auto px-4">
+                    {/* Hero Banner */}
+                    <section className="mb-8 hidden md:block">
+                        <div className="w-full h-[200px] bg-gray-500 rounded-2xl"></div>
+                    </section>
+
+                    {/* Food Categories */}
                     <section className="mb-8">
-                        <h2 className="text-xl font-semibold mb-4">Ангилал</h2>
-                        <div className="flex gap-4 overflow-x-auto pb-2">
-                            {['Бүгд', 'Фаст фүүд', 'Пицца', 'Азийн', 'Кофе', 'Десерт', 'Хоолны газар'].map((category, index) => (
+                        <h2 className="text-lg md:text-xl font-semibold mb-4 text-center md:text-left">Хоолны ангилалууд</h2>
+                        <div className="flex flex-wrap justify-center md:justify-start gap-2 md:gap-3">
+                            {categories.map((category, index) => (
                                 <button 
                                     key={index}
-                                    className={`px-6 py-2 rounded-full whitespace-nowrap text-sm transition-colors ${
-                                        index === 0 
+                                    onClick={() => setActiveCategory(index)}
+                                    className={`px-4 md:px-5 py-2 rounded-full text-sm transition-colors ${
+                                        activeCategory === index 
                                             ? 'bg-mainGreen text-white' 
-                                            : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                                            : 'bg-white text-gray-700 border border-gray-300 hover:border-mainGreen'
                                     }`}
                                 >
                                     {category}
@@ -99,53 +68,100 @@ export default function OrderPage() {
                         </div>
                     </section>
 
-                    {/* Featured Restaurants */}
+                    {/* Food Items Grid */}
                     <section className="mb-8">
-                        <h2 className="text-xl font-semibold mb-4">Онцлох рестораунууд</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {[1, 2, 3, 4, 5, 6].map((item) => (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            {foodItems.map((item) => (
                                 <div 
-                                    key={item} 
-                                    className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                                    key={item.id} 
+                                    className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
                                 >
-                                    <div className="h-40 bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center">
-                                        <span className="text-4xl">🍔</span>
-                                    </div>
-                                    <div className="p-4">
-                                        <h3 className="font-semibold mb-1">Рестораун {item}</h3>
-                                        <p className="text-sm text-gray-500 mb-2">Фаст фүүд • Бургер</p>
-                                        <div className="flex items-center justify-between text-sm">
-                                            <span className="text-mainGreen font-medium">⭐ 4.{item + 2}</span>
-                                            <span className="text-gray-500">20-30 мин</span>
+                                    <div className="relative h-32 md:h-36 bg-gray-400">
+                                        <div className="absolute top-2 right-2 bg-yellow-400 text-xs font-medium px-2 py-1 rounded-full flex items-center gap-1">
+                                            ⭐ {item.rating}
                                         </div>
+                                    </div>
+                                    <div className="p-3">
+                                        <h3 className="font-medium text-sm mb-1 line-clamp-2">{item.name}</h3>
+                                        <p className="text-mainGreen text-xs mb-2">{item.restaurant}</p>
+                                        <div className="flex items-center justify-between">
+                                            <span className="font-semibold">₮{item.price.toLocaleString()}</span>
+                                            <button className="w-6 h-6 border border-gray-300 rounded flex items-center justify-center hover:border-mainGreen transition-colors">
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="flex justify-center mt-6">
+                            <button className="px-6 py-2 border border-mainGreen text-mainGreen rounded-full text-sm hover:bg-mainGreen hover:text-white transition-colors">
+                                Бүгдийг харах
+                            </button>
+                        </div>
+                    </section>
+
+                    {/* Today's Deals */}
+                    <section className="mb-8">
+                        <h2 className="text-lg md:text-xl font-semibold mb-4 text-center md:text-left">Өнөөдрийн хямдрал</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {deals.map((deal) => (
+                                <div 
+                                    key={deal.id} 
+                                    className="bg-gradient-to-r from-gray-600 to-gray-500 rounded-xl p-4 md:p-6 text-white flex items-center justify-between"
+                                >
+                                    <div>
+                                        <h3 className="font-semibold text-base md:text-lg mb-1">{deal.title}</h3>
+                                        <p className="text-sm text-gray-200">{deal.subtitle}</p>
+                                    </div>
+                                    <div className="flex flex-col items-end gap-2">
+                                        <span className="text-sm font-medium">{deal.discount}</span>
+                                        <button className="bg-mainGreen text-white text-xs px-4 py-2 rounded-full hover:bg-green-600 transition-colors">
+                                            Захиалах
+                                        </button>
                                     </div>
                                 </div>
                             ))}
                         </div>
                     </section>
 
-                    {/* All Restaurants */}
-                    <section>
-                        <h2 className="text-xl font-semibold mb-4">Бүх рестораунууд</h2>
+                    {/* Featured Restaurants */}
+                    <section className="mb-8">
+                        <h2 className="text-lg md:text-xl font-semibold mb-4 text-center md:text-left">Онцлох ресторанууд</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                            {[1, 2, 3, 4, 5, 6, 7, 8].map((item) => (
+                            {restaurants.map((restaurant) => (
                                 <div 
-                                    key={item} 
-                                    className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer flex items-center gap-4"
+                                    key={restaurant.id} 
+                                    className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
                                 >
-                                    <div className="w-16 h-16 bg-gradient-to-br from-orange-100 to-orange-200 rounded-xl flex items-center justify-center flex-shrink-0">
-                                        <span className="text-2xl">🍕</span>
-                                    </div>
-                                    <div>
-                                        <h3 className="font-medium text-sm mb-1">Хоолны газар {item}</h3>
-                                        <p className="text-xs text-gray-500">15-25 мин • ⭐ 4.{item}</p>
+                                    <div className="h-24 md:h-28 bg-gray-300"></div>
+                                    <div className="p-3">
+                                        <h3 className="font-semibold text-sm mb-1">{restaurant.name}</h3>
+                                        <p className="text-gray-500 text-xs mb-2">{restaurant.type}</p>
+                                        <div className="flex items-center justify-between text-xs text-gray-500">
+                                            <div className="flex items-center gap-1">
+                                                <FaRegClock size={12} />
+                                                <span>{restaurant.hours}</span>
+                                            </div>
+                                            <div className="flex items-center gap-1 text-mainGreen">
+                                                <span>★</span>
+                                                <span>{restaurant.rating}</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             ))}
                         </div>
+                        <div className="flex justify-center mt-6">
+                            <button className="px-6 py-2 border border-mainGreen text-mainGreen rounded-full text-sm hover:bg-mainGreen hover:text-white transition-colors">
+                                Бүгдийг харах
+                            </button>
+                        </div>
                     </section>
                 </div>
             </main>
+
+            {/* Footer */}
+            <Footer />
         </div>
     );
 }
