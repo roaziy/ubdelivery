@@ -24,9 +24,10 @@ export default function Home() {
               <input 
                 type="text" 
                 placeholder="Хүргэлт хийх хаяг" 
-                className="flex-1 py-3 px-2 outline-none text-sm"
+                className="flex-1 py-3 px-2 outline-none text-sm select-none"
+                draggable={false}
               />
-              <button className="bg-mainGreen text-white px-6 py-2 mr-2 rounded-full hover:bg-green-600 transition-colors font-medium text-sm">
+              <button className="bg-mainGreen text-white px-6 py-2 mr-2 rounded-full hover:bg-green-600 transition-colors font-medium text-sm select-none" draggable={false}>
                 Хайх
               </button>
             </div>
