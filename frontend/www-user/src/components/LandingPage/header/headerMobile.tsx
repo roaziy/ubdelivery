@@ -52,9 +52,13 @@ export default function HeaderMobile() {
                         >
                             Үйлчилгээний нөхцөл
                         </Link>
-                        <button className="bg-mainGreen text-white px-5 py-2 rounded-full hover:bg-green-600 transition-colors text-sm whitespace-nowrap">
+                        <Link 
+                            href="/login"
+                            onClick={() => setIsMenuOpen(false)}
+                            className="bg-mainGreen text-white px-5 py-2 rounded-full hover:bg-green-600 transition-colors text-sm whitespace-nowrap text-center"
+                        >
                             Нэвтрэх
-                        </button>
+                        </Link>
                     </nav>
                 )}
             </div>

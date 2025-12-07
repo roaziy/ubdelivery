@@ -36,9 +36,12 @@ export default function HeaderDesktop() {
                         Үйлчилгээний нөхцөл
                     </Link>
                 </div>
-                <button className="bg-mainGreen text-white px-7 py-[12px] rounded-full hover:bg-green-600 transition-colors">
+                <Link 
+                    href="/login"
+                    className="bg-mainGreen text-white px-7 py-[12px] rounded-full hover:bg-green-600 transition-colors"
+                >
                     Нэвтрэх
-                </button>
+                </Link>
             </div>
         </div>
     );
