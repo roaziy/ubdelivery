@@ -1,8 +1,8 @@
 import Image from "next/image";
-import { IoLocationSharp } from "react-icons/io5";
 
 import Header from "../components/LandingPage/header/header";
 import Footer from "../components/LandingPage/footer/footer";
+import LocationSearchInput from "../components/LandingPage/LocationSearchInput";
 
 export default function Home() {
   return (
@@ -17,20 +17,7 @@ export default function Home() {
             Хүргэлтийн үйлчилгээг шинэ түвшинд аваачихад бидэнтэй нэгдээрэй.
           </p>
           <div className="md:pl-10 mt-6">
-            <div className="flex items-center bg-white border-1 border-gray-300 rounded-full py-[2px] overflow-hidden max-w-md">
-              <div className="flex items-center pl-4 pr-2">
-                <IoLocationSharp className="text-[#848484]" size={20} />
-              </div>
-              <input 
-                type="text" 
-                placeholder="Хүргэлт хийх хаяг" 
-                className="flex-1 py-3 px-2 outline-none text-sm select-none"
-                draggable={false}
-              />
-              <button className="bg-mainGreen text-white px-6 py-2 mr-2 rounded-full hover:bg-green-600 transition-colors font-medium text-sm select-none" draggable={false}>
-                Хайх
-              </button>
-            </div>
+            <LocationSearchInput />
           </div>
         </div>
         <div className="flex h-full items-center justify-center relative mb-36 md:mb-0">

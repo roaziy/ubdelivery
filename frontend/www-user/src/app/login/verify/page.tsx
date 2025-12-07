@@ -139,6 +139,7 @@ export default function VerifyPage() {
                         <button
                             type="submit"
                             disabled={otp.join('').length < 6}
+                            draggable={false}
                             className="w-full bg-mainGreen text-white py-3 rounded-full hover:bg-green-600 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             Үргэлжлүүлэх
@@ -149,6 +150,7 @@ export default function VerifyPage() {
                             type="button"
                             onClick={handleResend}
                             disabled={!canResend}
+                            draggable={false}
                             className="w-full py-3 border border-gray-300 rounded-full text-sm text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {canResend ? 'Дахин код илгээх' : `Дахин код илгээх: ${countdown} сек`}

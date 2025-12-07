@@ -70,6 +70,7 @@ export default function LoginPage() {
                             <Link 
                                 href="/"
                                 className="flex items-center justify-center gap-1 bg-[#8C8C8C] text-white px-5 py-4 rounded-full hover:bg-neutral-500 transition-colors text-sm"
+                                draggable={false}
                             >
                                 <IoChevronBack size={16} />
                                 БУЦАХ
@@ -78,6 +79,7 @@ export default function LoginPage() {
                                 type="submit"
                                 disabled={phoneNumber.length < 8}
                                 className="flex-1 bg-mainGreen text-white py-4 rounded-full hover:bg-green-600 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                draggable={false}
                             >
                                 Үргэлжлүүлэх
                             </button>
