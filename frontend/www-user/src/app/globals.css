@@ -11,6 +11,7 @@
   --font-sans: var(--font-Montserrat-sans);
   /* --font-mono: var(--font-geist-mono); */
   --color-mainGreen: #58BA5F;
+  --color-mainBlack: #1A1A1A;
 }
 
 @media (prefers-color-scheme: dark) {

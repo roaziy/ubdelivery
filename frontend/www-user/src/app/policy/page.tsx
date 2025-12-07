@@ -1,7 +1,7 @@
 import Header from "@/components/LandingPage/header/header";
 import Footer from "@/components/LandingPage/footer/footer";
 
-export default function collaborate() {
+export default function policy() {
   return (
     <div className="bg-white font-sans flex flex-col min-h-screen">
       <Header />

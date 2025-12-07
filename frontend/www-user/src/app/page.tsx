@@ -20,7 +20,7 @@ export default function Home() {
           </button> */}
         </div>
         <div className="flex h-full items-center justify-center relative ">
-          <div className="absolute w-[300px] h-[300px] bg-[#4bff45] rounded-full blur-3xl opacity-10 ml-20"></div>
+          <div className="absolute w-[200px] h-[200px] md:w-[300px] md:h-[300px] bg-[#4bff45] rounded-full blur-3xl opacity-10 ml-10 md:ml-20"></div>
           <Image
             src="/LandingPage/iphone.png"
             alt="iPhone screenshot"
