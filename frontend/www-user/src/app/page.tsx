@@ -33,7 +33,7 @@ export default function Home() {
             </div>
           </div>
         </div>
-        <div className="flex h-full items-center justify-center relative ">
+        <div className="flex h-full items-center justify-center relative mb-36 md:mb-0">
           <div className="absolute w-[200px] h-[200px] md:w-[300px] md:h-[300px] bg-[#4bff45] rounded-full blur-3xl opacity-10 ml-10 md:ml-20"></div>
           <Image
             src="/LandingPage/iphone.png"
