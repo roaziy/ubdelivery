@@ -17,8 +17,8 @@ export default function Footer() {
                         alt="UB Delivery Logo"
                         width={100}
                         height={100}
-                        draggable={false}
                         className="w-[50px] h-[50px] select-none"
+                        draggable={false}
                     />
                     <div className="flex gap-5 text-[#919191] select-none">
                         <a href="https://www.facebook.com/erkhemtur" target="_blank" rel="noopener noreferrer" aria-label="Facebook" draggable={false}>
