@@ -13,7 +13,7 @@ export default function Footer() {
             <div className="container max-w-[1250px] mx-auto px-4 py-6 flex flex-col md:flex-row justify-between items-center md:items-start gap-8">
                 <div className="flex flex-col gap-[40px] items-center md:items-start">
                     <Image
-                        src="/Logos/logoSmall.svg"
+                        src="/Logos/logosmall.svg"
                         alt="UB Delivery Logo"
                         width={100}
                         height={100}
