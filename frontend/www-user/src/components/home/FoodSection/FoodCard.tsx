@@ -21,6 +21,9 @@ const foodItems: FoodItem[] = [
     { id: 2, name: "Хүн аймар гоё пицза, Хүн аймар гоё пицза", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё пицза нь хүн аймар гоч пицза юм!!!" },
     { id: 3, name: "Хүн аймар гоё пицза, Хүн аймар гоё пицза", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё пицза нь хүн аймар гоч пицза юм!!!" },
     { id: 4, name: "Хүн аймар гоё пицза, Хүн аймар гоё пицза", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё пицза нь хүн аймар гоч пицза юм!!!" },
+    { id: 5, name: "Хүн аймар гоё пицза, Хүн аймар гоё пицза", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё пицза нь хүн аймар гоч пицза юм!!!" },
+    { id: 6, name: "Хүн аймар гоё пицза, Хүн аймар гоё пицза", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё пицза нь хүн аймар гоч пицза юм!!!" },
+    { id: 7, name: "Хүн аймар гоё пицза, Хүн аймар гоё пицза", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё пицза нь хүн аймар гоч пицза юм!!!" },
 ];
 
 export default function FoodCard({ onFoodClick }: FoodCardProps) {

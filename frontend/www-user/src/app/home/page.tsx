@@ -6,7 +6,7 @@ import HeroBanner from "@/components/home/HeroBanner";
 import FoodCategoryFilter from "@/components/home/FoodSection/FoodCategoryFilter";
 import FoodSection from "@/components/home/FoodSection/FoodSection";
 import TodaysDeal from "@/components/home/TodaysDeal";
-import RestaurantCard from "@/components/home/RestaurantCard";
+import RestaurantCard from "@/components/home/restaurant/RestaurantCard";
 
 export default function HomePage() {
     return (
@@ -32,7 +32,7 @@ export default function HomePage() {
                     <FoodSection />
 
                     {/* Today's Deals */}
-                    <section className="mb-8">
+                    <section className="mt-4 mb-16">
                         <h2 className="text-lg md:text-xl font-semibold mb-4 text-center md:text-left">Өнөөдрийн хямдрал</h2>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <TodaysDeal />

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { FaRegClock } from "react-icons/fa";
 import { FaStar } from "react-icons/fa6";
 
@@ -12,9 +13,10 @@ export default function RestaurantCard() {
     return (
         <>
             {restaurants.map((restaurant) => (
-                <div 
-                key={restaurant.id} 
-                className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                <Link 
+                    key={restaurant.id}
+                    href={`/home/restaurants/${restaurant.id}`}
+                    className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow cursor-pointer block"
                 >
                     <div className="relative">
                         <div className="h-24 md:h-28 bg-gray-300 rounded-t-xl"></div>
@@ -34,7 +36,7 @@ export default function RestaurantCard() {
                             </div>
                         </div>
                     </div>
-                </div>
+                </Link>
             ))}
         </>
     )
