@@ -34,8 +34,8 @@ export default function FooterHome() {
                 </div>
                 <div className="flex flex-col items-center md:items-end">
                     <div className="flex flex-col md:flex-row gap-10 md:gap-[51px] text-center md:text-left mt-8 md:mt-0">
-                        <a href="/policy" className="text-white text-[14px] md:text-[16px] hover:text-gray-300 transition-colors select-none" draggable={false}>Нууцлалын бодлого</a>
-                        <a href="/terms" className="text-white text-[14px] md:text-[16px] hover:text-gray-300 transition-colors select-none" draggable={false}>Үйлчилгээний нөхцөл</a>
+                        <a href="/policy" className="text-white text-[14px] md:text-[16px] hover:text-gray-300 transition-colors select-none" target="_blank" rel="noopener noreferrer" draggable={false}>Нууцлалын бодлого</a>
+                        <a href="/terms" className="text-white text-[14px] md:text-[16px] hover:text-gray-300 transition-colors select-none" target="_blank" rel="noopener noreferrer" draggable={false}>Үйлчилгээний нөхцөл</a>
                     </div>
                     <p className="text-white text-[12px] md:text-[14px] font-normal select-none text-center md:text-right mt-12 md:mt-[50px]">Made with ❤️ by <a href="https://www.instagram.com/roaziy" target="_blank" rel="noopener noreferrer">roaziy</a> © 2025</p>
                 </div>
