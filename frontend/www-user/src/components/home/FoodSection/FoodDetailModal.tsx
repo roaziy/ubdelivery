@@ -78,7 +78,7 @@ export default function FoodDetailModal({ food, isOpen, onClose }: FoodDetailMod
                             <p className="text-xs text-gray-500">Нийт үнэ</p>
                             <p className="text-xl font-bold">₮{food.price.toLocaleString()}</p>
                         </div>
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1">
                             <button className="w-10 h-10 border border-gray-300 rounded-lg flex items-center justify-center hover:border-mainGreen transition-colors">
                                 <IoIosRemove size={20} className="text-gray-600" />
                             </button>
