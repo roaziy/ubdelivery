@@ -43,7 +43,7 @@ export default function FoodDetailModal({ food, isOpen, onClose }: FoodDetailMod
                 </button>
 
                 {/* Food Image */}
-                <div className="h-32 md:h-40 bg-gray-400 w-full" />
+                <div className="h-48 md:h-48 bg-gray-400 w-full" />
 
                 {/* Content */}
                 <div className="p-5">
