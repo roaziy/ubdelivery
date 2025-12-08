@@ -1,6 +1,6 @@
 import HeaderHomeTopper from "@/components/home/header/headerHomeTopper";
 import HeaderHomeBottom from "@/components/home/header/headerHomeBottom";
-import FooterHome from "@/components/home/FoodSection/footerHome";
+import FooterHome from "@/components/home/footerHome";
 import RestaurantProfile from "@/components/home/restaurant/RestaurantProfile";
 import RestaurantFoodSection from "@/components/home/restaurant/RestaurantFoodSection";
 

@@ -9,7 +9,7 @@ import { FaInstagram } from "react-icons/fa";
 export default function FooterHome() {
     return (
         <footer className="relative bg-mainBlack pt-24 pb-16 text-white overflow-hidden mt-auto md:block hidden">
-            <div className="absolute top-0 left-0 w-full h-10 bg-white rounded-b-full z-12" />
+            <div className="absolute top-0 left-0 w-full h-10 bg-backgroundGreen rounded-b-full z-12" />
             <div className="container max-w-[1250px] mx-auto px-4 py-6 flex flex-col md:flex-row justify-between items-center md:items-start gap-8">
                 <div className="flex flex-col gap-[40px] items-center md:items-start">
                     <Image

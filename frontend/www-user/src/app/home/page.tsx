@@ -1,4 +1,4 @@
-import FooterHome from "@/components/home/FoodSection/footerHome";
+import FooterHome from "@/components/home/footerHome";
 import HeaderHomeTopper from "@/components/home/header/headerHomeTopper";
 import HeaderHomeBottom from "@/components/home/header/headerHomeBottom";
 
