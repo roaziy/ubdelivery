@@ -1,14 +1,30 @@
+'use client'
+
+import { useState } from "react";
 import FooterHome from "@/components/home/footerHome";
 import HeaderHomeTopper from "@/components/home/header/headerHomeTopper";
 import HeaderHomeBottom from "@/components/home/header/headerHomeBottom";
 
 import HeroBanner from "@/components/home/HeroBanner";
 import FoodCategoryFilter from "@/components/home/FoodCategoryFilter";
-import FoodCard from "@/components/home/FoodCard";
+import FoodCard, { FoodItem } from "@/components/home/FoodCard";
 import TodaysDeal from "@/components/home/TodaysDeal";
 import RestaurantCard from "@/components/home/RestaurantCard";
+import FoodDetailModal from "@/components/home/FoodDetailModal";
 
 export default function HomePage() {
+    const [selectedFood, setSelectedFood] = useState<FoodItem | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const handleFoodClick = (food: FoodItem) => {
+        setSelectedFood(food);
+        setIsModalOpen(true);
+    };
+
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+        setSelectedFood(null);
+    };
 
     return (
         <div className="min-h-screen bg-white flex flex-col">
@@ -32,7 +48,7 @@ export default function HomePage() {
                     {/* Food Items Grid */}
                     <section className="mb-8">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                            <FoodCard />
+                            <FoodCard onFoodClick={handleFoodClick} />
                         </div>
                         <div className="flex justify-center mt-6">
                             <button className="px-6 py-2 border border-mainGreen text-mainGreen rounded-full text-sm hover:bg-mainGreen hover:text-white transition-colors">
@@ -66,6 +82,13 @@ export default function HomePage() {
 
             {/* Footer */}
             <FooterHome />
+
+            {/* Food Detail Modal */}
+            <FoodDetailModal 
+                food={selectedFood}
+                isOpen={isModalOpen}
+                onClose={handleCloseModal}
+            />
         </div>
     );
 }
