@@ -12,6 +12,7 @@
   /* --font-mono: var(--font-geist-mono); */
   --color-mainGreen: #58BA5F;
   --color-mainBlack: #1A1A1A;
+  --color-backgroundGreen: #F7F8F5;
 }
 
 @media (prefers-color-scheme: dark) {

@@ -14,11 +14,12 @@ const restaurantsData: Record<string, {
     reviews: number;
     distance: string;
     phone: string;
+    email: string;
 }> = {
-    "1": { id: 1, name: "The Modern Nomads", type: "Монгол уламжлалт хоол", hours: "21:30 цаг хүртэл", rating: 1.4, reviews: 1, distance: "0.20 км", phone: "+976 9999 9999" },
-    "2": { id: 2, name: "The Modern Nomads", type: "Монгол уламжлалт хоол", hours: "21:30 цаг хүртэл", rating: 1.4, reviews: 1, distance: "0.20 км", phone: "+976 9999 9999" },
-    "3": { id: 3, name: "The Modern Nomads", type: "Монгол уламжлалт хоол", hours: "21:30 цаг хүртэл", rating: 1.4, reviews: 1, distance: "0.20 км", phone: "+976 9999 9999" },
-    "4": { id: 4, name: "The Modern Nomads", type: "Монгол уламжлалт хоол", hours: "21:30 цаг хүртэл", rating: 1.4, reviews: 1, distance: "0.20 км", phone: "+976 9999 9999" },
+    "1": { id: 1, name: "The Modern Nomads", type: "Монгол уламжлалт хоол", hours: "21:30 цаг хүртэл", rating: 1.4, reviews: 1, distance: "0.20 км", phone: "+976 9999 9999", email: "info@modernnomads.mn" },
+    "2": { id: 2, name: "The Modern Nomads", type: "Монгол уламжлалт хоол", hours: "21:30 цаг хүртэл", rating: 1.4, reviews: 1, distance: "0.20 км", phone: "+976 9999 9999", email: "info@modernnomads.mn" },
+    "3": { id: 3, name: "The Modern Nomads", type: "Монгол уламжлалт хоол", hours: "21:30 цаг хүртэл", rating: 1.4, reviews: 1, distance: "0.20 км", phone: "+976 9999 9999", email: "info@modernnomads.mn" },
+    "4": { id: 4, name: "The Modern Nomads", type: "Монгол уламжлалт хоол", hours: "21:30 цаг хүртэл", rating: 1.4, reviews: 1, distance: "0.20 км", phone: "+976 9999 9999", email: "info@modernnomads.mn" },
 };
 
 interface PageProps {
@@ -30,7 +31,7 @@ export default async function RestaurantDetailPage({ params }: PageProps) {
     const restaurant = restaurantsData[id] || restaurantsData["1"];
 
     return (
-        <div className="min-h-screen bg-white flex flex-col">
+        <div className="min-h-screen bg-backgroundGreen flex flex-col">
             <HeaderHomeTopper />
             <HeaderHomeBottom />
 

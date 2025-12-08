@@ -5,7 +5,7 @@ import FooterHome from "@/components/home/FoodSection/footerHome"
 
 export default function FoodsPage() {
     return (
-        <div className="min-h-screen bg-white flex flex-col">
+        <div className="min-h-screen bg-backgroundGreen flex flex-col">
             <HeaderHomeTopper />
             <HeaderHomeBottom />
             <FooterHome />

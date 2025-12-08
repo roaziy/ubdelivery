@@ -44,7 +44,7 @@ export default function RestaurantFoodSection({ restaurantName }: RestaurantFood
             {/* Food Categories */}
             <section className="mb-6">
                 <h2 className="text-lg md:text-xl font-semibold mb-4 text-center">Хоолны ангилалууд</h2>
-                <div className="flex flex-wrap justify-center gap-2 md:gap-3">
+                <div className="flex flex-wrap justify-center gap-2 md:gap-3 w-[250px] md:w-[500px] items-center mx-auto">
                     {categories.map((category, index) => (
                         <button 
                             key={index}

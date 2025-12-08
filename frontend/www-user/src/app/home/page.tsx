@@ -10,7 +10,7 @@ import RestaurantCard from "@/components/home/restaurant/RestaurantCard";
 
 export default function HomePage() {
     return (
-        <div className="min-h-screen bg-white flex flex-col">
+        <div className="min-h-screen bg-backgroundGreen flex flex-col">
             {/* Desktop Header */}
             <HeaderHomeTopper />
             {/* Mobile Header Placeholder */}

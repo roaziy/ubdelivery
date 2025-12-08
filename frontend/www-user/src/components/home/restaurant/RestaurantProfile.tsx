@@ -1,7 +1,8 @@
 'use client'
 
+import { useState } from "react";
 import { FaStar, FaPhone } from "react-icons/fa6";
-import { IoLocationOutline, IoTimeOutline } from "react-icons/io5";
+import { IoLocationOutline, IoTimeOutline, IoClose, IoMail } from "react-icons/io5";
 
 interface Restaurant {
     id: number;
@@ -12,6 +13,7 @@ interface Restaurant {
     reviews: number;
     distance: string;
     phone: string;
+    email?: string;
 }
 
 interface RestaurantProfileProps {
@@ -19,11 +21,13 @@ interface RestaurantProfileProps {
 }
 
 export default function RestaurantProfile({ restaurant }: RestaurantProfileProps) {
+    const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+
     return (
         <section className="mb-8">
             {/* Desktop Layout */}
             <div className="hidden md:block">
-                <div className="relative h-[200px] bg-gray-400 rounded-2xl overflow-hidden">
+                <div className="relative h-[200px] md:h-[300px] bg-gray-400 rounded-2xl overflow-hidden">
                     {/* Restaurant Info Overlay */}
                     <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
                         <div className="flex items-center gap-4">
@@ -33,7 +37,10 @@ export default function RestaurantProfile({ restaurant }: RestaurantProfileProps
                             </div>
                         </div>
                         <div className="flex items-center gap-3">
-                            <button className="w-10 h-10 bg-mainGreen rounded-full flex items-center justify-center hover:bg-green-600 transition-colors">
+                            <button 
+                                className="w-10 h-10 bg-mainGreen rounded-full flex items-center justify-center hover:bg-green-600 transition-colors"
+                                onClick={() => setIsContactModalOpen(true)}
+                            >
                                 <FaPhone className="text-white" size={16} />
                             </button>
                             <div className="flex gap-2">
@@ -77,7 +84,7 @@ export default function RestaurantProfile({ restaurant }: RestaurantProfileProps
                 </div>
 
                 {/* Info Cards */}
-                <div className="flex justify-center gap-4 mb-4">
+                <div className="flex justify-center gap-4 mb-4 border border-[#D8D9D7] bg-white py-4 rounded-xl">
                     <div className="text-center">
                         <div className="flex items-center justify-center gap-1 text-sm font-medium">
                             <FaStar className="text-yellow-500" size={12} />
@@ -102,10 +109,58 @@ export default function RestaurantProfile({ restaurant }: RestaurantProfileProps
                 </div>
 
                 {/* Contact Button */}
-                <button className="w-full bg-mainGreen text-white py-3 rounded-full font-medium hover:bg-green-600 transition-colors flex items-center justify-center gap-2">
+                <button 
+                    className="w-full bg-mainGreen text-white py-3 rounded-full font-medium hover:bg-green-600 transition-colors flex items-center justify-center gap-2"
+                    onClick={() => setIsContactModalOpen(true)}
+                >
                     Холбоо барих
                 </button>
             </div>
+
+            {/* Contact Modal */}
+            {isContactModalOpen && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setIsContactModalOpen(false)}>
+                    <div 
+                        className="bg-white rounded-2xl p-6 w-full max-w-md relative"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button 
+                            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+                            onClick={() => setIsContactModalOpen(false)}
+                        >
+                            <IoClose size={24} />
+                        </button>
+                        
+                        <h2 className="text-xl font-bold mb-6 text-center">Холбоо барих</h2>
+                        
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
+                                <div className="max-w-12 max-h-12 p-3 bg-mainGreen/10 rounded-full flex items-center justify-center">
+                                    <FaPhone className="text-mainGreen" size={20} />
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-500">Утасны дугаар</p>
+                                    <a href={`tel:${restaurant.phone}`} className="font-medium text-lg hover:text-mainGreen transition-colors text-sm md:text-lg">
+                                        {restaurant.phone}
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
+                                <div className="max-w-12 max-h-12 p-3 bg-mainGreen/10 rounded-full flex items-center justify-center">
+                                    <IoMail className="text-mainGreen" size={20} />
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-500">Имэйл хаяг</p>
+                                    <a href={`mailto:${restaurant.email || 'info@restaurant.mn'}`} className="font-medium text-sm md:text-lg hover:text-mainGreen transition-colors">
+                                        {restaurant.email || 'info@ubdelivery.xyz'}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </section>
     );
 }
