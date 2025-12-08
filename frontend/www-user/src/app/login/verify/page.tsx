@@ -129,7 +129,7 @@ export default function VerifyPage() {
                                     value={digit}
                                     onChange={(e) => handleOtpChange(index, e.target.value)}
                                     onKeyDown={(e) => handleKeyDown(index, e)}
-                                    className="w-[46px] h-[54px] text-center text-lg font-semibold border border-gray-300 rounded-full outline-none focus:border-mainGreen focus:ring-1 focus:ring-mainGreen transition-all"
+                                    className="w-[46px] h-[54px] bg-white text-center text-lg font-semibold border border-gray-300 rounded-full outline-none focus:border-mainGreen focus:ring-1 focus:ring-mainGreen transition-all"
                                     maxLength={1}
                                 />
                             ))}

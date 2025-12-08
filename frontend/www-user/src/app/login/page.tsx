@@ -52,7 +52,7 @@ export default function LoginPage() {
                     {/* Phone Input */}
                     <form onSubmit={handleSubmit} className="w-full space-y-6 mt-4">
                         <div className="relative">
-                            <div className="flex items-center border border-gray-300 rounded-full px-4 py-4">
+                            <div className="flex items-center border border-gray-300 bg-white rounded-full px-4 py-4">
                                 <span className="text-gray-500 mr-2"><FaPhoneAlt size={13}/></span>
                                 <input
                                     type="tel"
