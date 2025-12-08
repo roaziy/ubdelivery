@@ -14,6 +14,7 @@ export interface FoodItem {
 
 interface FoodCardProps {
     onFoodClick?: (food: FoodItem) => void;
+    limit?: number;
 }
 
 const foodItems: FoodItem[] = [
@@ -26,10 +27,12 @@ const foodItems: FoodItem[] = [
     { id: 7, name: "Хүн аймар гоё пицза, Хүн аймар гоё пицза", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё пицза нь хүн аймар гоч пицза юм!!!" },
 ];
 
-export default function FoodCard({ onFoodClick }: FoodCardProps) {
+export default function FoodCard({ onFoodClick, limit }: FoodCardProps) {
+    const displayItems = limit ? foodItems.slice(0, limit) : foodItems;
+    
     return (
         <>
-            {foodItems.map((item) => (
+            {displayItems.map((item) => (
                 <div 
                     key={item.id} 
                     className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"

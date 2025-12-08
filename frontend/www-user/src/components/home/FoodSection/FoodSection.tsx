@@ -26,7 +26,7 @@ export default function FoodSection({ onViewAll }: FoodSectionProps) {
         <>
             <section className="mb-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <FoodCard onFoodClick={handleFoodClick} />
+                    <FoodCard onFoodClick={handleFoodClick} limit={4} />
                 </div>
                 <div className="flex justify-center mt-6">
                     <a 
