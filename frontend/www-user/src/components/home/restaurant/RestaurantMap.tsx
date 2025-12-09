@@ -1,13 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Restaurant } from '@/lib/types';
 import { FaStar, FaRegClock } from 'react-icons/fa';
 import Link from 'next/link';
 
 // Custom marker icon using Tailwind-compatible inline styles
 const createCustomIcon = (isOpen: boolean, L: any) => {
-    const bgColor = isOpen ? '#10b981' : '#ef4444'; // Tailwind green-500 / red-500
+    const bgColor = isOpen ? '#10b981' : '#ef4444';
     return L.divIcon({
         className: '',
         html: `
@@ -51,28 +51,72 @@ interface RestaurantMapProps {
 export default function RestaurantMap({ restaurants }: RestaurantMapProps) {
     const [isMounted, setIsMounted] = useState(false);
     const [leafletModules, setLeafletModules] = useState<any>(null);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        // Dynamically import leaflet modules only on client side
-        Promise.all([
-            import('react-leaflet'),
-            import('leaflet'),
-            // import('leaflet/dist/leaflet.css')
-        ]).then(([reactLeaflet, leaflet]) => {
-            setLeafletModules({
-                MapContainer: reactLeaflet.MapContainer,
-                TileLayer: reactLeaflet.TileLayer,
-                Marker: reactLeaflet.Marker,
-                Popup: reactLeaflet.Popup,
-                L: leaflet.default
-            });
-            setIsMounted(true);
-        });
+        let isCancelled = false;
+
+        const loadLeaflet = async () => {
+            try {
+                // Load CSS file
+                if (typeof window !== 'undefined' && !document.querySelector('link[href*="leaflet.css"]')) {
+                    const link = document.createElement('link');
+                    link.rel = 'stylesheet';
+                    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+                    link.integrity = 'sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=';
+                    link.crossOrigin = '';
+                    document.head.appendChild(link);
+                }
+
+                const [reactLeaflet, leaflet] = await Promise.all([
+                    import('react-leaflet'),
+                    import('leaflet')
+                ]);
+
+                if (!isCancelled) {
+                    setLeafletModules({
+                        MapContainer: reactLeaflet.MapContainer,
+                        TileLayer: reactLeaflet.TileLayer,
+                        Marker: reactLeaflet.Marker,
+                        Popup: reactLeaflet.Popup,
+                        L: leaflet.default
+                    });
+                    setIsMounted(true);
+                }
+            } catch (err) {
+                if (!isCancelled) {
+                    console.error('Error loading Leaflet:', err);
+                    setError('Газрын зураг ачаалахад алдаа гарлаа');
+                }
+            }
+        };
+
+        loadLeaflet();
+
+        return () => {
+            isCancelled = true;
+        };
     }, []);
+
+    if (error) {
+        return (
+            <div className="w-full h-full flex items-center justify-center bg-gray-100 rounded-2xl">
+                <div className="text-center p-8">
+                    <p className="text-red-600 text-lg font-medium mb-2">{error}</p>
+                    <button 
+                        onClick={() => window.location.reload()}
+                        className="mt-4 px-4 py-2 bg-mainGreen text-white rounded-lg hover:bg-green-600 transition-colors"
+                    >
+                        Дахин оролдох
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     if (!isMounted || !leafletModules) {
         return (
-            <div className="w-full h-full flex items-center justify-center bg-gray-100">
+            <div className="w-full h-full flex items-center justify-center bg-gray-100 rounded-2xl">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-mainGreen mx-auto mb-4"></div>
                     <p className="text-gray-600">Газрын зураг ачаалж байна...</p>
@@ -99,7 +143,7 @@ export default function RestaurantMap({ restaurants }: RestaurantMapProps) {
 
     if (restaurantsWithCoords.length === 0) {
         return (
-            <div className="w-full h-full flex items-center justify-center bg-gray-100">
+            <div className="w-full h-full flex items-center justify-center bg-gray-100 rounded-2xl">
                 <div className="text-center">
                     <p className="text-gray-600 text-lg font-medium">Газрын зураг дээр харуулах ресторан олдсонгүй</p>
                     <p className="text-gray-500 text-sm mt-2">Байршлын мэдээлэлтэй ресторан одоогоор байхгүй байна</p>
@@ -109,16 +153,35 @@ export default function RestaurantMap({ restaurants }: RestaurantMapProps) {
     }
 
     return (
-        <MapContainer
-            center={center}
-            zoom={13}
-            scrollWheelZoom={true}
-            style={{ height: '100%', width: '100%', borderRadius: '1rem' }}
-        >
-            <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
+        <>
+            <style jsx global>{`
+                .leaflet-container {
+                    background: #f5f5f5;
+                }
+                .leaflet-popup-content-wrapper {
+                    border-radius: 12px;
+                    padding: 0;
+                    overflow: hidden;
+                }
+                .leaflet-popup-content {
+                    margin: 0;
+                }
+                .leaflet-popup-tip {
+                    display: none;
+                }
+            `}</style>
+            <MapContainer
+                center={center}
+                zoom={13}
+                scrollWheelZoom={true}
+                style={{ height: '100%', width: '100%', borderRadius: '1rem' }}
+            >
+                <TileLayer
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    maxZoom={19}
+                    minZoom={10}
+                />
             {restaurantsWithCoords.map((restaurant) => (
                 <Marker
                     key={restaurant.id}
@@ -171,6 +234,7 @@ export default function RestaurantMap({ restaurants }: RestaurantMapProps) {
                     </Popup>
                 </Marker>
             ))}
-        </MapContainer>
+            </MapContainer>
+        </>
     );
 }

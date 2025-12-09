@@ -9,12 +9,20 @@ import { FaCartShopping } from "react-icons/fa6";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import dynamic from 'next/dynamic';
+
+const LocationPickerModal = dynamic(() => import('../restaurant/LocationPickerModal'), {
+    ssr: false,
+});
 
 export default function HeaderDesktop() {
     const pathname = usePathname();        
     const router = useRouter();
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [cartItemCount, setCartItemCount] = useState(0);
+    const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+    const [selectedLocation, setSelectedLocation] = useState('Улаанбаатар');
+    const [locationCoordinates, setLocationCoordinates] = useState<{ lat: number; lng: number } | null>(null);
 
     useEffect(() => {
         // Check if user is logged in
@@ -97,10 +105,13 @@ export default function HeaderDesktop() {
 
                 {/* Location & Profile */}
                 <div className="items-center gap-4 flex select-none" draggable={false}>
-                    <div className="hidden md:flex items-center gap-2 text-sm text-gray-600">
+                    <button
+                        onClick={() => setIsLocationModalOpen(true)}
+                        className="hidden md:flex items-center gap-2 text-sm text-gray-600 hover:text-mainGreen transition-colors p-[6px] rounded-full hover:bg-green-50 border border-mainGreen"
+                    >
                         <IoLocationSharp className="text-mainGreen" size={20} />
-                        <span>Улаанбаатар</span>
-                    </div>
+                        {/* <span>{selectedLocation}</span> */}
+                    </button>
                     <Link 
                         href="/home/cart" 
                         draggable={false}
@@ -122,6 +133,25 @@ export default function HeaderDesktop() {
                     </Link>
                 </div>
             </div>
+
+            {/* Location Picker Modal */}
+            <LocationPickerModal
+                isOpen={isLocationModalOpen}
+                onClose={() => setIsLocationModalOpen(false)}
+                selectedLocation={selectedLocation}
+                onLocationSelect={(address, coordinates) => {
+                    setSelectedLocation(address);
+                    if (coordinates) {
+                        setLocationCoordinates(coordinates);
+                        // Store coordinates in sessionStorage for backend API calls
+                        sessionStorage.setItem('userLocation', JSON.stringify({
+                            address,
+                            coordinates
+                        }));
+                        console.log('Location selected:', { address, coordinates });
+                    }
+                }}
+            />
         </header>
     )
 }

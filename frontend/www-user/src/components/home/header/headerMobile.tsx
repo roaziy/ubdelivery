@@ -4,13 +4,21 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { IoMenu } from "react-icons/io5";
-import { FiShoppingCart } from "react-icons/fi";
+import { IoLocationSharp } from "react-icons/io5";
 import { IoPersonCircle } from "react-icons/io5";
 import { useState } from "react";
+import dynamic from 'next/dynamic';
+
+const LocationPickerModal = dynamic(() => import('../restaurant/LocationPickerModal'), {
+    ssr: false,
+});
 
 export default function HeaderMobile() {
     const pathname = usePathname();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+    const [selectedLocation, setSelectedLocation] = useState('Улаанбаатар');
+    const [locationCoordinates, setLocationCoordinates] = useState<{ lat: number; lng: number } | null>(null);
 
     return (
         <div className="md:hidden">
@@ -27,9 +35,12 @@ export default function HeaderMobile() {
                         />
                     </Link>
                     <div className="flex items-center gap-3">
-                        <Link href="/home/settings" className="text-mainGreen hidden md:block">
-                            <IoPersonCircle size={28} />
-                        </Link>
+                        <button
+                            onClick={() => setIsLocationModalOpen(true)}
+                            className="flex items-center gap-2 text-gray-600 hover:text-mainGreen transition-colors p-[6px] rounded-full hover:bg-green-50 border border-mainGreen"
+                        >
+                            <IoLocationSharp className="text-mainGreen" size={20} />
+                        </button>
                         <button 
                             onClick={() => setIsMenuOpen(!isMenuOpen)}
                             className="text-mainGreen"
@@ -84,6 +95,25 @@ export default function HeaderMobile() {
                     </nav>
                 )}
             </div>
+
+            {/* Location Picker Modal */}
+            <LocationPickerModal
+                isOpen={isLocationModalOpen}
+                onClose={() => setIsLocationModalOpen(false)}
+                selectedLocation={selectedLocation}
+                onLocationSelect={(address, coordinates) => {
+                    setSelectedLocation(address);
+                    if (coordinates) {
+                        setLocationCoordinates(coordinates);
+                        // Store coordinates in sessionStorage for backend API calls
+                        sessionStorage.setItem('userLocation', JSON.stringify({
+                            address,
+                            coordinates
+                        }));
+                        console.log('Location selected:', { address, coordinates });
+                    }
+                }}
+            />
         </div>
     );
 }
