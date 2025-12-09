@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { IoLocationSharp, IoSearch, IoPersonCircle } from "react-icons/io5";
-import { FiShoppingCart } from "react-icons/fi";
+import { FaCartShopping } from "react-icons/fa6";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
@@ -12,6 +12,7 @@ export default function HeaderDesktop() {
     const pathname = usePathname();        
     const router = useRouter();
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [cartItemCount, setCartItemCount] = useState(0);
 
     useEffect(() => {
         // Check if user is logged in
@@ -20,6 +21,20 @@ export default function HeaderDesktop() {
             router.push('/login');
         } else {
             setIsLoggedIn(true);
+        }
+
+        // Get cart restaurant groups count (count by restaurant, not individual items)
+        const cartData = sessionStorage.getItem('cartRestaurants');
+        if (cartData) {
+            try {
+                const restaurants = JSON.parse(cartData);
+                // Count unique restaurants in cart
+                setCartItemCount(restaurants.length || 0);
+            } catch {
+                setCartItemCount(2); // Default mock count (2 restaurants)
+            }
+        } else {
+            setCartItemCount(2); // Default mock count for demo (2 restaurants)
         }
     }, [router]);
 
@@ -88,7 +103,12 @@ export default function HeaderDesktop() {
                         href="/home/cart" 
                         className="relative p-2 hover:bg-gray-100 rounded-full transition-colors"
                     >
-                        <FiShoppingCart className="text-gray-700" size={24} />
+                        <FaCartShopping className="text-gray-700" size={24} />
+                        {cartItemCount > 0 && (
+                            <span className="absolute -top-1 -right-1 bg-mainGreen text-white text-xs w-5 h-5 flex items-center justify-center rounded-full font-medium">
+                                {cartItemCount > 99 ? '99+' : cartItemCount}
+                            </span>
+                        )}
                     </Link>
                     <Link 
                         href="/home/settings"
