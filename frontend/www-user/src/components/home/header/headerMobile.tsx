@@ -45,7 +45,7 @@ export default function HeaderMobile() {
                             href="/home" 
                             draggable={false}
                             onClick={() => setIsMenuOpen(false)}
-                            className={`transition-all ${pathname === '/home' ? 'text-mainGreen' : 'text-gray-900 hover:text-gray-800'}`}
+                            className={`transition-all ${pathname === '/home' ? 'text-mainGreen' : 'text-gray-900 hover:text-[#8c8c8c]'}`}
                         >
                             Нүүр
                         </Link>
@@ -53,7 +53,7 @@ export default function HeaderMobile() {
                             href="/home/restaurants" 
                             draggable={false}
                             onClick={() => setIsMenuOpen(false)}
-                            className={`transition-all ${pathname === '/home/restaurants' ? 'text-mainGreen' : 'text-gray-900 hover:text-gray-800'}`}
+                            className={`transition-all ${pathname === '/home/restaurants' ? 'text-mainGreen' : 'text-gray-900 hover:text-[#8c8c8c]'}`}
                         >
                             Ресторанууд
                         </Link>
@@ -61,7 +61,7 @@ export default function HeaderMobile() {
                             href="/home/foods" 
                             draggable={false}
                             onClick={() => setIsMenuOpen(false)}
-                            className={`transition-all ${pathname === '/home/foods' ? 'text-mainGreen' : 'text-gray-900 hover:text-gray-800'}`}
+                            className={`transition-all ${pathname === '/home/foods' ? 'text-mainGreen' : 'text-gray-900 hover:text-[#8c8c8c]'}`}
                         >
                             Бүх хоол
                         </Link>
@@ -69,7 +69,7 @@ export default function HeaderMobile() {
                             href="/home/cart" 
                             draggable={false}
                             onClick={() => setIsMenuOpen(false)}
-                            className={`transition-all ${pathname === '/home/cart' ? 'text-mainGreen' : 'text-gray-900 hover:text-gray-800'}`}
+                            className={`transition-all ${pathname === '/home/cart' ? 'text-mainGreen' : 'text-gray-900 hover:text-[#8c8c8c]'}`}
                         >
                             Сагс
                         </Link>
@@ -77,7 +77,7 @@ export default function HeaderMobile() {
                             href="/home/settings" 
                             draggable={false}
                             onClick={() => setIsMenuOpen(false)}
-                            className={`transition-all ${pathname === '/home/settings' ? 'text-mainGreen' : 'text-gray-900 hover:text-gray-800'}`}
+                            className={`transition-all ${pathname === '/home/settings' ? 'text-mainGreen' : 'text-gray-900 hover:text-[#8c8c8c]'}`}
                         >
                             Тохиргоо
                         </Link>

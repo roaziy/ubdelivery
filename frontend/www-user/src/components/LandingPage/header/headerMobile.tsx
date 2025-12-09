@@ -40,7 +40,7 @@ export default function HeaderMobile() {
                             href="/collaborate" 
                             draggable={false}
                             onClick={() => setIsMenuOpen(false)}
-                            className={`transition-all ${pathname === '/collaborate' ? 'text-mainGreen' : 'text-gray-900 hover:text-gray-800'}`}
+                            className={`transition-all ${pathname === '/collaborate' ? 'text-mainGreen' : 'text-gray-900 hover:text-[#8c8c8c]'}`}
                         >
                             Хамтран ажиллах
                         </Link>
@@ -48,7 +48,7 @@ export default function HeaderMobile() {
                             href="/terms" 
                             draggable={false}
                             onClick={() => setIsMenuOpen(false)}
-                            className={`transition-all ${pathname === '/terms' ? 'text-mainGreen' : 'text-gray-900 hover:text-gray-800'}`}
+                            className={`transition-all ${pathname === '/terms' ? 'text-mainGreen' : 'text-gray-900 hover:text-[#8c8c8c]'}`}
                         >
                             Үйлчилгээний нөхцөл
                         </Link>

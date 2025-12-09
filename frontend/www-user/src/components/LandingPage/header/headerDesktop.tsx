@@ -24,14 +24,14 @@ export default function HeaderDesktop() {
                     <Link 
                         href="/collaborate" 
                         draggable={false}
-                        className={`transition-all ${pathname === '/collaborate' ? 'text-mainGreen' : 'text-gray-900 hover:text-gray-800'}`}
+                        className={`transition-all ${pathname === '/collaborate' ? 'text-mainGreen' : 'text-gray-900 hover:text-[#8c8c8c]'}`}
                     >
                         Хамтран ажиллах
                     </Link>
                     <Link 
                         href="/terms" 
                         draggable={false}
-                        className={`transition-all ${pathname === '/terms' ? 'text-mainGreen' : 'text-gray-900 hover:text-gray-800'}`}
+                        className={`transition-all ${pathname === '/terms' ? 'text-mainGreen' : 'text-gray-900 hover:text-[#8c8c8c]'}`}
                     >
                         Үйлчилгээний нөхцөл
                     </Link>

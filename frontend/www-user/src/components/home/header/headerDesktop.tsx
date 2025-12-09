@@ -75,21 +75,21 @@ export default function HeaderDesktop() {
                     <Link 
                         href="/home" 
                         draggable={false}
-                        className={`transition-all select-none ${pathname === '/home' ? 'text-mainGreen' : 'text-gray-900 hover:text-gray-800'}`}
+                        className={`transition-all select-none ${pathname === '/home' ? 'text-mainGreen' : 'text-gray-900 hover:text-[#8c8c8c]'}`}
                     >
                         Нүүр
                     </Link>
                     <Link 
                         href="/home/restaurants" 
                         draggable={false}
-                        className={`transition-all select-none ${pathname === '/home/restaurants' ? 'text-mainGreen' : 'text-gray-900 hover:text-gray-800'}`}
+                        className={`transition-all select-none ${pathname === '/home/restaurants' ? 'text-mainGreen' : 'text-gray-900 hover:text-[#8c8c8c]'}`}
                     >
                         Ресторанууд
                     </Link>
                     <Link 
                         href="/home/foods" 
                         draggable={false}
-                        className={`transition-all select-none ${pathname === '/home/foods' ? 'text-mainGreen' : 'text-gray-900 hover:text-gray-800'}`}
+                        className={`transition-all select-none ${pathname === '/home/foods' ? 'text-mainGreen' : 'text-gray-900 hover:text-[#8c8c8c]'}`}
                     >
                         Бүх хоол
                     </Link>
