@@ -36,7 +36,7 @@ export default function DealDetailModal({ deal, isOpen, onClose }: DealDetailMod
         setIsAddingToCart(true);
         try {
             // Add deal items to cart
-            const response = await CartAPI.addDeal(deal.id, quantity);
+            const response = await CartAPI.addDeal(parseInt(deal.id), quantity);
             if (response.success) {
                 notify.success('Амжилттай', `${deal.title} (${quantity}ш) сагсанд нэмэгдлээ`);
                 setQuantity(1);
@@ -85,7 +85,7 @@ export default function DealDetailModal({ deal, isOpen, onClose }: DealDetailMod
                 {/* Content */}
                 <div className="p-5">
                     {/* Restaurant */}
-                    <p className="text-mainGreen text-sm mb-4">{deal.restaurant || "UB Delivery Partner"}</p>
+                    <p className="text-mainGreen text-sm mb-4">{deal.restaurantName || "UB Delivery Partner"}</p>
 
                     {/* Tags */}
                     <div className="flex flex-wrap gap-2 mb-4">
