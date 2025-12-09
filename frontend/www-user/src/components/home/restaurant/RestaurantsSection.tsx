@@ -9,6 +9,19 @@ import { Restaurant } from "@/lib/types";
 import { RestaurantService } from "@/lib/api";
 import { mockRestaurants, simulateDelay } from "@/lib/mockData";
 import { RestaurantCardSkeleton } from "@/components/ui/Skeleton";
+import dynamic from 'next/dynamic';
+
+const RestaurantMap = dynamic(() => import('./RestaurantMap'), {
+    ssr: false,
+    loading: () => (
+        <div className="w-full h-full flex items-center justify-center bg-gray-100">
+            <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-mainGreen mx-auto mb-4"></div>
+                <p className="text-gray-600">Газрын зураг ачаалж байна...</p>
+            </div>
+        </div>
+    ),
+});
 
 function RestaurantCard({ restaurant }: { restaurant: Restaurant }) {
     return (
@@ -318,17 +331,7 @@ export default function RestaurantsSection() {
                 {/* Map View */}
                 {viewMode === 'map' && (
                     <div className="w-full h-[500px] md:h-[600px] bg-gray-100 rounded-2xl overflow-hidden mb-32 md:mb-16">
-                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300">
-                            <div className="text-center">
-                                <div className="w-full h-full relative">
-                                    <div className="absolute inset-0 bg-[url('/map-placeholder.png')] bg-cover bg-center opacity-50"></div>
-                                    <div className="relative z-10 p-8">
-                                        <p className="text-gray-600 text-lg font-medium">Газрын зураг</p>
-                                        <p className="text-gray-500 text-sm mt-2">Ресторануудын байршлыг харах</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        <RestaurantMap restaurants={allRestaurants} />
                     </div>
                 )}
             </section>

@@ -35,6 +35,10 @@ export interface Restaurant {
     deliveryTime: string;
     deliveryFee: number;
     minOrder: number;
+    coordinates?: {
+        lat: number;
+        lng: number;
+    };
 }
 
 // Food/Menu types

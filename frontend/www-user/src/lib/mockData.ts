@@ -26,6 +26,7 @@ export const mockRestaurants: Restaurant[] = [
         deliveryTime: '30-45 мин',
         deliveryFee: 3000,
         minOrder: 15000,
+        coordinates: { lat: 47.9187, lng: 106.9177 },
     },
     { 
         id: '2', 
@@ -39,6 +40,7 @@ export const mockRestaurants: Restaurant[] = [
         deliveryTime: '25-40 мин',
         deliveryFee: 2500,
         minOrder: 20000,
+        coordinates: { lat: 47.9215, lng: 106.9225 },
     },
     { 
         id: '3', 
@@ -52,6 +54,7 @@ export const mockRestaurants: Restaurant[] = [
         deliveryTime: '35-50 мин',
         deliveryFee: 3500,
         minOrder: 25000,
+        coordinates: { lat: 47.9165, lng: 106.9135 },
     },
     { 
         id: '4', 
@@ -65,6 +68,7 @@ export const mockRestaurants: Restaurant[] = [
         deliveryTime: '20-30 мин',
         deliveryFee: 2000,
         minOrder: 10000,
+        coordinates: { lat: 47.9195, lng: 106.9155 },
     },
 ];
 
