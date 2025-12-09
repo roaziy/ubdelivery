@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { IoLocationSharp, IoSearch, IoPersonCircle } from "react-icons/io5";
+import { IoLocationSharp, IoSearch } from "react-icons/io5";
+import { FaUserAlt } from "react-icons/fa";
+
 import { FaCartShopping } from "react-icons/fa6";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -94,27 +96,29 @@ export default function HeaderDesktop() {
                 </div>
 
                 {/* Location & Profile */}
-                <div className="items-center gap-4 flex">
+                <div className="items-center gap-4 flex select-none" draggable={false}>
                     <div className="hidden md:flex items-center gap-2 text-sm text-gray-600">
                         <IoLocationSharp className="text-mainGreen" size={20} />
                         <span>Улаанбаатар</span>
                     </div>
                     <Link 
                         href="/home/cart" 
-                        className="relative p-2 hover:bg-gray-100 rounded-full transition-colors"
+                        draggable={false}
+                        className="relative p-2  bg-mainGreen hover:bg-green-600 rounded-full transition-colors"
                     >
-                        <FaCartShopping className="text-gray-700" size={24} />
+                        <FaCartShopping className="text-white" size={18} />
                         {cartItemCount > 0 && (
-                            <span className="absolute -top-1 -right-1 bg-mainGreen text-white text-xs w-5 h-5 flex items-center justify-center rounded-full font-medium">
+                            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-4 h-4 flex items-center justify-center rounded-full font-medium">
                                 {cartItemCount > 99 ? '99+' : cartItemCount}
                             </span>
                         )}
                     </Link>
                     <Link 
                         href="/home/settings"
-                        className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                        className="bg-mainGreen w-[34px] h-[34px] rounded-full transition-colors items-center justify-center flex hover:bg-green-600"
+                        draggable={false}
                     >
-                        <IoPersonCircle className="text-mainGreen" size={36} />
+                        <FaUserAlt className="text-white" size={18} />
                     </Link>
                 </div>
             </div>
