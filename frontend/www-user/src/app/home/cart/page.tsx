@@ -1,11 +1,11 @@
 import HeaderHomeTopper from "@/components/home/header/headerHomeTopper"
 import HeaderHomeBottom from "@/components/home/header/headerHomeBottom"
 import FooterHome from "@/components/home/footerHome"
-import CartSection from "@/components/home/cart/CartSection"
+import CartSection from "@/components/home/cart/ReturnCartSection"
 
 export default function CartPage() {
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col">
+        <div className="min-h-screen bg-backgroundGreen flex flex-col">
             <HeaderHomeTopper />
             <HeaderHomeBottom />
 
