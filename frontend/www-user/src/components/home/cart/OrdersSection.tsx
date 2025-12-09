@@ -49,9 +49,9 @@ export default function OrdersSection({ onViewTracking }: OrdersSectionProps) {
         onViewTracking(orderId);
     };
 
-    const goToHistory = () => {
-        router.push('/home/orders');
-    };
+    // const goToHistory = () => {
+    //     router.push('/home/orders');
+    // };
 
     if (isEmpty) {
         return <EmptyOrders />;
@@ -60,15 +60,15 @@ export default function OrdersSection({ onViewTracking }: OrdersSectionProps) {
     return (
         <div>
             {/* History Button */}
-            <div className="flex justify-end mb-4">
+            {/* <div className="relative justify-end mb-4">
                 <button 
                     onClick={goToHistory}
-                    className="flex items-center gap-1 px-4 py-2 border border-gray-300 rounded-full text-sm hover:border-mainGreen transition-colors"
+                    className="absolute top-0 right-0 flex items-center gap-1 px-4 py-2 border border-gray-300 rounded-full text-sm hover:border-mainGreen transition-colors"
                 >
                     <FaRegClock size={14} />
                     Түүх
                 </button>
-            </div>
+            </div> */}
 
             {/* Orders List */}
             {paginatedOrders.map((order) => (

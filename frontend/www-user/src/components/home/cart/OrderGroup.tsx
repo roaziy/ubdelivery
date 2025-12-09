@@ -90,8 +90,9 @@ export default function OrderGroup({ order, onViewDetails, onRate, onCancel, onR
 
     return (
         <div className="mb-6">
+            <div className="w-full h-[1px] bg-[#d9d9d9] mt-4"></div>
             {/* Restaurant Header */}
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center gap-3 mb-4 pt-6">
                 <div className="w-12 h-12 bg-gray-200 rounded-xl flex-shrink-0"></div>
                 <div>
                     <h3 className="font-semibold">{order.restaurantName}</h3>

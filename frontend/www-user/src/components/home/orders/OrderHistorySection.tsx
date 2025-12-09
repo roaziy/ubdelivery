@@ -99,7 +99,8 @@ export default function OrderHistorySection() {
 
             {/* Orders List */}
             {paginatedOrders.map((order) => (
-                <div key={order.id} className="mb-6">
+                <div key={order.id} className="mt-6 mb-6">
+                <div className="w-full h-[1px] bg-[#d9d9d9] mt-6 mb-6"></div>
                     {/* Restaurant Header */}
                     <div className="flex items-center gap-3 mb-4">
                         <div className="w-12 h-12 bg-gray-200 rounded-xl flex-shrink-0"></div>

@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -14,6 +14,7 @@ import PaymentProcessing from "./PaymentProcessing";
 import PaymentSuccess from "./PaymentSuccess";
 import OrdersSection from "./OrdersSection";
 import OrderTracking, { TrackingStatus } from "./OrderTracking";
+import { FaRegClock } from "react-icons/fa6";
 
 // Sample cart data
 const sampleCartData: RestaurantCart[] = [
@@ -50,6 +51,10 @@ type ViewState = 'cart' | 'checkout' | 'confirm' | 'processing' | 'success' | 't
 export default function CartSection() {
     const router = useRouter();
     const [activeTab, setActiveTab] = useState<'cart' | 'orders'>('cart');
+    
+    const goToHistory = () => {
+        router.push('/home/orders');
+    };
     const [cartData, setCartData] = useState<RestaurantCart[]>(sampleCartData);
     const [viewState, setViewState] = useState<ViewState>('cart');
     const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
@@ -170,6 +175,14 @@ export default function CartSection() {
                     <IoChevronBack size={18} />
                 </button>
                 <h1 className="flex text-center text-xl font-semibold">Захиалга</h1>
+                <button 
+                    onClick={goToHistory}
+                    className="absolute right-0 flex items-center gap-1 px-4 py-[10px] border border-gray-300 rounded-full text-sm hover:border-mainGreen transition-colors"
+                >
+                    <FaRegClock size={14} />
+                    Түүх
+                </button>
+
             </div>
 
             {/* Tabs - only show in cart view */}

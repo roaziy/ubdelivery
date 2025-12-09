@@ -103,7 +103,7 @@ export default function OrderTracking({
             </div>
 
             {/* Restaurant Info */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-6 mt-10">
                 <div className="flex items-center gap-3">
                     <div className="w-12 h-12 bg-gray-200 rounded-xl flex-shrink-0"></div>
                     <div>
@@ -131,7 +131,7 @@ export default function OrderTracking({
             {driverName && (
                 <div className="mb-6">
                     <p className="text-sm text-gray-600 mb-2">Хүргэлт хийх ажилтан:</p>
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col md:flex-row gap-3 items-center justify-between">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 bg-gray-300 rounded-full"></div>
                             <div>
@@ -141,7 +141,7 @@ export default function OrderTracking({
                         </div>
                         <button 
                             onClick={onContactDriver}
-                            className="px-4 py-2 bg-mainGreen text-white text-sm rounded-full hover:bg-green-600 transition-colors"
+                            className="px-4 py-2 w-full md:w-[150px] bg-mainGreen text-white text-sm rounded-full hover:bg-green-600 transition-colors"
                         >
                             Холбоо барих
                         </button>
