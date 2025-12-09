@@ -19,9 +19,9 @@ interface ProfileFormProps {
 export default function ProfileForm({ initialData, onLogout, onDeleteAccount }: ProfileFormProps) {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [formData, setFormData] = useState<ProfileFormData>({
-        username: initialData?.username || "ubdelivery хэрэглэгч",
-        email: initialData?.email || "contact@ubdelivery.xyz",
-        eBarimtCode: initialData?.eBarimtCode || "12345678",
+        username: initialData?.username || "",
+        email: initialData?.email || "",
+        eBarimtCode: initialData?.eBarimtCode || "",
     });
 
     const handleChange = (field: keyof ProfileFormData, value: string) => {
@@ -73,7 +73,7 @@ export default function ProfileForm({ initialData, onLogout, onDeleteAccount }: 
                             value={formData.email}
                             onChange={(e) => handleChange('email', e.target.value)}
                             className="w-full px-4 py-3 border border-gray-300 rounded-[13px] text-sm text-center outline-none focus:border-mainGreen"
-                            placeholder="И-Мэйл хаяг"
+                            placeholder="contact@ubdelivery.xyz"
                         />
                     </div>
 
