@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { IoMenu } from "react-icons/io5";
 import { FiShoppingCart } from "react-icons/fi";
+import { IoPersonCircle } from "react-icons/io5";
 import { useState } from "react";
 
 export default function HeaderMobile() {
@@ -26,8 +27,8 @@ export default function HeaderMobile() {
                         />
                     </Link>
                     <div className="flex items-center gap-3">
-                        <Link href="/home/cart" className="hidden md:block text-gray-700">
-                            <FiShoppingCart size={24} />
+                        <Link href="/home/settings" className="text-mainGreen">
+                            <IoPersonCircle size={28} />
                         </Link>
                         <button 
                             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -71,6 +72,14 @@ export default function HeaderMobile() {
                             className={`transition-all ${pathname === '/home/cart' ? 'text-mainGreen' : 'text-gray-900 hover:text-gray-800'}`}
                         >
                             Сагс
+                        </Link>
+                        <Link 
+                            href="/home/settings" 
+                            draggable={false}
+                            onClick={() => setIsMenuOpen(false)}
+                            className={`transition-all ${pathname === '/home/settings' ? 'text-mainGreen' : 'text-gray-900 hover:text-gray-800'}`}
+                        >
+                            Тохиргоо
                         </Link>
                     </nav>
                 )}

@@ -23,12 +23,6 @@ export default function HeaderDesktop() {
         }
     }, [router]);
 
-    const handleLogout = () => {
-        sessionStorage.removeItem('isLoggedIn');
-        sessionStorage.removeItem('phoneNumber');
-        router.push('/');
-    };
-
     if (!isLoggedIn) {
         return null; // or loading spinner
     }
@@ -96,15 +90,12 @@ export default function HeaderDesktop() {
                     >
                         <FiShoppingCart className="text-gray-700" size={24} />
                     </Link>
-                    <div className="flex items-center gap-2">
-                        <button 
-                            onClick={handleLogout}
-                            className="text-sm text-gray-600 hover:text-mainGreen transition-colors"
-                        >
-                            Гарах
-                        </button>
-                        <IoPersonCircle className="text-mainGreen hidden md:flex" size={36} />
-                    </div>
+                    <Link 
+                        href="/home/settings"
+                        className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                    >
+                        <IoPersonCircle className="text-mainGreen" size={36} />
+                    </Link>
                 </div>
             </div>
         </header>
