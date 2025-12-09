@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { IoChevronBack, IoClose, IoMail } from "react-icons/io5";
 import { FaPhone } from "react-icons/fa6";
+import { useNotifications } from "@/components/ui/Notification";
 
 // Import sub-components
 import EmptyCart from "./EmptyCart";
@@ -59,6 +60,7 @@ const driverInfo = {
 
 export default function CartSection() {
     const router = useRouter();
+    const notify = useNotifications();
     const [activeTab, setActiveTab] = useState<'cart' | 'orders'>('cart');
     const [isDriverContactOpen, setIsDriverContactOpen] = useState(false);
     
@@ -106,6 +108,7 @@ export default function CartSection() {
 
     const handleOrder = () => {
         setViewState('checkout');
+        notify.info('Захиалга', 'Хүргэлтийн мэдээллээ бөглөнө үү');
     };
 
     const handlePayment = () => {
@@ -114,8 +117,10 @@ export default function CartSection() {
 
     const handleConfirmPayment = () => {
         setViewState('processing');
+        notify.info('Төлбөр', 'Төлбөр боловсруулагдаж байна...');
         setTimeout(() => {
             setViewState('success');
+            notify.success('Амжилттай', 'Таны захиалга амжилттай баталгаажлаа!');
         }, 3000);
     };
 

@@ -4,10 +4,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { useNotifications } from "@/components/ui/Notification";
 import Footer from "../../../components/LandingPage/footer/footer";
 
 export default function VerifyPage() {
     const router = useRouter();
+    const notify = useNotifications();
     const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
     const [phoneNumber, setPhoneNumber] = useState("");
     const [countdown, setCountdown] = useState(59);
@@ -76,7 +78,10 @@ export default function VerifyPage() {
             // For demo purposes, accept any 6-digit code
             // In production, you would verify with your backend
             sessionStorage.setItem('isLoggedIn', 'true');
+            notify.success('Амжилттай', 'Нэвтрэлт амжилттай боллоо');
             router.push('/home');
+        } else {
+            notify.error('Алдаа', 'Код буруу байна');
         }
     };
 
@@ -84,6 +89,7 @@ export default function VerifyPage() {
         if (canResend) {
             setCountdown(59);
             setCanResend(false);
+            notify.info('Код илгээгдлээ', 'Шинэ код таны утас руу илгээгдлээ');
             // Here you would call your API to resend the OTP
         }
     };

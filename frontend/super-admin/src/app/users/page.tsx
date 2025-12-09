@@ -6,8 +6,10 @@ import AdminLayout from '@/components/layout/AdminLayout';
 import { User } from '@/types';
 import { UserService } from '@/lib/services';
 import { mockUsers } from '@/lib/mockData';
+import { useNotifications } from '@/components/ui/Notification';
 
 export default function UsersPage() {
+  const notify = useNotifications();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -26,13 +28,15 @@ export default function UsersPage() {
     fetchData();
   }, []);
 
-  const handleToggleStatus = async (id: string, currentStatus: string) => {
+  const handleToggleStatus = async (id: string, currentStatus: string, userName: string) => {
     if (currentStatus === 'active') {
       await UserService.suspendUser(id);
       setUsers((prev) => prev.map((u) => u.id === id ? { ...u, status: 'suspended' as const } : u));
+      notify.warning('Түдгэлзүүлсэн', `${userName} хэрэглэгч түдгэлзүүлэгдлээ`);
     } else {
       await UserService.activateUser(id);
       setUsers((prev) => prev.map((u) => u.id === id ? { ...u, status: 'active' as const } : u));
+      notify.success('Идэвхжүүлсэн', `${userName} хэрэглэгч идэвхжүүлэгдлээ`);
     }
   };
 
@@ -131,7 +135,7 @@ export default function UsersPage() {
                     </td>
                     <td className="py-3 px-4">
                       <button
-                        onClick={() => handleToggleStatus(user.id, user.status)}
+                        onClick={() => handleToggleStatus(user.id, user.status, user.name)}
                         className={`p-2 rounded-full ${
                           user.status === 'active'
                             ? 'bg-red-100 text-red-500 hover:bg-red-200'

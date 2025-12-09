@@ -3,10 +3,12 @@
 import { useState } from 'react';
 import { FiSave } from 'react-icons/fi';
 import AdminLayout from '@/components/layout/AdminLayout';
+import { useNotifications } from '@/components/ui/Notification';
 
 export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [activeSection, setActiveSection] = useState<'profile' | 'platform'>('profile');
+  const notify = useNotifications();
   
   const [profileData, setProfileData] = useState({
     name: 'Admin User',
@@ -27,7 +29,7 @@ export default function SettingsPage() {
     setSaving(true);
     await new Promise((resolve) => setTimeout(resolve, 1000));
     setSaving(false);
-    alert('Тохиргоо амжилттай хадгалагдлаа!');
+    notify.success('Амжилттай', 'Тохиргоо амжилттай хадгалагдлаа');
   };
 
   return (

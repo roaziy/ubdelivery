@@ -6,10 +6,12 @@ import { IoLocationSharp, IoCall, IoNavigate, IoCheckmarkCircle } from 'react-ic
 import { MdRestaurant } from 'react-icons/md';
 import { mockAvailableOrders, formatCurrency, formatTimeAgo } from '@/lib/mockData';
 import { DeliveryOrder } from '@/types';
+import { useNotifications } from '@/components/ui/Notification';
 
 type DeliveryTab = 'available' | 'active';
 
 export default function DeliveriesPage() {
+    const notify = useNotifications();
     const [activeTab, setActiveTab] = useState<DeliveryTab>('available');
     const [availableOrders] = useState(mockAvailableOrders);
     const [activeDelivery, setActiveDelivery] = useState<DeliveryOrder | null>(null);
@@ -19,14 +21,22 @@ export default function DeliveriesPage() {
         setActiveDelivery(order);
         setActiveTab('active');
         setDeliveryStep('pickup');
+        notify.success('Захиалга хүлээн авлаа', `${order.restaurantName} руу очно уу`);
+    };
+
+    const handleDeclineOrder = (orderId: string) => {
+        notify.info('Татгалзлаа', 'Захиалга татгалзлаа');
+        // TODO: API call
     };
 
     const handlePickedUp = () => {
         setDeliveryStep('delivering');
+        notify.success('Хоол авлаа', 'Хэрэглэгч рүү хүргэнэ үү');
         // TODO: API call
     };
 
     const handleDelivered = () => {
+        notify.success('Хүргэлт дууслаа', 'Орлого: ₮' + formatCurrency(activeDelivery?.deliveryFee || 0));
         setActiveDelivery(null);
         setActiveTab('available');
         // TODO: API call

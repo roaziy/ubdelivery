@@ -5,6 +5,7 @@ import DashboardLayout from "@/components/layout/DashboardLayout";
 import { IoSearch } from "react-icons/io5";
 import { MdFilterList, MdCalendarToday } from "react-icons/md";
 import { FaDownload } from "react-icons/fa";
+import { useNotifications } from "@/components/ui/Notification";
 
 // Types
 import { Order, OrderStatus, Driver } from "@/types/order";
@@ -98,6 +99,7 @@ const mockDrivers: Driver[] = [
 ];
 
 export default function OrdersPage() {
+    const notify = useNotifications();
     const [activeTab, setActiveTab] = useState<OrderStatus>('new');
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -114,22 +116,21 @@ export default function OrdersPage() {
     };
 
     const handleAcceptOrder = (orderId: string) => {
-        console.log("Accept order:", orderId);
+        notify.success('Захиалга хүлээн авлаа', `${orderId} захиалга бэлтгэж эхэллээ`);
         // TODO: API call to accept order
     };
 
     const handleRejectOrder = (orderId: string) => {
-        console.log("Reject order:", orderId);
+        notify.error('Захиалга цуцлагдлаа', `${orderId} захиалга цуцлагдлаа`);
         // TODO: API call to reject order
     };
 
     const handleCompleteOrder = (orderId: string) => {
-        console.log("Complete order:", orderId);
         setIsDriverModalOpen(true);
     };
 
     const handleSelectDriver = (driverId: number) => {
-        console.log("Selected driver:", driverId);
+        notify.success('Жолооч сонгогдлоо', 'Хүргэлт эхэллээ');
         setIsDriverModalOpen(false);
         // TODO: API call to assign driver
     };

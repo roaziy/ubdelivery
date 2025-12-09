@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { FiSearch, FiPause, FiPlay, FiTruck, FiKey } from 'react-icons/fi';
 import AdminLayout from '@/components/layout/AdminLayout';
 import PasswordChangeModal from '@/components/ui/PasswordChangeModal';
+import { useNotifications } from '@/components/ui/Notification';
 import { Driver } from '@/types';
 import { DriverService } from '@/lib/services';
 import { mockDrivers } from '@/lib/mockData';
@@ -13,6 +14,7 @@ export default function DriversPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [passwordModal, setPasswordModal] = useState<{ open: boolean; driver: Driver | null }>({ open: false, driver: null });
+  const notify = useNotifications();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -28,13 +30,15 @@ export default function DriversPage() {
     fetchData();
   }, []);
 
-  const handleToggleStatus = async (id: string, currentStatus: string) => {
+  const handleToggleStatus = async (id: string, currentStatus: string, name: string) => {
     if (currentStatus === 'active') {
       await DriverService.suspendDriver(id);
       setDrivers((prev) => prev.map((d) => d.id === id ? { ...d, status: 'suspended' as const } : d));
+      notify.warning('Түдгэлзүүлсэн', `${name} жолооч түдгэлзүүлэгдлээ`);
     } else {
       await DriverService.activateDriver(id);
       setDrivers((prev) => prev.map((d) => d.id === id ? { ...d, status: 'active' as const } : d));
+      notify.success('Идэвхжүүлсэн', `${name} жолооч идэвхжүүлэгдлээ`);
     }
   };
 
@@ -147,7 +151,7 @@ export default function DriversPage() {
                           <FiKey size={16} />
                         </button>
                         <button
-                          onClick={() => handleToggleStatus(driver.id, driver.status)}
+                          onClick={() => handleToggleStatus(driver.id, driver.status, driver.name)}
                           className={`p-2 rounded-full ${
                             driver.status === 'active'
                               ? 'bg-red-100 text-red-500 hover:bg-red-200'

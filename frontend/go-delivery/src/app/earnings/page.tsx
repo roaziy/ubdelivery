@@ -1,17 +1,29 @@
 'use client'
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import DriverLayout from '@/components/layout/DriverLayout';
 import { IoWallet, IoTrendingUp, IoCalendar, IoCheckmarkCircle, IoTime, IoArrowForward } from 'react-icons/io5';
 import { mockEarningsSummary, mockDailyEarnings, mockPayoutHistory, formatCurrency } from '@/lib/mockData';
+import { useNotifications } from '@/components/ui/Notification';
 
 type EarningsTab = 'summary' | 'daily' | 'payouts';
 
 export default function EarningsPage() {
+    const router = useRouter();
+    const notify = useNotifications();
     const [activeTab, setActiveTab] = useState<EarningsTab>('summary');
     const [summary] = useState(mockEarningsSummary);
     const [dailyEarnings] = useState(mockDailyEarnings);
     const [payoutHistory] = useState(mockPayoutHistory);
+
+    const handleRequestPayout = () => {
+        notify.success('Хүсэлт илгээгдлээ', 'Шилжүүлэг 1-2 ажлын өдөрт хийгдэнэ');
+    };
+
+    const handleChangeBank = () => {
+        router.push('/bank-account');
+    };
 
     const tabs = [
         { id: 'summary', label: 'Нийт', icon: IoWallet },
@@ -105,7 +117,7 @@ export default function EarningsPage() {
                                 <p className="text-2xl font-bold text-mainGreen">{formatCurrency(summary.pendingPayout)}</p>
                             </div>
                             <button 
-                                onClick={() => alert('Шилжүүлэг хүсэлт илгээгдлээ!')}
+                                onClick={handleRequestPayout}
                                 className="px-4 py-2 bg-mainGreen text-white rounded-full text-sm font-medium hover:bg-green-600"
                             >
                                 Шилжүүлэх
@@ -158,7 +170,7 @@ export default function EarningsPage() {
                                 <p className="text-sm text-gray-400">****5678</p>
                             </div>
                             <button 
-                                onClick={() => alert('Дансны мэдээлэл өөрчлөх')}
+                                onClick={handleChangeBank}
                                 className="text-mainGreen text-sm font-medium hover:underline"
                             >
                                 Өөрчлөх

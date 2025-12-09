@@ -4,14 +4,17 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { IoChevronBack, IoCheckmark } from 'react-icons/io5';
+import { useNotifications } from '@/components/ui/Notification';
 import { mockNotifications, formatTimeAgo } from '@/lib/mockData';
 
 export default function NotificationsPage() {
     const router = useRouter();
+    const notify = useNotifications();
     const [notifications, setNotifications] = useState(mockNotifications);
 
     const handleMarkAllRead = () => {
         setNotifications(notifications.map(n => ({ ...n, isRead: true })));
+        notify.success('Уншсан', 'Бүх мэдэгдэл уншсан болгогдлоо');
     };
 
     const getNotificationIcon = (type: string) => {

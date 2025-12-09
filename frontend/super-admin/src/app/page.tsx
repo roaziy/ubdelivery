@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { MdOutlineEmail, MdOutlinePassword } from "react-icons/md";
+import { useNotifications } from "@/components/ui/Notification";
 
 export default function Home() {
     const router = useRouter();
+    const notify = useNotifications();
     const [formData, setFormData] = useState({
         email: "",
         password: ""
@@ -20,6 +22,7 @@ export default function Home() {
         e.preventDefault();
         
         if (!formData.email || !formData.password) {
+            notify.warning('Анхааруулга', 'Нэвтрэх нэр болон нууц үг оруулна уу');
             return;
         }
 
@@ -27,7 +30,8 @@ export default function Home() {
         
         setTimeout(() => {
             sessionStorage.setItem('adminAuthenticated', 'true');
-            router.push('/dashboard');
+            notify.success('Амжилттай нэвтэрлээ', 'Тавтай морил, Админ!');
+            setTimeout(() => router.push('/dashboard'), 500);
             setIsLoading(false);
         }, 500);
     };

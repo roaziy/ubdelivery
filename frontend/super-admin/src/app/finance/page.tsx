@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { IoTrendingUp, IoTrendingDown } from 'react-icons/io5';
 import { FiCheck, FiX, FiDollarSign } from 'react-icons/fi';
 import AdminLayout from '@/components/layout/AdminLayout';
+import { useNotifications } from '@/components/ui/Notification';
 import { RefundRequest, Payout } from '@/types';
 import { FinanceService } from '@/lib/services';
 import { mockRefundRequests, mockPayouts, mockPlatformStats } from '@/lib/mockData';
@@ -29,6 +30,7 @@ export default function FinancePage() {
   const [refunds, setRefunds] = useState<RefundRequest[]>([]);
   const [payouts, setPayouts] = useState<Payout[]>([]);
   const [loading, setLoading] = useState(true);
+  const notify = useNotifications();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -49,19 +51,22 @@ export default function FinancePage() {
     fetchData();
   }, []);
 
-  const handleRefundAction = async (id: string, action: 'approve' | 'reject') => {
+  const handleRefundAction = async (id: string, action: 'approve' | 'reject', orderId: string) => {
     if (action === 'approve') {
       await FinanceService.approveRefund(id);
       setRefunds((prev) => prev.map((r) => r.id === id ? { ...r, status: 'approved' as const } : r));
+      notify.success('Зөвшөөрсөн', `Захиалга #${orderId}-н буцаалт зөвшөөрөгдлөө`);
     } else {
       await FinanceService.rejectRefund(id, 'Rejected by admin');
       setRefunds((prev) => prev.map((r) => r.id === id ? { ...r, status: 'rejected' as const } : r));
+      notify.warning('Татгалзсан', `Захиалга #${orderId}-н буцаалт татгалзагдлаа`);
     }
   };
 
-  const handleProcessPayout = async (id: string) => {
+  const handleProcessPayout = async (id: string, restaurantName: string) => {
     await FinanceService.processPayout(id);
     setPayouts((prev) => prev.map((p) => p.id === id ? { ...p, status: 'completed' as const } : p));
+    notify.success('Шилжүүлэгдлээ', `${restaurantName}-д төлбөр амжилттай шилжүүлэгдлээ`);
   };
 
   const getStatusColor = (status: string) => {
@@ -134,8 +139,8 @@ export default function FinancePage() {
                         <p className="text-gray-400 text-xs">₮{refund.amount}</p>
                       </div>
                       <div className="flex gap-2">
-                        <button onClick={() => handleRefundAction(refund.id, 'approve')} className="p-2 bg-mainGreen text-white rounded-full"><FiCheck size={14} /></button>
-                        <button onClick={() => handleRefundAction(refund.id, 'reject')} className="p-2 bg-red-500 text-white rounded-full"><FiX size={14} /></button>
+                        <button onClick={() => handleRefundAction(refund.id, 'approve', refund.orderId)} className="p-2 bg-mainGreen text-white rounded-full"><FiCheck size={14} /></button>
+                        <button onClick={() => handleRefundAction(refund.id, 'reject', refund.orderId)} className="p-2 bg-red-500 text-white rounded-full"><FiX size={14} /></button>
                       </div>
                     </div>
                   ))}
@@ -150,7 +155,7 @@ export default function FinancePage() {
                         <p className="font-medium text-sm">{payout.restaurantName}</p>
                         <p className="text-gray-400 text-xs">₮{payout.amount}</p>
                       </div>
-                      <button onClick={() => handleProcessPayout(payout.id)} className="px-4 py-2 bg-mainGreen text-white text-xs rounded-full">Шилжүүлэх</button>
+                      <button onClick={() => handleProcessPayout(payout.id, payout.restaurantName)} className="px-4 py-2 bg-mainGreen text-white text-xs rounded-full">Шилжүүлэх</button>
                     </div>
                   ))}
                 </div>
@@ -183,8 +188,8 @@ export default function FinancePage() {
                     <td className="py-3 px-4">
                       {refund.status === 'pending' && (
                         <div className="flex gap-2">
-                          <button onClick={() => handleRefundAction(refund.id, 'approve')} className="p-2 bg-mainGreen text-white rounded-full"><FiCheck size={14} /></button>
-                          <button onClick={() => handleRefundAction(refund.id, 'reject')} className="p-2 bg-red-500 text-white rounded-full"><FiX size={14} /></button>
+                          <button onClick={() => handleRefundAction(refund.id, 'approve', refund.orderId)} className="p-2 bg-mainGreen text-white rounded-full"><FiCheck size={14} /></button>
+                          <button onClick={() => handleRefundAction(refund.id, 'reject', refund.orderId)} className="p-2 bg-red-500 text-white rounded-full"><FiX size={14} /></button>
                         </div>
                       )}
                     </td>
@@ -216,7 +221,7 @@ export default function FinancePage() {
                     <td className="py-3 px-4"><span className={`text-sm ${getStatusColor(payout.status)}`}>{getStatusLabel(payout.status)}</span></td>
                     <td className="py-3 px-4">
                       {payout.status === 'pending' && (
-                        <button onClick={() => handleProcessPayout(payout.id)} className="px-4 py-2 bg-mainGreen text-white text-xs rounded-full">Шилжүүлэх</button>
+                        <button onClick={() => handleProcessPayout(payout.id, payout.restaurantName)} className="px-4 py-2 bg-mainGreen text-white text-xs rounded-full">Шилжүүлэх</button>
                       )}
                     </td>
                   </tr>

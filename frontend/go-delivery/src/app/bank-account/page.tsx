@@ -3,8 +3,9 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import DriverLayout from '@/components/layout/DriverLayout';
-import { IoArrowBack, IoCard, IoCheckmarkCircle } from 'react-icons/io5';
+import { IoArrowBack, IoCard } from 'react-icons/io5';
 import { mockDriver } from '@/lib/mockData';
+import { useNotifications } from '@/components/ui/Notification';
 
 const banks = [
     { id: 'khan', name: 'Хаан банк', logo: '🏦' },
@@ -16,21 +17,32 @@ const banks = [
 
 export default function BankAccountPage() {
     const router = useRouter();
+    const notify = useNotifications();
     const [bankInfo, setBankInfo] = useState({
         bankId: mockDriver.bankInfo?.bankId || '',
         accountNumber: mockDriver.bankInfo?.accountNumber || '',
         accountHolder: mockDriver.bankInfo?.accountHolder || mockDriver.name,
     });
     const [isEditing, setIsEditing] = useState(!mockDriver.bankInfo?.bankId);
-    const [saved, setSaved] = useState(false);
 
     const selectedBank = banks.find(b => b.id === bankInfo.bankId);
 
     const handleSave = () => {
+        if (!bankInfo.bankId) {
+            notify.warning('Анхааруулга', 'Банк сонгоно уу');
+            return;
+        }
+        if (!bankInfo.accountNumber) {
+            notify.warning('Анхааруулга', 'Дансны дугаар оруулна уу');
+            return;
+        }
+        if (!bankInfo.accountHolder) {
+            notify.warning('Анхааруулга', 'Данс эзэмшигчийн нэр оруулна уу');
+            return;
+        }
         // TODO: API call to save bank info
-        setSaved(true);
+        notify.success('Амжилттай', 'Дансны мэдээлэл хадгалагдлаа');
         setIsEditing(false);
-        setTimeout(() => setSaved(false), 3000);
     };
 
     return (
@@ -45,13 +57,6 @@ export default function BankAccountPage() {
                 </button>
                 <h1 className="text-xl font-bold">Дансны мэдээлэл</h1>
             </div>
-
-            {saved && (
-                <div className="bg-green-100 text-mainGreen rounded-xl p-4 mb-4 flex items-center gap-2">
-                    <IoCheckmarkCircle size={20} />
-                    <span>Дансны мэдээлэл амжилттай хадгалагдлаа</span>
-                </div>
-            )}
 
             {/* Current Bank Info */}
             {!isEditing && selectedBank && (

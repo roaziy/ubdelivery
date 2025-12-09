@@ -4,6 +4,7 @@ import { useState } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { IoSearch, IoAdd, IoClose } from "react-icons/io5";
 import { MdThumbUp } from "react-icons/md";
+import { useNotifications } from "@/components/ui/Notification";
 
 // Mock data
 const mockCategories = ["Бүх хоол", "Үндсэн хоол", "Хачир", "Нэмэлт"];
@@ -36,7 +37,7 @@ interface FoodFormData {
     image: File | null;
 }
 
-function AddFoodModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+function AddFoodModal({ isOpen, onClose, onSuccess }: { isOpen: boolean; onClose: () => void; onSuccess: () => void }) {
     const [formData, setFormData] = useState<FoodFormData>({
         name: "",
         price: "",
@@ -50,7 +51,7 @@ function AddFoodModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => voi
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         // Handle form submission
-        console.log("Form data:", formData);
+        onSuccess();
         onClose();
     };
 
@@ -292,6 +293,7 @@ function Pagination({ currentPage, totalPages, onPageChange }: {
 }
 
 export default function MenuPage() {
+    const notify = useNotifications();
     const [searchQuery, setSearchQuery] = useState("");
     const [activeCategory, setActiveCategory] = useState("Бүх хоол");
     const [foods, setFoods] = useState(mockFoods);
@@ -302,6 +304,17 @@ export default function MenuPage() {
         setFoods(prev => prev.map(food => 
             food.id === foodId ? { ...food, isAvailable: !food.isAvailable } : food
         ));
+        const food = foods.find(f => f.id === foodId);
+        if (food) {
+            notify.info(
+                food.isAvailable ? 'Хоол идэвхгүй болгов' : 'Хоол идэвхтэй болгов',
+                food.name
+            );
+        }
+    };
+
+    const handleFoodAdded = () => {
+        notify.success('Амжилттай', 'Шинэ хоол нэмэгдлээ');
     };
 
     const filteredFoods = foods.filter(food => {
@@ -375,7 +388,8 @@ export default function MenuPage() {
             {/* Add Food Modal */}
             <AddFoodModal 
                 isOpen={isAddModalOpen} 
-                onClose={() => setIsAddModalOpen(false)} 
+                onClose={() => setIsAddModalOpen(false)}
+                onSuccess={handleFoodAdded}
             />
         </DashboardLayout>
     );

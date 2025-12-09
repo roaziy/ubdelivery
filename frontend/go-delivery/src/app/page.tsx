@@ -4,13 +4,14 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { IoCall, IoLockClosed, IoEye, IoEyeOff } from 'react-icons/io5';
+import { useNotifications } from '@/components/ui/Notification';
 
 export default function DriverLoginPage() {
     const router = useRouter();
+    const notify = useNotifications();
     const [phone, setPhone] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
-    const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
@@ -23,15 +24,14 @@ export default function DriverLoginPage() {
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        setError('');
 
         if (!phone || !password) {
-            setError('Утасны дугаар болон нууц үг оруулна уу');
+            notify.warning('Анхааруулга', 'Утасны дугаар болон нууц үг оруулна уу');
             return;
         }
 
         if (phone.length !== 8) {
-            setError('Утасны дугаар 8 оронтой байх ёстой');
+            notify.warning('Анхааруулга', 'Утасны дугаар 8 оронтой байх ёстой');
             return;
         }
 
@@ -49,12 +49,13 @@ export default function DriverLoginPage() {
                     name: 'Одхүү Батцэцэг',
                     phone: '99001122',
                 }));
-                router.push('/dashboard');
+                notify.success('Амжилттай', 'Тавтай морил, Одхүү!');
+                setTimeout(() => router.push('/dashboard'), 500);
             } else {
-                setError('Утасны дугаар эсвэл нууц үг буруу байна');
+                notify.error('Алдаа', 'Утасны дугаар эсвэл нууц үг буруу байна');
             }
         } catch {
-            setError('Сүлжээний алдаа. Дахин оролдоно уу.');
+            notify.error('Сүлжээний алдаа', 'Дахин оролдоно уу');
         } finally {
             setIsLoading(false);
         }
@@ -122,13 +123,6 @@ export default function DriverLoginPage() {
                                 </button>
                             </div>
                         </div>
-
-                        {/* Error Message */}
-                        {error && (
-                            <div className="bg-red-50 text-red-600 text-sm p-3 rounded-xl">
-                                {error}
-                            </div>
-                        )}
 
                         {/* Login Button */}
                         <button

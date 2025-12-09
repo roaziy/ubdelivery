@@ -5,6 +5,7 @@ import { FiSearch, FiPause, FiPlay, FiKey } from 'react-icons/fi';
 import { MdStorefront } from 'react-icons/md';
 import AdminLayout from '@/components/layout/AdminLayout';
 import PasswordChangeModal from '@/components/ui/PasswordChangeModal';
+import { useNotifications } from '@/components/ui/Notification';
 import { Restaurant } from '@/types';
 import { RestaurantService } from '@/lib/services';
 import { mockRestaurants } from '@/lib/mockData';
@@ -14,6 +15,7 @@ export default function RestaurantsPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [passwordModal, setPasswordModal] = useState<{ open: boolean; restaurant: Restaurant | null }>({ open: false, restaurant: null });
+  const notify = useNotifications();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -29,13 +31,15 @@ export default function RestaurantsPage() {
     fetchData();
   }, []);
 
-  const handleToggleStatus = async (id: string, currentStatus: string) => {
+  const handleToggleStatus = async (id: string, currentStatus: string, name: string) => {
     if (currentStatus === 'active') {
       await RestaurantService.suspendRestaurant(id);
       setRestaurants((prev) => prev.map((r) => r.id === id ? { ...r, status: 'suspended' as const } : r));
+      notify.warning('Түдгэлзүүлсэн', `${name} ресторан түдгэлзүүлэгдлээ`);
     } else {
       await RestaurantService.activateRestaurant(id);
       setRestaurants((prev) => prev.map((r) => r.id === id ? { ...r, status: 'active' as const } : r));
+      notify.success('Идэвхжүүлсэн', `${name} ресторан идэвхжүүлэгдлээ`);
     }
   };
 
@@ -141,7 +145,7 @@ export default function RestaurantsPage() {
                           <FiKey size={16} />
                         </button>
                         <button
-                          onClick={() => handleToggleStatus(restaurant.id, restaurant.status)}
+                          onClick={() => handleToggleStatus(restaurant.id, restaurant.status, restaurant.name)}
                           className={`p-2 rounded-full ${
                             restaurant.status === 'active'
                               ? 'bg-red-100 text-red-500 hover:bg-red-200'

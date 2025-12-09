@@ -8,10 +8,12 @@ import AdminLayout from '@/components/layout/AdminLayout';
 import { RestaurantApplication, DriverApplication } from '@/types';
 import { ApplicationService } from '@/lib/services';
 import { mockRestaurantApplications, mockDriverApplications } from '@/lib/mockData';
+import { useNotifications } from '@/components/ui/Notification';
 
 type TabType = 'restaurants' | 'drivers';
 
 export default function ApplicationsPage() {
+  const notify = useNotifications();
   const [activeTab, setActiveTab] = useState<TabType>('restaurants');
   const [searchQuery, setSearchQuery] = useState('');
   const [restaurantApps, setRestaurantApps] = useState<RestaurantApplication[]>([]);
@@ -37,23 +39,27 @@ export default function ApplicationsPage() {
     fetchData();
   }, []);
 
-  const handleApprove = async (id: string, type: 'restaurant' | 'driver') => {
+  const handleApprove = async (id: string, type: 'restaurant' | 'driver', name: string) => {
     if (type === 'restaurant') {
       await ApplicationService.approveRestaurant(id);
       setRestaurantApps((prev) => prev.map((a) => a.id === id ? { ...a, status: 'approved' as const } : a));
+      notify.success('Зөвшөөрөгдлөө', `${name} ресторан зөвшөөрөгдлөө`);
     } else {
       await ApplicationService.approveDriver(id);
       setDriverApps((prev) => prev.map((a) => a.id === id ? { ...a, status: 'approved' as const } : a));
+      notify.success('Зөвшөөрөгдлөө', `${name} жолооч зөвшөөрөгдлөө`);
     }
   };
 
-  const handleReject = async (id: string, type: 'restaurant' | 'driver') => {
+  const handleReject = async (id: string, type: 'restaurant' | 'driver', name: string) => {
     if (type === 'restaurant') {
       await ApplicationService.rejectRestaurant(id, 'Does not meet requirements');
       setRestaurantApps((prev) => prev.map((a) => a.id === id ? { ...a, status: 'rejected' as const } : a));
+      notify.error('Татгалзсан', `${name} ресторан татгалзагдлаа`);
     } else {
       await ApplicationService.rejectDriver(id, 'Does not meet requirements');
       setDriverApps((prev) => prev.map((a) => a.id === id ? { ...a, status: 'rejected' as const } : a));
+      notify.error('Татгалзсан', `${name} жолооч татгалзагдлаа`);
     }
   };
 
@@ -163,13 +169,13 @@ export default function ApplicationsPage() {
                         {app.status === 'pending' && (
                           <div className="flex gap-2">
                             <button
-                              onClick={() => handleApprove(app.id, 'restaurant')}
+                              onClick={() => handleApprove(app.id, 'restaurant', app.restaurantName)}
                               className="p-2 bg-mainGreen text-white rounded-full hover:bg-green-600"
                             >
                               <FiCheck size={16} />
                             </button>
                             <button
-                              onClick={() => handleReject(app.id, 'restaurant')}
+                              onClick={() => handleReject(app.id, 'restaurant', app.restaurantName)}
                               className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600"
                             >
                               <FiX size={16} />
@@ -213,13 +219,13 @@ export default function ApplicationsPage() {
                         {app.status === 'pending' && (
                           <div className="flex gap-2">
                             <button
-                              onClick={() => handleApprove(app.id, 'driver')}
+                              onClick={() => handleApprove(app.id, 'driver', app.driverName)}
                               className="p-2 bg-mainGreen text-white rounded-full hover:bg-green-600"
                             >
                               <FiCheck size={16} />
                             </button>
                             <button
-                              onClick={() => handleReject(app.id, 'driver')}
+                              onClick={() => handleReject(app.id, 'driver', app.driverName)}
                               className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600"
                             >
                               <FiX size={16} />

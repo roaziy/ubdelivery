@@ -1,14 +1,16 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import DriverLayout from '@/components/layout/DriverLayout';
 import { IoCamera, IoCall, IoMail, IoStar, IoLogOut, IoChevronForward } from 'react-icons/io5';
 import { mockDriver } from '@/lib/mockData';
+import { useNotifications } from '@/components/ui/Notification';
 
 export default function ProfilePage() {
     const router = useRouter();
+    const notify = useNotifications();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [driver, setDriver] = useState(mockDriver);
     const [isEditing, setIsEditing] = useState(false);
@@ -17,12 +19,14 @@ export default function ProfilePage() {
     const handleLogout = () => {
         sessionStorage.removeItem('driver_token');
         sessionStorage.removeItem('driver_info');
-        router.push('/');
+        notify.info('Гарлаа', 'Амжилттай гарлаа');
+        setTimeout(() => router.push('/'), 500);
     };
 
     const handleSaveProfile = () => {
         setDriver({ ...driver, name: editedName });
         setIsEditing(false);
+        notify.success('Амжилттай', 'Профайл хадгалагдлаа');
         // TODO: API call to update profile
     };
 
@@ -32,6 +36,7 @@ export default function ProfilePage() {
             const reader = new FileReader();
             reader.onload = (e) => {
                 setDriver({ ...driver, avatar: e.target?.result as string });
+                notify.success('Амжилттай', 'Зураг шинэчлэгдлээ');
             };
             reader.readAsDataURL(file);
             // TODO: Upload to server
