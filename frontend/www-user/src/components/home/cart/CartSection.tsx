@@ -12,6 +12,8 @@ import CheckoutForm from "./CheckoutForm";
 import DeliveryConfirm from "./DeliveryConfirm";
 import PaymentProcessing from "./PaymentProcessing";
 import PaymentSuccess from "./PaymentSuccess";
+import OrdersSection from "./OrdersSection";
+import OrderTracking, { TrackingStatus } from "./OrderTracking";
 
 // Sample cart data
 const sampleCartData: RestaurantCart[] = [
@@ -34,13 +36,23 @@ const sampleCartData: RestaurantCart[] = [
     }
 ];
 
-type ViewState = 'cart' | 'checkout' | 'confirm' | 'processing' | 'success';
+// Sample tracking data
+const sampleTrackingSteps = [
+    { id: '1', status: 'confirmed' as TrackingStatus, title: 'Таны захиалга баталгаажлаа', description: 'Таны захиалга баталгаажсан', date: '2025/10/31 - 13:03', isCompleted: true, isActive: false },
+    { id: '2', status: 'preparing' as TrackingStatus, title: 'Захиалга хийгдэж байна', description: 'Pizzahut таны захиалгыг хүлээн авсан, хийж байна...', date: '2025/10/31 - 13:08', isCompleted: true, isActive: false },
+    { id: '3', status: 'ready' as TrackingStatus, title: 'Таны захиалга бэлэн боллоо', description: 'Pizzahut таны захиалгыг хүргэлтийн ажилтанд өгөхөд бэлэн болсон', date: '2025/10/31 - 13:13', isCompleted: true, isActive: false },
+    { id: '4', status: 'picked_up' as TrackingStatus, title: 'Хүргэлтэнд гарсан', description: 'Хүргэлтийн ажилтан таны захиалгыг хүлээн авсан', date: '2025/10/31 - 13:08', isCompleted: false, isActive: true },
+    { id: '5', status: 'delivered' as TrackingStatus, title: 'Захиалга хүргэгдлээ!', description: 'Хүргэлтийн ажилтан таны захиалгыг амжилттай хүргэлээ', date: '2025/10/31', isCompleted: false, isActive: false },
+];
+
+type ViewState = 'cart' | 'checkout' | 'confirm' | 'processing' | 'success' | 'tracking';
 
 export default function CartSection() {
     const router = useRouter();
     const [activeTab, setActiveTab] = useState<'cart' | 'orders'>('cart');
     const [cartData, setCartData] = useState<RestaurantCart[]>(sampleCartData);
     const [viewState, setViewState] = useState<ViewState>('cart');
+    const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
     
     // Checkout form state
     const [formData, setFormData] = useState({
@@ -92,13 +104,22 @@ export default function CartSection() {
         }, 3000);
     };
 
+    const handleViewTracking = (orderId: number) => {
+        setSelectedOrderId(orderId);
+        setViewState('tracking');
+    };
+
     const handleBack = () => {
         if (viewState === 'checkout') {
             setViewState('cart');
         } else if (viewState === 'confirm') {
             setViewState('checkout');
         } else if (viewState === 'success') {
-            router.push('/home');
+            setActiveTab('orders');
+            setViewState('cart');
+        } else if (viewState === 'tracking') {
+            setViewState('cart');
+            setActiveTab('orders');
         } else {
             router.back();
         }
@@ -117,6 +138,26 @@ export default function CartSection() {
             ))}
         </>
     );
+
+    // Render tracking view
+    if (viewState === 'tracking') {
+        return (
+            <div className="bg-white rounded-2xl shadow-sm p-6 md:mt-8 mb-20 md:mb-8 min-h-[650px]">
+                <OrderTracking
+                    orderId="UB25Z11091007"
+                    restaurantName="Modern Nomads"
+                    deliveryAddress="ХУД, 3-р хороо, Хос даль аппартмент"
+                    driverName="Одхүү Батцэцэг"
+                    driverRole="Хүргэлтийн ажилтан"
+                    progress={54}
+                    estimatedTime="1 цаг 45 минутын дараа"
+                    steps={sampleTrackingSteps}
+                    onBack={handleBack}
+                    onContactDriver={() => console.log('Contact driver')}
+                />
+            </div>
+        );
+    }
 
     return (
         <div className="bg-white rounded-2xl shadow-sm p-6 md:mt-8 mb-20 md:mb-8 min-h-[650px]">
@@ -140,7 +181,7 @@ export default function CartSection() {
             {viewState === 'cart' && (
                 activeTab === 'cart' 
                     ? (isEmpty ? <EmptyCart /> : renderCartItems())
-                    : <EmptyCart />
+                    : <OrdersSection onViewTracking={handleViewTracking} />
             )}
             
             {viewState === 'checkout' && (

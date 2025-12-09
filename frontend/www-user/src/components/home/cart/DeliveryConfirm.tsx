@@ -39,7 +39,11 @@ export default function DeliveryConfirm({ estimatedTime, onConfirm }: DeliveryCo
             </p>
 
             <button 
-                onClick={onConfirm}
+                onClick={(e) => {
+                    e.preventDefault();
+                    onConfirm();
+                    window.scrollTo({ top: 0, behavior: 'instant'});
+                }}
                 className="w-full max-w-xs bg-mainGreen text-white py-3 rounded-full font-medium hover:bg-green-600 transition-colors"
             >
                 Төлбөр төлөх

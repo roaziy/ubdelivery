@@ -111,7 +111,11 @@ export default function CheckoutForm({ formData, onFormChange, onSubmit }: Check
 
             {/* Payment Button */}
             <button 
-                onClick={onSubmit}
+                onClick={(e) => {
+                    e.preventDefault();
+                    onSubmit();
+                    window.scrollTo({ top: 0, behavior: 'instant'});
+                }}
                 className="w-full mt-4 bg-mainGreen text-white py-3 rounded-full font-medium hover:bg-green-600 transition-colors"
             >
                 Төлбөр төлөх

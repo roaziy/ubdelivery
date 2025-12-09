@@ -51,7 +51,11 @@ export default function RestaurantCartGroup({ restaurant, onQuantityChange, onOr
 
             {/* Order Button */}
             <button 
-                onClick={onOrder}
+                onClick={(e) => {
+                    e.preventDefault();
+                    onOrder();
+                    window.scrollTo({ top: 0, behavior: 'instant'});
+                }}
                 className="w-full mt-4 bg-mainGreen text-white py-3 rounded-[13px] font-medium hover:bg-green-600 transition-colors"
             >
                 Захиалах • {calculateTotal().toLocaleString()}₮
