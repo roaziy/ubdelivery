@@ -110,7 +110,10 @@ export default function DeliveriesPage() {
 
                             {/* Actions */}
                             <div className="flex gap-2">
-                                <button className="flex-1 py-2.5 border border-gray-200 rounded-full text-sm font-medium hover:bg-gray-50">
+                                <button 
+                                    onClick={() => console.log('Decline order:', order.id)}
+                                    className="flex-1 py-2.5 border border-gray-200 rounded-full text-sm font-medium hover:bg-gray-50"
+                                >
                                     Татгалзах
                                 </button>
                                 <button 
@@ -218,10 +221,15 @@ export default function DeliveriesPage() {
                                 <IoCall size={16} />
                                 Залгах
                             </a>
-                            <button className="flex-1 flex items-center justify-center gap-2 py-2.5 border border-mainGreen text-mainGreen rounded-full text-sm font-medium hover:bg-green-50">
+                            <a 
+                                href={`https://www.google.com/maps/dir/?api=1&destination=${deliveryStep === 'pickup' ? activeDelivery.restaurantLat : activeDelivery.deliveryLat},${deliveryStep === 'pickup' ? activeDelivery.restaurantLng : activeDelivery.deliveryLng}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex-1 flex items-center justify-center gap-2 py-2.5 border border-mainGreen text-mainGreen rounded-full text-sm font-medium hover:bg-green-50"
+                            >
                                 <IoNavigate size={16} />
                                 Замчлах
-                            </button>
+                            </a>
                         </div>
 
                         {/* Items */}

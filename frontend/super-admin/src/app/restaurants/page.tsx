@@ -51,6 +51,14 @@ export default function RestaurantsPage() {
     }
   };
 
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'active': return 'Идэвхтэй';
+      case 'suspended': return 'Түдгэлсэн';
+      default: return 'Хүлээгдэж буй';
+    }
+  };
+
   if (loading) {
     return (
       <AdminLayout>
@@ -119,8 +127,8 @@ export default function RestaurantsPage() {
                     <td className="py-3 px-4 text-sm text-gray-500">{restaurant.totalOrders}</td>
                     <td className="py-3 px-4 text-sm font-medium">₮{restaurant.totalRevenue.toLocaleString()}</td>
                     <td className="py-3 px-4">
-                      <span className={`text-sm capitalize ${getStatusColor(restaurant.status)}`}>
-                        {restaurant.status}
+                      <span className={`text-sm ${getStatusColor(restaurant.status)}`}>
+                        {getStatusLabel(restaurant.status)}
                       </span>
                     </td>
                     <td className="py-3 px-4">

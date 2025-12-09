@@ -1,4 +1,10 @@
 // Driver Types
+export interface BankInfo {
+    bankId: string;
+    accountNumber: string;
+    accountHolder: string;
+}
+
 export interface Driver {
     id: string;
     name: string;
@@ -14,6 +20,7 @@ export interface Driver {
     rating: number;
     totalDeliveries: number;
     createdAt: string;
+    bankInfo?: BankInfo;
 }
 
 // Order Types for Driver

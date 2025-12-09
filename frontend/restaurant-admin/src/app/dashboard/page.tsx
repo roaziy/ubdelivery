@@ -162,7 +162,7 @@ export default function DashboardPage() {
                             href="/menu" 
                             className="px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 transition-colors"
                         >
-                            Меnu засах
+                            Меню засах
                         </Link>
                     </div>
 

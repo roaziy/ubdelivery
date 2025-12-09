@@ -73,6 +73,14 @@ export default function ApplicationsPage() {
     }
   };
 
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'approved': return 'Зөвшөөрсөн';
+      case 'rejected': return 'Татгалзсан';
+      default: return 'Хүлээгдэж буй';
+    }
+  };
+
   if (loading) {
     return (
       <AdminLayout>
@@ -149,7 +157,7 @@ export default function ApplicationsPage() {
                       <td className="py-3 px-4 text-sm text-gray-500">{app.email}</td>
                       <td className="py-3 px-4 text-sm text-gray-500">{app.phone}</td>
                       <td className="py-3 px-4">
-                        <span className={`text-sm capitalize ${getStatusColor(app.status)}`}>{app.status}</span>
+                        <span className={`text-sm ${getStatusColor(app.status)}`}>{getStatusLabel(app.status)}</span>
                       </td>
                       <td className="py-3 px-4">
                         {app.status === 'pending' && (
@@ -199,7 +207,7 @@ export default function ApplicationsPage() {
                       <td className="py-3 px-4 text-sm text-gray-500">{app.email}</td>
                       <td className="py-3 px-4 text-sm text-gray-500">{app.phone}</td>
                       <td className="py-3 px-4">
-                        <span className={`text-sm capitalize ${getStatusColor(app.status)}`}>{app.status}</span>
+                        <span className={`text-sm ${getStatusColor(app.status)}`}>{getStatusLabel(app.status)}</span>
                       </td>
                       <td className="py-3 px-4">
                         {app.status === 'pending' && (

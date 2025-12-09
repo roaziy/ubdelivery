@@ -51,6 +51,15 @@ export default function DriversPage() {
     }
   };
 
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'active': return 'Идэвхтэй';
+      case 'suspended': return 'Түдгэлсэн';
+      case 'offline': return 'Оффлайн';
+      default: return 'Хүлээгдэж буй';
+    }
+  };
+
   if (loading) {
     return (
       <AdminLayout>
@@ -124,8 +133,8 @@ export default function DriversPage() {
                     <td className="py-3 px-4 text-sm text-gray-500">{driver.totalDeliveries}</td>
                     <td className="py-3 px-4 text-sm font-medium">₮{driver.totalEarnings.toLocaleString()}</td>
                     <td className="py-3 px-4">
-                      <span className={`text-sm capitalize ${getStatusColor(driver.status)}`}>
-                        {driver.status}
+                      <span className={`text-sm ${getStatusColor(driver.status)}`}>
+                        {getStatusLabel(driver.status)}
                       </span>
                     </td>
                     <td className="py-3 px-4">

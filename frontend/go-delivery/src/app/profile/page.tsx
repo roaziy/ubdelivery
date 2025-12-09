@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import DriverLayout from '@/components/layout/DriverLayout';
@@ -9,6 +9,7 @@ import { mockDriver } from '@/lib/mockData';
 
 export default function ProfilePage() {
     const router = useRouter();
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const [driver, setDriver] = useState(mockDriver);
     const [isEditing, setIsEditing] = useState(false);
     const [editedName, setEditedName] = useState(driver.name);
@@ -23,6 +24,18 @@ export default function ProfilePage() {
         setDriver({ ...driver, name: editedName });
         setIsEditing(false);
         // TODO: API call to update profile
+    };
+
+    const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                setDriver({ ...driver, avatar: e.target?.result as string });
+            };
+            reader.readAsDataURL(file);
+            // TODO: Upload to server
+        }
     };
 
     const getVehicleLabel = (type: string) => {
@@ -49,7 +62,17 @@ export default function ProfilePage() {
                             </span>
                         )}
                     </div>
-                    <button className="absolute bottom-0 right-0 w-8 h-8 bg-mainGreen rounded-full flex items-center justify-center text-white">
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleAvatarChange}
+                        accept="image/*"
+                        className="hidden"
+                    />
+                    <button 
+                        onClick={() => fileInputRef.current?.click()}
+                        className="absolute bottom-0 right-0 w-8 h-8 bg-mainGreen rounded-full flex items-center justify-center text-white hover:bg-green-600"
+                    >
                         <IoCamera size={16} />
                     </button>
                 </div>
@@ -138,7 +161,7 @@ export default function ProfilePage() {
             {/* Menu Items */}
             <div className="bg-white rounded-2xl mb-4">
                 {[
-                    { label: 'Дансны мэдээлэл', path: '/profile/bank' },
+                    { label: 'Дансны мэдээлэл', path: '/bank-account' },
                     { label: 'Нууцлалын бодлого', path: '/privacy' },
                     { label: 'Үйлчилгээний нөхцөл', path: '/terms' },
                     { label: 'Тусламж', path: '/help' },

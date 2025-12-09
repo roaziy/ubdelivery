@@ -104,7 +104,10 @@ export default function EarningsPage() {
                                 <p className="text-gray-500 text-sm">Татаж авах боломжтой</p>
                                 <p className="text-2xl font-bold text-mainGreen">{formatCurrency(summary.pendingPayout)}</p>
                             </div>
-                            <button className="px-4 py-2 bg-mainGreen text-white rounded-full text-sm font-medium hover:bg-green-600">
+                            <button 
+                                onClick={() => alert('Шилжүүлэг хүсэлт илгээгдлээ!')}
+                                className="px-4 py-2 bg-mainGreen text-white rounded-full text-sm font-medium hover:bg-green-600"
+                            >
                                 Шилжүүлэх
                             </button>
                         </div>
@@ -154,7 +157,12 @@ export default function EarningsPage() {
                                 <p className="font-medium">Хаан банк</p>
                                 <p className="text-sm text-gray-400">****5678</p>
                             </div>
-                            <button className="text-mainGreen text-sm font-medium">Өөрчлөх</button>
+                            <button 
+                                onClick={() => alert('Дансны мэдээлэл өөрчлөх')}
+                                className="text-mainGreen text-sm font-medium hover:underline"
+                            >
+                                Өөрчлөх
+                            </button>
                         </div>
                     </div>
 

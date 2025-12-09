@@ -24,6 +24,11 @@ export const mockDriver: Driver = {
     rating: 4.8,
     totalDeliveries: 532,
     createdAt: '2024-03-15T10:00:00Z',
+    bankInfo: {
+        bankId: 'khan',
+        accountNumber: '5012345678',
+        accountHolder: 'ОДХҮҮ БАТЦЭЦЭГ',
+    },
 };
 
 // ============ MOCK AVAILABLE ORDERS ============

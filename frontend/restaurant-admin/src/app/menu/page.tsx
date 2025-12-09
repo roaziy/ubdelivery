@@ -128,14 +128,14 @@ function AddFoodModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => voi
                             {/* Custom Category */}
                             <div>
                                 <label className="block text-sm font-medium mb-2">
-                                    alskdjflaksjdflajs
+                                    Дэд ангилал
                                 </label>
                                 <select
                                     value={formData.customCategory}
                                     onChange={(e) => setFormData(prev => ({ ...prev, customCategory: e.target.value }))}
                                     className="w-full px-4 py-3 bg-gray-100 rounded-xl text-sm outline-none focus:ring-2 focus:ring-mainGreen"
                                 >
-                                    <option value="">Select menu type</option>
+                                    <option value="">Сонгох</option>
                                 </select>
                             </div>
                         </div>

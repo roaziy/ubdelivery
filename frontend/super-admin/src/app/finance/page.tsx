@@ -72,6 +72,16 @@ export default function FinancePage() {
     }
   };
 
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'approved': return 'Зөвшөөрсөн';
+      case 'completed': return 'Дууссан';
+      case 'rejected': return 'Татгалзсан';
+      case 'failed': return 'Амжилтгүй';
+      default: return 'Хүлээгдэж буй';
+    }
+  };
+
   if (loading) {
     return (
       <AdminLayout>
@@ -169,7 +179,7 @@ export default function FinancePage() {
                     <td className="py-3 px-4 text-sm text-gray-500">{refund.customerName}</td>
                     <td className="py-3 px-4 text-sm font-medium">₮{refund.amount}</td>
                     <td className="py-3 px-4 text-sm text-gray-500">{refund.reason}</td>
-                    <td className="py-3 px-4"><span className={`text-sm capitalize ${getStatusColor(refund.status)}`}>{refund.status}</span></td>
+                    <td className="py-3 px-4"><span className={`text-sm ${getStatusColor(refund.status)}`}>{getStatusLabel(refund.status)}</span></td>
                     <td className="py-3 px-4">
                       {refund.status === 'pending' && (
                         <div className="flex gap-2">
@@ -203,7 +213,7 @@ export default function FinancePage() {
                     <td className="py-3 px-4 text-sm font-medium">{payout.restaurantName}</td>
                     <td className="py-3 px-4 text-sm text-gray-500">{payout.period}</td>
                     <td className="py-3 px-4 text-sm font-medium">₮{payout.amount}</td>
-                    <td className="py-3 px-4"><span className={`text-sm capitalize ${getStatusColor(payout.status)}`}>{payout.status}</span></td>
+                    <td className="py-3 px-4"><span className={`text-sm ${getStatusColor(payout.status)}`}>{getStatusLabel(payout.status)}</span></td>
                     <td className="py-3 px-4">
                       {payout.status === 'pending' && (
                         <button onClick={() => handleProcessPayout(payout.id)} className="px-4 py-2 bg-mainGreen text-white text-xs rounded-full">Шилжүүлэх</button>

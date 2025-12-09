@@ -49,6 +49,14 @@ export default function UsersPage() {
     }
   };
 
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'active': return 'Идэвхтэй';
+      case 'suspended': return 'Түдгэлсэн';
+      default: return status;
+    }
+  };
+
   if (loading) {
     return (
       <AdminLayout>
@@ -117,8 +125,8 @@ export default function UsersPage() {
                     <td className="py-3 px-4 text-sm text-gray-500">{user.totalOrders}</td>
                     <td className="py-3 px-4 text-sm font-medium">₮{user.totalSpent.toLocaleString()}</td>
                     <td className="py-3 px-4">
-                      <span className={`text-sm capitalize ${getStatusColor(user.status)}`}>
-                        {user.status}
+                      <span className={`text-sm ${getStatusColor(user.status)}`}>
+                        {getStatusLabel(user.status)}
                       </span>
                     </td>
                     <td className="py-3 px-4">

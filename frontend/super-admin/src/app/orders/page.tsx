@@ -46,6 +46,16 @@ export default function OrdersPage() {
     }
   };
 
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'delivered': return 'Хүргэгдсэн';
+      case 'cancelled': return 'Цуцлагдсан';
+      case 'pending': return 'Хүлээгдэж буй';
+      case 'preparing': return 'Бэлтгэж буй';
+      default: return status;
+    }
+  };
+
   if (loading) {
     return (
       <AdminLayout>
@@ -78,13 +88,13 @@ export default function OrdersPage() {
               <button
                 key={status}
                 onClick={() => setStatusFilter(status)}
-                className={`px-4 py-2 rounded-full text-sm font-medium capitalize transition-colors ${
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                   statusFilter === status
                     ? 'bg-mainGreen text-white'
                     : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
                 }`}
               >
-                {status}
+                {status === 'all' ? 'Бүгд' : getStatusLabel(status)}
               </button>
             ))}
           </div>
@@ -124,8 +134,8 @@ export default function OrdersPage() {
                       {new Date(order.createdAt).toLocaleDateString()}
                     </td>
                     <td className="py-3 px-4">
-                      <span className={`text-sm capitalize ${getStatusColor(order.status)}`}>
-                        {order.status}
+                      <span className={`text-sm ${getStatusColor(order.status)}`}>
+                        {getStatusLabel(order.status)}
                       </span>
                     </td>
                   </tr>

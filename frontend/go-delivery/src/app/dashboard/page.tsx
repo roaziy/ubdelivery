@@ -135,7 +135,10 @@ export default function DriverDashboard() {
 
                                 {/* Actions */}
                                 <div className="flex gap-2">
-                                    <button className="flex-1 py-2 border border-gray-200 rounded-full text-sm font-medium hover:bg-gray-50">
+                                    <button 
+                                        onClick={() => console.log('Decline order:', order.id)}
+                                        className="flex-1 py-2 border border-gray-200 rounded-full text-sm font-medium hover:bg-gray-50"
+                                    >
                                         Татгалзах
                                     </button>
                                     <button 

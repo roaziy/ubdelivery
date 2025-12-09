@@ -7,9 +7,10 @@ import { MdDeliveryDining } from 'react-icons/md';
 
 interface DriverLayoutProps {
     children: React.ReactNode;
+    hideNav?: boolean;
 }
 
-export default function DriverLayout({ children }: DriverLayoutProps) {
+export default function DriverLayout({ children, hideNav = false }: DriverLayoutProps) {
     const pathname = usePathname();
     const router = useRouter();
 
@@ -22,9 +23,9 @@ export default function DriverLayout({ children }: DriverLayoutProps) {
     ];
 
     return (
-        <div className="min-h-screen bg-backgroundGreen pb-20">
+        <div className={`min-h-screen bg-backgroundGreen ${hideNav ? '' : 'pb-20'}`}>
             {/* Header */}
-            <header className="bg-white border-b border-gray-100 sticky top-0 z-40">
+            {!hideNav && <header className="bg-white border-b border-gray-100 sticky top-0 z-40">
                 <div className="max-w-[600px] mx-auto px-4 py-3 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <Image 
@@ -43,7 +44,7 @@ export default function DriverLayout({ children }: DriverLayoutProps) {
                         <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
                     </button>
                 </div>
-            </header>
+            </header>}
 
             {/* Main Content */}
             <main className="max-w-[600px] mx-auto px-4 py-6">
@@ -51,7 +52,7 @@ export default function DriverLayout({ children }: DriverLayoutProps) {
             </main>
 
             {/* Bottom Navigation */}
-            <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-50">
+            {!hideNav && <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-50">
                 <div className="max-w-[600px] mx-auto flex items-center justify-around py-2">
                     {navItems.map(item => {
                         const isActive = pathname === item.path;
@@ -70,7 +71,7 @@ export default function DriverLayout({ children }: DriverLayoutProps) {
                         );
                     })}
                 </div>
-            </nav>
+            </nav>}
         </div>
     );
 }

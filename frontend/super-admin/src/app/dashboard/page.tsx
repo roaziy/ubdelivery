@@ -96,6 +96,16 @@ export default function DashboardPage() {
     }
   };
 
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'delivered': return 'Хүргэгдсэн';
+      case 'cancelled': return 'Цуцлагдсан';
+      case 'pending': return 'Хүлээгдэж буй';
+      case 'preparing': return 'Бэлтгэж буй';
+      default: return status;
+    }
+  };
+
   return (
     <AdminLayout>
       <div>
@@ -159,8 +169,8 @@ export default function DashboardPage() {
                     <td className="py-3 px-4 text-sm text-gray-500">{order.customerName}</td>
                     <td className="py-3 px-4 text-sm font-medium">₮{order.totalAmount.toLocaleString()}</td>
                     <td className="py-3 px-4">
-                      <span className={`text-sm capitalize ${getStatusColor(order.status)}`}>
-                        {order.status}
+                      <span className={`text-sm ${getStatusColor(order.status)}`}>
+                        {getStatusLabel(order.status)}
                       </span>
                     </td>
                   </tr>
