@@ -82,7 +82,7 @@ export default function SettingsSection() {
     };
 
     return (
-        <div className="bg-white rounded-2xl shadow-sm p-6 md:mt-8 mb-20 md:mb-8 min-h-[550px]">
+        <div className="bg-white rounded-2xl shadow-sm p-6 md:mt-8 mb-20 md:mb-8 min-h-[750px] md:min-h-[700px]">
             <SettingsTabs activeTab={activeTab} onTabChange={setActiveTab} />
             {renderContent()}
         </div>
