@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from "react";
-import FoodCard, { FoodItem } from "@/components/home/FoodSection/FoodCard";
+import { FoodItem } from "@/lib/types";
+import FoodCard from "@/components/home/FoodSection/FoodCard";
 import FoodDetailModal from "@/components/home/FoodSection/FoodDetailModal";
 
 interface FoodSectionProps {

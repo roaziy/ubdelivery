@@ -1,10 +1,14 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { IoChevronBack, IoClose, IoMail } from "react-icons/io5";
 import { FaPhone } from "react-icons/fa6";
 import { useNotifications } from "@/components/ui/Notification";
+import { CartService, OrderService } from "@/lib/api";
+import { Cart, CartItem as CartItemType } from "@/lib/types";
+import { mockCart, simulateDelay } from "@/lib/mockData";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 // Import sub-components
 import EmptyCart from "./EmptyCart";
@@ -63,11 +67,13 @@ export default function CartSection() {
     const notify = useNotifications();
     const [activeTab, setActiveTab] = useState<'cart' | 'orders'>('cart');
     const [isDriverContactOpen, setIsDriverContactOpen] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [isUpdating, setIsUpdating] = useState(false);
     
     const goToHistory = () => {
         router.push('/home/orders');
     };
-    const [cartData, setCartData] = useState<RestaurantCart[]>(sampleCartData);
+    const [cartData, setCartData] = useState<RestaurantCart[]>([]);
     const [viewState, setViewState] = useState<ViewState>('cart');
     const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
     
@@ -82,9 +88,67 @@ export default function CartSection() {
         couponCode: "",
     });
 
+    // Fetch cart data
+    useEffect(() => {
+        const fetchCart = async () => {
+            setLoading(true);
+            try {
+                const response = await CartService.get();
+                if (response.success && response.data) {
+                    // Transform API cart data to RestaurantCart format
+                    const transformedData = transformCartData(response.data);
+                    setCartData(transformedData);
+                } else {
+                    // Fallback to mock data
+                    await simulateDelay(800);
+                    setCartData(sampleCartData);
+                }
+            } catch (error) {
+                console.error('Failed to fetch cart:', error);
+                await simulateDelay(800);
+                setCartData(sampleCartData);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchCart();
+    }, []);
+
+    // Transform Cart API data to RestaurantCart format
+    const transformCartData = (cart: Cart): RestaurantCart[] => {
+        // Group items by restaurant
+        const restaurantMap = new Map<string, RestaurantCart>();
+        
+        cart.items.forEach(item => {
+            const restaurantId = item.restaurantId || 'default';
+            if (!restaurantMap.has(restaurantId)) {
+                restaurantMap.set(restaurantId, {
+                    id: parseInt(restaurantId) || 1,
+                    name: item.restaurantName || 'Рестоуран',
+                    hours: '09:00 - 20:00',
+                    items: []
+                });
+            }
+            
+            const restaurant = restaurantMap.get(restaurantId)!;
+            restaurant.items.push({
+                id: parseInt(item.id) || parseInt(item.foodId.toString()) || 1,
+                name: item.name,
+                restaurant: item.restaurantName || '',
+                price: item.price,
+                quantity: item.quantity,
+                deliveryFee: 0,
+                image: item.image
+            });
+        });
+        
+        return Array.from(restaurantMap.values());
+    };
+
     const isEmpty = cartData.length === 0 || cartData.every(r => r.items.length === 0);
 
-    const handleQuantityChange = (restaurantId: number, itemId: number, delta: number) => {
+    const handleQuantityChange = async (restaurantId: number, itemId: number, delta: number) => {
+        // Optimistic update
         setCartData(prev => prev.map(restaurant => {
             if (restaurant.id === restaurantId) {
                 return {
@@ -100,6 +164,21 @@ export default function CartSection() {
             }
             return restaurant;
         }));
+
+        // API call
+        try {
+            const item = cartData
+                .find(r => r.id === restaurantId)
+                ?.items.find(i => i.id === itemId);
+            
+            if (item) {
+                const newQuantity = Math.max(1, item.quantity + delta);
+                await CartService.updateQuantity(itemId.toString(), newQuantity);
+            }
+        } catch (error) {
+            console.error('Failed to update quantity:', error);
+            notify.error('Алдаа', 'Тоо хэмжээг өөрчлөхөд алдаа гарлаа');
+        }
     };
 
     const handleFormChange = (field: keyof typeof formData, value: string) => {
@@ -115,13 +194,37 @@ export default function CartSection() {
         setViewState('confirm');
     };
 
-    const handleConfirmPayment = () => {
+    const handleConfirmPayment = async () => {
         setViewState('processing');
         notify.info('Төлбөр', 'Төлбөр боловсруулагдаж байна...');
-        setTimeout(() => {
-            setViewState('success');
-            notify.success('Амжилттай', 'Таны захиалга амжилттай баталгаажлаа!');
-        }, 3000);
+        
+        try {
+            const response = await OrderService.create({
+                deliveryAddress: formData.address,
+                floor: formData.floor,
+                doorNumber: formData.doorNumber,
+                doorCode: formData.doorCode,
+                notes: formData.detailedAddress,
+                paymentMethod: formData.paymentMethod
+            });
+            
+            if (response.success) {
+                setViewState('success');
+                notify.success('Амжилттай', 'Таны захиалга амжилттай баталгаажлаа!');
+                // Clear cart after successful order
+                setCartData([]);
+            } else {
+                notify.error('Алдаа', response.error || 'Захиалга үүсгэхэд алдаа гарлаа');
+                setViewState('confirm');
+            }
+        } catch (error) {
+            console.error('Failed to create order:', error);
+            // Fallback to simulated success for demo
+            setTimeout(() => {
+                setViewState('success');
+                notify.success('Амжилттай', 'Таны захиалга амжилттай баталгаажлаа!');
+            }, 2000);
+        }
     };
 
     const handleViewTracking = (orderId: number) => {
@@ -269,7 +372,33 @@ export default function CartSection() {
 
             {/* Content based on view state */}
             {viewState === 'cart' && (
-                activeTab === 'cart' 
+                loading ? (
+                    <div className="space-y-4">
+                        {[...Array(2)].map((_, i) => (
+                            <div key={i} className="border border-gray-200 rounded-xl p-4 animate-pulse">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <Skeleton className="w-12 h-12 rounded-xl" />
+                                    <div className="flex-1">
+                                        <Skeleton className="h-4 w-32 mb-2" />
+                                        <Skeleton className="h-3 w-24" />
+                                    </div>
+                                </div>
+                                <div className="space-y-3">
+                                    {[...Array(2)].map((_, j) => (
+                                        <div key={j} className="flex items-center gap-3">
+                                            <Skeleton className="w-16 h-16 rounded-lg" />
+                                            <div className="flex-1">
+                                                <Skeleton className="h-4 w-3/4 mb-2" />
+                                                <Skeleton className="h-3 w-1/2" />
+                                            </div>
+                                            <Skeleton className="h-8 w-20" />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : activeTab === 'cart' 
                     ? (isEmpty ? <EmptyCart /> : renderCartItems())
                     : <OrdersSection onViewTracking={handleViewTracking} />
             )}

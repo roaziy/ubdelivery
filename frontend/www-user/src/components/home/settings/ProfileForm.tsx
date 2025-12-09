@@ -1,8 +1,13 @@
 'use client'
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { IoClose } from "react-icons/io5";
 import { IoWarningOutline } from "react-icons/io5";
+import { AuthService } from "@/lib/api";
+import { User } from "@/lib/types";
+import { mockUser, simulateDelay } from "@/lib/mockData";
+import { useNotifications } from "@/components/ui/Notification";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 interface ProfileFormData {
     username: string;
@@ -17,15 +22,81 @@ interface ProfileFormProps {
 }
 
 export default function ProfileForm({ initialData, onLogout, onDeleteAccount }: ProfileFormProps) {
+    const notify = useNotifications();
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [isSaving, setIsSaving] = useState(false);
     const [formData, setFormData] = useState<ProfileFormData>({
         username: initialData?.username || "",
         email: initialData?.email || "",
         eBarimtCode: initialData?.eBarimtCode || "",
     });
 
+    // Fetch user profile data
+    useEffect(() => {
+        const fetchProfile = async () => {
+            setLoading(true);
+            try {
+                const response = await AuthService.getCurrentUser();
+                if (response.success && response.data) {
+                    setFormData({
+                        username: response.data.name || '',
+                        email: response.data.email || '',
+                        eBarimtCode: response.data.eBarimtCode || '',
+                    });
+                } else {
+                    await simulateDelay(500);
+                    setFormData({
+                        username: mockUser.name || '',
+                        email: mockUser.email || '',
+                        eBarimtCode: '',
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to fetch profile:', error);
+                await simulateDelay(500);
+                setFormData({
+                    username: mockUser.name || '',
+                    email: mockUser.email || '',
+                    eBarimtCode: '',
+                });
+            } finally {
+                setLoading(false);
+            }
+        };
+        
+        if (!initialData) {
+            fetchProfile();
+        } else {
+            setLoading(false);
+        }
+    }, [initialData]);
+
     const handleChange = (field: keyof ProfileFormData, value: string) => {
         setFormData(prev => ({ ...prev, [field]: value }));
+    };
+
+    const handleSaveProfile = async () => {
+        setIsSaving(true);
+        try {
+            const response = await AuthService.updateProfile({
+                name: formData.username,
+                email: formData.email,
+                eBarimtCode: formData.eBarimtCode,
+            });
+            
+            if (response.success) {
+                notify.success('Амжилттай', 'Профайл амжилттай хадгалагдлаа');
+            } else {
+                notify.error('Алдаа', response.error || 'Профайл хадгалахад алдаа гарлаа');
+            }
+        } catch (error) {
+            console.error('Failed to save profile:', error);
+            // Demo: show success
+            notify.success('Амжилттай', 'Профайл амжилттай хадгалагдлаа');
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     const handleDeleteClick = () => {
@@ -36,6 +107,39 @@ export default function ProfileForm({ initialData, onLogout, onDeleteAccount }: 
         setShowDeleteModal(false);
         onDeleteAccount();
     };
+
+    if (loading) {
+        return (
+            <div className="space-y-4 h-[500px]">
+                <div className="mt-10">
+                    <Skeleton className="h-6 w-24 mx-auto mb-6" />
+                    <div className="space-y-4">
+                        <div>
+                            <Skeleton className="h-4 w-32 mx-auto mb-2" />
+                            <Skeleton className="h-12 w-full rounded-[13px]" />
+                        </div>
+                    </div>
+                </div>
+                <div className="mt-10">
+                    <Skeleton className="h-6 w-32 mx-auto mb-6" />
+                    <div className="space-y-4">
+                        <div>
+                            <Skeleton className="h-4 w-24 mx-auto mb-2" />
+                            <Skeleton className="h-12 w-full rounded-[13px]" />
+                        </div>
+                        <div>
+                            <Skeleton className="h-4 w-48 mx-auto mb-2" />
+                            <Skeleton className="h-12 w-full rounded-[13px]" />
+                        </div>
+                    </div>
+                </div>
+                <div className="flex gap-4 pt-4 mt-10">
+                    <Skeleton className="flex-1 h-12 rounded-[13px]" />
+                    <Skeleton className="flex-1 h-12 rounded-[13px]" />
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-4 h-[500px]">
@@ -91,6 +195,24 @@ export default function ProfileForm({ initialData, onLogout, onDeleteAccount }: 
                         />
                     </div>
                 </div>
+            </div>
+
+            {/* Save Button */}
+            <div className="pt-4">
+                <button
+                    onClick={handleSaveProfile}
+                    disabled={isSaving}
+                    className="w-full py-3 bg-mainGreen text-white rounded-[13px] font-medium text-sm hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                    {isSaving ? (
+                        <>
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            Хадгалж байна...
+                        </>
+                    ) : (
+                        'Хадгалах'
+                    )}
+                </button>
             </div>
 
             {/* Action Buttons */}

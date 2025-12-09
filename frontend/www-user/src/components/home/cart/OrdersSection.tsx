@@ -1,13 +1,17 @@
 'use client'
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { IoChevronBack, IoChevronForward } from "react-icons/io5";
 import { FaRegClock } from "react-icons/fa";
 import OrderGroup, { Order } from "./OrderGroup";
 import EmptyOrders from "./EmptyOrders";
+import { OrderService } from "@/lib/api";
+import { mockOrders, simulateDelay } from "@/lib/mockData";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { useNotifications } from "@/components/ui/Notification";
 
-// Sample orders data
+// Sample orders data as fallback
 const sampleOrders: Order[] = [
     {
         id: 1,
@@ -36,9 +40,48 @@ interface OrdersSectionProps {
 
 export default function OrdersSection({ onViewTracking }: OrdersSectionProps) {
     const router = useRouter();
-    const [orders] = useState<Order[]>(sampleOrders);
+    const notify = useNotifications();
+    const [orders, setOrders] = useState<Order[]>([]);
+    const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 5;
+
+    useEffect(() => {
+        const fetchOrders = async () => {
+            setLoading(true);
+            try {
+                const response = await OrderService.getActive();
+                if (response.success && response.data) {
+                    // Transform API orders to local Order format
+                    const transformedOrders: Order[] = response.data.map(order => ({
+                        id: parseInt(order.id),
+                        orderId: order.id,
+                        restaurantName: order.restaurantName || 'Рестоуран',
+                        status: order.status as Order['status'],
+                        items: order.items.map(item => ({
+                            id: parseInt(item.id) || item.foodId,
+                            name: item.name,
+                            restaurant: order.restaurantName || '',
+                            price: item.price * item.quantity,
+                            deliveryFee: 0,
+                            date: order.createdAt
+                        }))
+                    }));
+                    setOrders(transformedOrders);
+                } else {
+                    await simulateDelay(800);
+                    setOrders(sampleOrders);
+                }
+            } catch (error) {
+                console.error('Failed to fetch orders:', error);
+                await simulateDelay(800);
+                setOrders(sampleOrders);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchOrders();
+    }, []);
 
     const totalPages = Math.ceil(orders.length / itemsPerPage);
     const paginatedOrders = orders.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
@@ -49,9 +92,48 @@ export default function OrdersSection({ onViewTracking }: OrdersSectionProps) {
         onViewTracking(orderId);
     };
 
-    // const goToHistory = () => {
-    //     router.push('/home/orders');
-    // };
+    const handleCancelOrder = async (orderId: number) => {
+        try {
+            const response = await OrderService.cancel(orderId.toString());
+            if (response.success) {
+                notify.success('Амжилттай', 'Захиалга цуцлагдлаа');
+                setOrders(prev => prev.filter(o => o.id !== orderId));
+            } else {
+                notify.error('Алдаа', response.error || 'Захиалга цуцлахад алдаа гарлаа');
+            }
+        } catch {
+            notify.error('Алдаа', 'Сервертэй холбогдоход алдаа гарлаа');
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="space-y-4">
+                {[...Array(3)].map((_, i) => (
+                    <div key={i} className="border border-gray-200 rounded-xl p-4 animate-pulse">
+                        <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-3">
+                                <Skeleton className="w-10 h-10 rounded-lg" />
+                                <div>
+                                    <Skeleton className="h-4 w-28 mb-1" />
+                                    <Skeleton className="h-3 w-20" />
+                                </div>
+                            </div>
+                            <Skeleton className="h-6 w-20 rounded-full" />
+                        </div>
+                        <div className="space-y-2">
+                            {[...Array(2)].map((_, j) => (
+                                <div key={j} className="flex justify-between">
+                                    <Skeleton className="h-4 w-2/3" />
+                                    <Skeleton className="h-4 w-16" />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                ))}
+            </div>
+        );
+    }
 
     if (isEmpty) {
         return <EmptyOrders />;
@@ -76,9 +158,9 @@ export default function OrdersSection({ onViewTracking }: OrdersSectionProps) {
                     key={order.id}
                     order={order}
                     onViewDetails={() => handleViewDetails(order.id)}
-                    onRate={() => console.log('Rate order', order.id)}
-                    onCancel={() => console.log('Cancel order', order.id)}
-                    onRefund={() => console.log('Refund order', order.id)}
+                    onRate={() => notify.info('Үнэлгээ', 'Үнэлгээ өгөх боломжтой болно')}
+                    onCancel={() => handleCancelOrder(order.id)}
+                    onRefund={() => notify.info('Буцаалт', 'Буцаалтын хүсэлт илгээгдлээ')}
                 />
             ))}
 

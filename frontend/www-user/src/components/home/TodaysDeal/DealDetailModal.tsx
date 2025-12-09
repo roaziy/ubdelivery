@@ -3,28 +3,20 @@
 import { IoClose } from "react-icons/io5";
 import { IoIosRemove, IoIosAdd } from "react-icons/io";
 import { useState } from "react";
-
-interface DealItem {
-    id: number;
-    title: string;
-    subtitle: string;
-    discount: string;
-    restaurant?: string;
-    originalPrice?: number;
-    discountedPrice?: number;
-    description?: string;
-    validUntil?: string;
-    items?: string[];
-}
+import { Deal } from "@/lib/types";
+import { CartAPI } from "@/lib/api";
+import { useNotifications } from "@/components/ui/Notification";
 
 interface DealDetailModalProps {
-    deal: DealItem | null;
+    deal: Deal | null;
     isOpen: boolean;
     onClose: () => void;
 }
 
 export default function DealDetailModal({ deal, isOpen, onClose }: DealDetailModalProps) {
     const [quantity, setQuantity] = useState(1);
+    const [isAddingToCart, setIsAddingToCart] = useState(false);
+    const notify = useNotifications();
 
     if (!isOpen || !deal) return null;
 
@@ -38,6 +30,25 @@ export default function DealDetailModal({ deal, isOpen, onClose }: DealDetailMod
 
     const handleIncrease = () => {
         setQuantity(quantity + 1);
+    };
+
+    const handleAddToCart = async () => {
+        setIsAddingToCart(true);
+        try {
+            // Add deal items to cart
+            const response = await CartAPI.addDeal(deal.id, quantity);
+            if (response.success) {
+                notify.success('Амжилттай', `${deal.title} (${quantity}ш) сагсанд нэмэгдлээ`);
+                setQuantity(1);
+                onClose();
+            } else {
+                notify.error('Алдаа', response.error || 'Сагсанд нэмэхэд алдаа гарлаа');
+            }
+        } catch {
+            notify.error('Алдаа', 'Сервертэй холбогдоход алдаа гарлаа');
+        } finally {
+            setIsAddingToCart(false);
+        }
     };
 
     return (
@@ -154,8 +165,19 @@ export default function DealDetailModal({ deal, isOpen, onClose }: DealDetailMod
                     </div>
 
                     {/* Add to Cart Button */}
-                    <button className="w-full bg-mainGreen text-white py-3 rounded-full font-medium hover:bg-green-600 transition-colors">
-                        Сагсанд нэмэх
+                    <button 
+                        onClick={handleAddToCart}
+                        disabled={isAddingToCart}
+                        className="w-full bg-mainGreen text-white py-3 rounded-full font-medium hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                        {isAddingToCart ? (
+                            <>
+                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                Нэмэж байна...
+                            </>
+                        ) : (
+                            'Сагсанд нэмэх'
+                        )}
                     </button>
                 </div>
             </div>

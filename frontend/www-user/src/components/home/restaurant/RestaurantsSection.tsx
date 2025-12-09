@@ -1,53 +1,14 @@
 'use client'
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { IoSearch } from "react-icons/io5";
 import { FaRegClock } from "react-icons/fa";
 import { FaStar } from "react-icons/fa6";
-
-const featuredRestaurants = [
-    { id: 1, name: "Modern Nomads", type: "Монгол уламжлалт хоол", hours: "09:00 - 20:00", rating: 5 },
-    { id: 2, name: "Modern Nomads", type: "Монгол уламжлалт хоол", hours: "09:00 - 20:00", rating: 5 },
-    { id: 3, name: "Modern Nomads", type: "Монгол уламжлалт хоол", hours: "09:00 - 20:00", rating: 5 },
-    { id: 4, name: "Modern Nomads", type: "Монгол уламжлалт хоол", hours: "09:00 - 20:00", rating: 5 },
-];
-
-const allRestaurants = [
-    { id: 1, name: "Modern Nomads", type: "Монгол уламжлалт хоол", hours: "09:00 - 20:00", rating: 5 },
-    { id: 2, name: "Modern Nomads", type: "Монгол уламжлалт хоол", hours: "09:00 - 20:00", rating: 5 },
-    { id: 3, name: "Modern Nomads", type: "Монгол уламжлалт хоол", hours: "09:00 - 20:00", rating: 5 },
-    { id: 4, name: "Modern Nomads", type: "Монгол уламжлалт хоол", hours: "09:00 - 20:00", rating: 5 },
-    { id: 5, name: "Modern Nomads", type: "Монгол уламжлалт хоол", hours: "09:00 - 20:00", rating: 5 },
-    { id: 6, name: "Modern Nomads", type: "Монгол уламжлалт хоол", hours: "09:00 - 20:00", rating: 5 },
-    { id: 7, name: "Modern Nomads", type: "Монгол уламжлалт хоол", hours: "09:00 - 20:00", rating: 5 },
-    { id: 8, name: "Modern Nomads", type: "Монгол уламжлалт хоол", hours: "09:00 - 20:00", rating: 5 },
-    { id: 9, name: "Modern Nomads", type: "Монгол уламжлалт хоол", hours: "09:00 - 20:00", rating: 5 },
-    { id: 10, name: "Modern Nomads", type: "Монгол уламжлалт хоол", hours: "09:00 - 20:00", rating: 5 },
-    { id: 11, name: "Modern Nomads", type: "Монгол уламжлалт хоол", hours: "09:00 - 20:00", rating: 5 },
-    { id: 12, name: "Modern Nomads", type: "Монгол уламжлалт хоол", hours: "09:00 - 20:00", rating: 5 },
-    { id: 13, name: "Modern Nomads", type: "Монгол уламжлалт хоол", hours: "09:00 - 20:00", rating: 5 },
-    { id: 14, name: "Modern Nomads", type: "Монгол уламжлалт хоол", hours: "09:00 - 20:00", rating: 5 },
-    { id: 15, name: "Modern Nomads", type: "Монгол уламжлалт хоол", hours: "09:00 - 20:00", rating: 5 },
-    { id: 16, name: "Modern Nomads", type: "Монгол уламжлалт хоол", hours: "09:00 - 20:00", rating: 5 },
-    { id: 17, name: "Modern Nomads", type: "Монгол уламжлалт хоол", hours: "09:00 - 20:00", rating: 5 },
-    { id: 18, name: "Modern Nomads", type: "Монгол уламжлалт хоол", hours: "09:00 - 20:00", rating: 5 },
-    { id: 19, name: "Modern Nomads", type: "Монгол уламжлалт хоол", hours: "09:00 - 20:00", rating: 5 },
-    { id: 20, name: "Modern Nomads", type: "Монгол уламжлалт хоол", hours: "09:00 - 20:00", rating: 5 },
-    { id: 21, name: "Modern Nomads", type: "Монгол уламжлалт хоол", hours: "09:00 - 20:00", rating: 5 },
-    { id: 22, name: "Modern Nomads", type: "Монгол уламжлалт хоол", hours: "09:00 - 20:00", rating: 5 },
-    { id: 23, name: "Modern Nomads", type: "Монгол уламжлалт хоол", hours: "09:00 - 20:00", rating: 5 },
-    { id: 24, name: "Modern Nomads", type: "Монгол уламжлалт хоол", hours: "09:00 - 20:00", rating: 5 },
-    { id: 25, name: "Modern Nomads", type: "Монгол уламжлалт хоол", hours: "09:00 - 20:00", rating: 5 },
-];
-
-interface Restaurant {
-    id: number;
-    name: string;
-    type: string;
-    hours: string;
-    rating: number;
-}
+import { Restaurant } from "@/lib/types";
+import { RestaurantService } from "@/lib/api";
+import { mockRestaurants, simulateDelay } from "@/lib/mockData";
+import { RestaurantCardSkeleton } from "@/components/ui/Skeleton";
 
 function RestaurantCard({ restaurant }: { restaurant: Restaurant }) {
     return (
@@ -56,8 +17,29 @@ function RestaurantCard({ restaurant }: { restaurant: Restaurant }) {
             className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow cursor-pointer block"
         >
             <div className="relative">
-                <div className="h-24 md:h-28 bg-gray-200 rounded-t-xl"></div>
-                <div className="absolute -bottom-2 left-4 bg-white w-12 h-12 border border-gray-200 rounded-xl"></div>
+                <div className="h-24 md:h-28 bg-gray-200 rounded-t-xl">
+                    {restaurant.banner && (
+                        <img 
+                            src={restaurant.banner} 
+                            alt={restaurant.name}
+                            className="w-full h-full object-cover rounded-t-xl"
+                        />
+                    )}
+                </div>
+                <div className="absolute -bottom-2 left-4 bg-white w-12 h-12 border border-gray-200 rounded-xl overflow-hidden">
+                    {restaurant.logo && (
+                        <img 
+                            src={restaurant.logo} 
+                            alt={restaurant.name}
+                            className="w-full h-full object-cover"
+                        />
+                    )}
+                </div>
+                {!restaurant.isOpen && (
+                    <div className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                        Хаалттай
+                    </div>
+                )}
             </div>
             <div className="pt-4 pb-4 px-4">
                 <h3 className="font-semibold text-base mb-0 select-none">{restaurant.name}</h3>
@@ -80,16 +62,76 @@ function RestaurantCard({ restaurant }: { restaurant: Restaurant }) {
 export default function RestaurantsSection() {
     const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
     const [currentPage, setCurrentPage] = useState(1);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [featuredRestaurants, setFeaturedRestaurants] = useState<Restaurant[]>([]);
+    const [allRestaurants, setAllRestaurants] = useState<Restaurant[]>([]);
+    const [totalPages, setTotalPages] = useState(1);
+    const [loading, setLoading] = useState(true);
+    const [featuredLoading, setFeaturedLoading] = useState(true);
     
     const itemsPerPage = 20;
-    const totalPages = Math.ceil(allRestaurants.length / itemsPerPage);
-    
-    // Get restaurants for current page
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const currentRestaurants = allRestaurants.slice(startIndex, endIndex);
 
-    // Generate page numbers to display
+    // Fetch featured restaurants
+    useEffect(() => {
+        const fetchFeatured = async () => {
+            setFeaturedLoading(true);
+            try {
+                const response = await RestaurantService.getFeatured();
+                if (response.success && response.data) {
+                    setFeaturedRestaurants(response.data.slice(0, 4));
+                } else {
+                    await simulateDelay(500);
+                    setFeaturedRestaurants(mockRestaurants.slice(0, 4) as Restaurant[]);
+                }
+            } catch {
+                await simulateDelay(500);
+                setFeaturedRestaurants(mockRestaurants.slice(0, 4) as Restaurant[]);
+            } finally {
+                setFeaturedLoading(false);
+            }
+        };
+        fetchFeatured();
+    }, []);
+
+    // Fetch all restaurants with pagination and search
+    useEffect(() => {
+        const fetchRestaurants = async () => {
+            setLoading(true);
+            try {
+                const response = await RestaurantService.getAll({
+                    page: currentPage,
+                    pageSize: itemsPerPage,
+                    query: searchQuery || undefined
+                });
+                if (response.success && response.data) {
+                    setAllRestaurants(response.data.items);
+                    setTotalPages(response.data.totalPages);
+                } else {
+                    await simulateDelay(800);
+                    const filtered = searchQuery 
+                        ? mockRestaurants.filter(r => 
+                            r.name.toLowerCase().includes(searchQuery.toLowerCase())
+                          )
+                        : mockRestaurants;
+                    setAllRestaurants(filtered as Restaurant[]);
+                    setTotalPages(Math.ceil(filtered.length / itemsPerPage));
+                }
+            } catch {
+                await simulateDelay(800);
+                setAllRestaurants(mockRestaurants as Restaurant[]);
+                setTotalPages(Math.ceil(mockRestaurants.length / itemsPerPage));
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchRestaurants();
+    }, [currentPage, searchQuery]);
+
+    const handleSearchChange = (value: string) => {
+        setSearchQuery(value);
+        setCurrentPage(1);
+    };
+
     const getPageNumbers = () => {
         const pages: (number | string)[] = [];
         if (totalPages <= 5) {
@@ -115,6 +157,8 @@ export default function RestaurantsSection() {
                     <input 
                         type="text" 
                         placeholder="Restaurant-ны нэрээр хайх"
+                        value={searchQuery}
+                        onChange={(e) => handleSearchChange(e.target.value)}
                         className="flex-1 bg-transparent outline-none text-sm"
                     />
                 </div>
@@ -124,19 +168,33 @@ export default function RestaurantsSection() {
             <section className="mb-8">
                 <h2 className="text-lg md:text-xl font-semibold mb-4">Онцлох ресторанууд</h2>
                 
-                {/* Desktop: 4 columns grid */}
-                <div className="hidden md:grid grid-cols-4 gap-4">
-                    {featuredRestaurants.map((restaurant) => (
-                        <RestaurantCard key={restaurant.id} restaurant={restaurant} />
-                    ))}
-                </div>
-
-                {/* Mobile: Vertical stack */}
-                <div className="md:hidden flex flex-col gap-4">
-                    {featuredRestaurants.slice(0, 4).map((restaurant) => (
-                        <RestaurantCard key={restaurant.id} restaurant={restaurant} />
-                    ))}
-                </div>
+                {featuredLoading ? (
+                    <>
+                        <div className="hidden md:grid grid-cols-4 gap-4">
+                            {[...Array(4)].map((_, i) => (
+                                <RestaurantCardSkeleton key={i} />
+                            ))}
+                        </div>
+                        <div className="md:hidden flex flex-col gap-4">
+                            {[...Array(2)].map((_, i) => (
+                                <RestaurantCardSkeleton key={i} />
+                            ))}
+                        </div>
+                    </>
+                ) : (
+                    <>
+                        <div className="hidden md:grid grid-cols-4 gap-4">
+                            {featuredRestaurants.map((restaurant) => (
+                                <RestaurantCard key={restaurant.id} restaurant={restaurant} />
+                            ))}
+                        </div>
+                        <div className="md:hidden flex flex-col gap-4">
+                            {featuredRestaurants.slice(0, 4).map((restaurant) => (
+                                <RestaurantCard key={restaurant.id} restaurant={restaurant} />
+                            ))}
+                        </div>
+                    </>
+                )}
             </section>
 
             {/* All Restaurants */}
@@ -170,73 +228,99 @@ export default function RestaurantsSection() {
                 {/* List View */}
                 {viewMode === 'list' && (
                     <>
-                        {/* Desktop: 4 columns grid */}
-                        <div className="hidden md:grid grid-cols-4 gap-4">
-                            {currentRestaurants.map((restaurant) => (
-                                <RestaurantCard key={restaurant.id} restaurant={restaurant} />
-                            ))}
-                        </div>
-
-                        {/* Mobile: Vertical stack */}
-                        <div className="md:hidden flex flex-col gap-4">
-                            {currentRestaurants.map((restaurant) => (
-                                <RestaurantCard key={restaurant.id} restaurant={restaurant} />
-                            ))}
-                        </div>
+                        {loading ? (
+                            <>
+                                <div className="hidden md:grid grid-cols-4 gap-4">
+                                    {[...Array(itemsPerPage)].map((_, i) => (
+                                        <RestaurantCardSkeleton key={i} />
+                                    ))}
+                                </div>
+                                <div className="md:hidden flex flex-col gap-4">
+                                    {[...Array(4)].map((_, i) => (
+                                        <RestaurantCardSkeleton key={i} />
+                                    ))}
+                                </div>
+                            </>
+                        ) : allRestaurants.length === 0 ? (
+                            <div className="text-center py-12">
+                                <p className="text-gray-500">Ресторан олдсонгүй</p>
+                                {searchQuery && (
+                                    <button 
+                                        onClick={() => setSearchQuery('')}
+                                        className="mt-4 text-mainGreen hover:underline"
+                                    >
+                                        Хайлт арилгах
+                                    </button>
+                                )}
+                            </div>
+                        ) : (
+                            <>
+                                <div className="hidden md:grid grid-cols-4 gap-4">
+                                    {allRestaurants.map((restaurant) => (
+                                        <RestaurantCard key={restaurant.id} restaurant={restaurant} />
+                                    ))}
+                                </div>
+                                <div className="md:hidden flex flex-col gap-4">
+                                    {allRestaurants.map((restaurant) => (
+                                        <RestaurantCard key={restaurant.id} restaurant={restaurant} />
+                                    ))}
+                                </div>
+                            </>
+                        )}
 
                         {/* Pagination */}
-                        <div className="flex justify-center items-center gap-2 mt-8 mb-32 md:mb-16">
-                            <button 
-                                className={`text-sm transition-colors flex items-center gap-1 ${
-                                    currentPage === 1 
-                                        ? 'text-gray-300 cursor-not-allowed' 
-                                        : 'text-gray-500 hover:text-mainGreen'
-                                }`}
-                                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                                disabled={currentPage === 1}
-                            >
-                                &lt; Previous
-                            </button>
-                            {getPageNumbers().map((page, index) => (
-                                typeof page === 'number' ? (
-                                    <button
-                                        key={index}
-                                        onClick={() => setCurrentPage(page)}
-                                        className={`w-8 h-8 rounded-full text-sm transition-colors ${
-                                            currentPage === page 
-                                                ? 'bg-mainGreen text-white' 
-                                                : 'text-gray-600 hover:bg-gray-100'
-                                        }`}
-                                    >
-                                        {page}
-                                    </button>
-                                ) : (
-                                    <span key={index} className="text-gray-400">{page}</span>
-                                )
-                            ))}
-                            <button 
-                                className={`text-sm transition-colors flex items-center gap-1 ${
-                                    currentPage === totalPages 
-                                        ? 'text-gray-300 cursor-not-allowed' 
-                                        : 'text-gray-500 hover:text-mainGreen'
-                                }`}
-                                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                                disabled={currentPage === totalPages}
-                            >
-                                Next &gt;
-                            </button>
-                        </div>
+                        {totalPages > 1 && !loading && (
+                            <div className="flex justify-center items-center gap-2 mt-8 mb-32 md:mb-16">
+                                <button 
+                                    className={`text-sm transition-colors flex items-center gap-1 ${
+                                        currentPage === 1 
+                                            ? 'text-gray-300 cursor-not-allowed' 
+                                            : 'text-gray-500 hover:text-mainGreen'
+                                    }`}
+                                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                                    disabled={currentPage === 1}
+                                >
+                                    &lt; Өмнөх
+                                </button>
+                                {getPageNumbers().map((page, index) => (
+                                    typeof page === 'number' ? (
+                                        <button
+                                            key={index}
+                                            onClick={() => setCurrentPage(page)}
+                                            className={`w-8 h-8 rounded-full text-sm transition-colors ${
+                                                currentPage === page 
+                                                    ? 'bg-mainGreen text-white' 
+                                                    : 'text-gray-600 hover:bg-gray-100'
+                                            }`}
+                                        >
+                                            {page}
+                                        </button>
+                                    ) : (
+                                        <span key={index} className="text-gray-400">{page}</span>
+                                    )
+                                ))}
+                                <button 
+                                    className={`text-sm transition-colors flex items-center gap-1 ${
+                                        currentPage === totalPages 
+                                            ? 'text-gray-300 cursor-not-allowed' 
+                                            : 'text-gray-500 hover:text-mainGreen'
+                                    }`}
+                                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                                    disabled={currentPage === totalPages}
+                                >
+                                    Дараах &gt;
+                                </button>
+                            </div>
+                        )}
                     </>
                 )}
 
                 {/* Map View */}
                 {viewMode === 'map' && (
                     <div className="w-full h-[500px] md:h-[600px] bg-gray-100 rounded-2xl overflow-hidden mb-32 md:mb-16">
-                        {/* Map placeholder - you can integrate Google Maps or Mapbox here */}
                         <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300">
                             <div className="text-center">
                                 <div className="w-full h-full relative">
-                                    {/* Placeholder map image */}
                                     <div className="absolute inset-0 bg-[url('/map-placeholder.png')] bg-cover bg-center opacity-50"></div>
                                     <div className="relative z-10 p-8">
                                         <p className="text-gray-600 text-lg font-medium">Газрын зураг</p>

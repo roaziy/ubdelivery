@@ -5,23 +5,61 @@ import { useRouter } from "next/navigation";
 import SettingsTabs from "./SettingsTabs";
 import ProfileForm from "./ProfileForm";
 import OrderHistorySection from "../orders/OrderHistorySection";
+import { AuthService } from "@/lib/api";
+import { useNotifications } from "@/components/ui/Notification";
 
 export default function SettingsSection() {
     const router = useRouter();
+    const notify = useNotifications();
     const [activeTab, setActiveTab] = useState<'settings' | 'history' | 'terms'>('settings');
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
+    const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
-    const handleLogout = () => {
-        sessionStorage.removeItem('isLoggedIn');
-        sessionStorage.removeItem('phoneNumber');
-        router.push('/');
-    };
-
-    const handleDeleteAccount = () => {
-        // Show confirmation dialog
-        if (confirm('Та бүртгэлээ устгахдаа итгэлтэй байна уу?')) {
+    const handleLogout = async () => {
+        setIsLoggingOut(true);
+        try {
+            await AuthService.logout();
             sessionStorage.removeItem('isLoggedIn');
             sessionStorage.removeItem('phoneNumber');
+            sessionStorage.removeItem('authToken');
+            notify.success('Амжилттай', 'Та системээс гарлаа');
             router.push('/');
+        } catch (error) {
+            console.error('Logout error:', error);
+            sessionStorage.removeItem('isLoggedIn');
+            sessionStorage.removeItem('phoneNumber');
+            sessionStorage.removeItem('authToken');
+            router.push('/');
+        } finally {
+            setIsLoggingOut(false);
+        }
+    };
+
+    const handleDeleteAccount = async () => {
+        // Show confirmation dialog
+        if (confirm('Та бүртгэлээ устгахдаа итгэлтэй байна уу? Энэ үйлдлийг буцаах боломжгүй!')) {
+            setIsDeletingAccount(true);
+            try {
+                const response = await AuthService.deleteAccount();
+                if (response.success) {
+                    sessionStorage.removeItem('isLoggedIn');
+                    sessionStorage.removeItem('phoneNumber');
+                    sessionStorage.removeItem('authToken');
+                    notify.success('Амжилттай', 'Таны бүртгэл устгагдлаа');
+                    router.push('/');
+                } else {
+                    notify.error('Алдаа', response.error || 'Бүртгэл устгахад алдаа гарлаа');
+                }
+            } catch (error) {
+                console.error('Delete account error:', error);
+                // Demo: still logout
+                sessionStorage.removeItem('isLoggedIn');
+                sessionStorage.removeItem('phoneNumber');
+                sessionStorage.removeItem('authToken');
+                router.push('/');
+            } finally {
+                setIsDeletingAccount(false);
+            }
         }
     };
 
