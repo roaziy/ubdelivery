@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { IoChevronBack } from "react-icons/io5";
+import { IoChevronBack, IoClose, IoMail } from "react-icons/io5";
+import { FaPhone } from "react-icons/fa6";
 
 // Import sub-components
 import EmptyCart from "./EmptyCart";
@@ -48,9 +49,18 @@ const sampleTrackingSteps = [
 
 type ViewState = 'cart' | 'checkout' | 'confirm' | 'processing' | 'success' | 'tracking';
 
+// Driver contact info
+const driverInfo = {
+    name: "Одхүү Батцэцэг",
+    role: "Хүргэлтийн ажилтан",
+    phone: "9911-2233",
+    email: "driver@ubdelivery.xyz"
+};
+
 export default function CartSection() {
     const router = useRouter();
     const [activeTab, setActiveTab] = useState<'cart' | 'orders'>('cart');
+    const [isDriverContactOpen, setIsDriverContactOpen] = useState(false);
     
     const goToHistory = () => {
         router.push('/home/orders');
@@ -152,14 +162,76 @@ export default function CartSection() {
                     orderId="UB25Z11091007"
                     restaurantName="Modern Nomads"
                     deliveryAddress="ХУД, 3-р хороо, Хос даль аппартмент"
-                    driverName="Одхүү Батцэцэг"
-                    driverRole="Хүргэлтийн ажилтан"
+                    driverName={driverInfo.name}
+                    driverRole={driverInfo.role}
                     progress={54}
                     estimatedTime="1 цаг 45 минутын дараа"
                     steps={sampleTrackingSteps}
                     onBack={handleBack}
-                    onContactDriver={() => console.log('Contact driver')}
+                    onContactDriver={() => setIsDriverContactOpen(true)}
                 />
+
+                {/* Driver Contact Modal */}
+                {isDriverContactOpen && (
+                    <div 
+                        className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" 
+                        onClick={() => setIsDriverContactOpen(false)}
+                    >
+                        <div 
+                            className="bg-white rounded-2xl p-6 w-full max-w-md relative"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <button 
+                                className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+                                onClick={() => setIsDriverContactOpen(false)}
+                            >
+                                <IoClose size={24} />
+                            </button>
+                            
+                            <h2 className="text-xl font-bold mb-2 text-center">Холбоо барих</h2>
+                            <p className="text-sm text-gray-500 text-center mb-6">Хүргэлтийн ажилтан</p>
+                            
+                            {/* Driver Avatar and Name */}
+                            <div className="flex flex-col items-center mb-6">
+                                <div className="w-16 h-16 bg-gray-300 rounded-full mb-2"></div>
+                                <p className="font-semibold">{driverInfo.name}</p>
+                                <p className="text-xs text-mainGreen">{driverInfo.role}</p>
+                            </div>
+                            
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
+                                    <div className="max-w-12 max-h-12 p-3 bg-mainGreen/10 rounded-full flex items-center justify-center">
+                                        <FaPhone className="text-mainGreen" size={20} />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-gray-500">Утасны дугаар</p>
+                                        <a 
+                                            href={`tel:${driverInfo.phone}`} 
+                                            className="font-medium text-sm md:text-lg hover:text-mainGreen transition-colors"
+                                        >
+                                            {driverInfo.phone}
+                                        </a>
+                                    </div>
+                                </div>
+                                
+                                <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
+                                    <div className="max-w-12 max-h-12 p-3 bg-mainGreen/10 rounded-full flex items-center justify-center">
+                                        <IoMail className="text-mainGreen" size={20} />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-gray-500">Имэйл хаяг</p>
+                                        <a 
+                                            href={`mailto:${driverInfo.email}`} 
+                                            className="font-medium text-sm md:text-lg hover:text-mainGreen transition-colors"
+                                        >
+                                            {driverInfo.email}
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         );
     }

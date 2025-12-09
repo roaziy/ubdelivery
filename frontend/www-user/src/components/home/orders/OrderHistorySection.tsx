@@ -4,12 +4,14 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { IoChevronBack, IoChevronForward } from "react-icons/io5";
 import OrderItemCard, { OrderItem } from "@/components/home/cart/OrderItemCard";
+import RatingModal from "./RatingModal";
 
 interface HistoryOrder {
     id: number;
     orderId: string;
     restaurantName: string;
     status: 'delivered' | 'cancelled';
+    isRated?: boolean;
     items: OrderItem[];
 }
 
@@ -19,7 +21,8 @@ const sampleHistoryOrders: HistoryOrder[] = [
         id: 1,
         orderId: "UB25Z11091007",
         restaurantName: "Modern Nomads",
-        status: 'delivered',
+        status: 'cancelled',
+        isRated: false,
         items: [
             { id: 1, name: "Хүн аймар гоё Пицца, Хүн аймар гоё Пицца", restaurant: "Pizzahut mongolia", price: 35000, deliveryFee: 0, date: "2025/10/31 - 13:23" },
             { id: 2, name: "Хүн аймар гоё Пицца, Хүн аймар гоё Пицца", restaurant: "Pizzahut mongolia", price: 35000, deliveryFee: 0, date: "2025/10/31 - 13:23" },
@@ -27,20 +30,31 @@ const sampleHistoryOrders: HistoryOrder[] = [
     },
     {
         id: 2,
-        orderId: "UB25Z11091007",
+        orderId: "UB25Z11091008",
         restaurantName: "Pizzahut",
-        status: 'cancelled',
+        status: 'delivered',
         items: [
             { id: 3, name: "Хүн аймар гоё Пицца, Хүн аймар гоё Пицца", restaurant: "Pizzahut mongolia", price: 35000, deliveryFee: 0, date: "2025/10/31 - 13:23" },
+        ]
+    },
+    {
+        id: 3,
+        orderId: "UB25Z11091009",
+        restaurantName: "Burger King",
+        status: 'delivered',
+        isRated: true,
+        items: [
+            { id: 4, name: "Whopper Burger Combo", restaurant: "Burger King", price: 28000, deliveryFee: 0, date: "2025/10/30 - 18:45" },
         ]
     }
 ];
 
 export default function OrderHistorySection() {
     const router = useRouter();
-    const [orders] = useState<HistoryOrder[]>(sampleHistoryOrders);
+    const [orders, setOrders] = useState<HistoryOrder[]>(sampleHistoryOrders);
     const [currentPage, setCurrentPage] = useState(1);
-    const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
+    const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
+    const [selectedOrder, setSelectedOrder] = useState<HistoryOrder | null>(null);
     const itemsPerPage = 5;
 
     const totalPages = Math.ceil(orders.length / itemsPerPage);
@@ -55,20 +69,44 @@ export default function OrderHistorySection() {
         router.push(`/home/orders/${orderId}`);
     };
 
+    const handleOpenRating = (order: HistoryOrder) => {
+        setSelectedOrder(order);
+        setIsRatingModalOpen(true);
+    };
+
+    const handleRatingSubmit = (rating: { food: number; delivery: number; comment: string }) => {
+        // Update the order as rated
+        if (selectedOrder) {
+            setOrders(prevOrders => 
+                prevOrders.map(order => 
+                    order.id === selectedOrder.id 
+                        ? { ...order, isRated: true }
+                        : order
+                )
+            );
+        }
+        console.log('Rating submitted:', rating);
+    };
+
     const getActionButtons = (order: HistoryOrder) => {
         if (order.status === 'cancelled') {
+            // Cancelled orders - no rating button
             return (
                 <div className="flex gap-3 mt-4">
-                    <button className="flex-1 py-3 border border-red-400 text-red-500 rounded-[13px] font-medium">
-                        Цуцлагдсан
+                    <button 
+                        onClick={() => handleViewDetails(order.id)}
+                        className="flex-1 py-3 bg-[#D8D9D7] text-gray-700 rounded-[13px] font-medium hover:bg-[#C0C1BF] transition-colors"
+                    >
+                        Дэлгэрэнгүй
                     </button>
-                    <button className="flex-1 py-3 bg-mainGreen text-white rounded-[13px] font-medium hover:bg-green-600 transition-colors">
-                        Үнэлгээ
+                    <button className="flex-1 py-3 border border-red-400 text-red-500 rounded-[13px] font-medium cursor-not-allowed">
+                        Цуцлагдсан
                     </button>
                 </div>
             );
         }
         
+        // Delivered orders - show rating button only if not rated yet
         return (
             <div className="flex gap-3 mt-4">
                 <button 
@@ -77,9 +115,21 @@ export default function OrderHistorySection() {
                 >
                     Дэлгэрэнгүй
                 </button>
-                <button className="flex-1 py-3 bg-mainGreen text-white rounded-[13px] font-medium hover:bg-green-600 transition-colors">
-                    Үнэлгээ
-                </button>
+                {order.isRated ? (
+                    <button 
+                        disabled
+                        className="flex-1 py-3 bg-gray-200 text-gray-500 rounded-[13px] font-medium cursor-not-allowed"
+                    >
+                        Үнэлсэн
+                    </button>
+                ) : (
+                    <button 
+                        onClick={() => handleOpenRating(order)}
+                        className="flex-1 py-3 bg-mainGreen text-white rounded-[13px] font-medium hover:bg-green-600 transition-colors"
+                    >
+                        Үнэлгээ өгөх
+                    </button>
+                )}
             </div>
         );
     };
@@ -160,6 +210,18 @@ export default function OrderHistorySection() {
                     </button>
                 </div>
             )}
+
+            {/* Rating Modal - only for delivered orders */}
+            <RatingModal 
+                isOpen={isRatingModalOpen}
+                onClose={() => {
+                    setIsRatingModalOpen(false);
+                    setSelectedOrder(null);
+                }}
+                restaurantName={selectedOrder?.restaurantName || ""}
+                orderId={selectedOrder?.orderId || ""}
+                onSubmit={handleRatingSubmit}
+            />
         </div>
     );
 }

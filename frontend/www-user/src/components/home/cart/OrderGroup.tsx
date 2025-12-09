@@ -30,15 +30,9 @@ export default function OrderGroup({ order, onViewDetails, onRate, onCancel, onR
                     <div className="flex gap-3 mt-4">
                         <button 
                             onClick={onViewDetails}
-                            className="flex-1 py-3 bg-[#D8D9D7] text-gray-700 rounded-[13px] font-medium hover:bg-[#C0C1BF] transition-colors"
+                            className="flex-1 py-3 bg-[#D8D9D7] text-gray-700 rounded-[13px] font-medium hover:bg-[#C0C1BF] transition-colors cursor-pointer"
                         >
                             Дэлгэрэнгүй
-                        </button>
-                        <button 
-                            onClick={onRate}
-                            className="flex-1 py-3 bg-mainGreen text-white rounded-[13px] font-medium hover:bg-green-600 transition-colors"
-                        >
-                            Үнэлгээ
                         </button>
                     </div>
                 );
@@ -46,15 +40,10 @@ export default function OrderGroup({ order, onViewDetails, onRate, onCancel, onR
                 return (
                     <div className="flex gap-3 mt-4">
                         <button 
-                            className="flex-1 py-3 bg-[#D8D9D7] text-gray-700 rounded-[13px] font-medium"
+                            onClick={onViewDetails}
+                            className="flex-1 py-3 bg-[#D8D9D7] text-gray-700 rounded-[13px] font-medium hover:bg-[#C0C1BF] transition-colors cursor-pointer"
                         >
-                            Хүргэгдсэн
-                        </button>
-                        <button 
-                            onClick={onRate}
-                            className="flex-1 py-3 bg-mainGreen text-white rounded-[13px] font-medium hover:bg-green-600 transition-colors"
-                        >
-                            Үнэлгээ
+                            Дэлгэрэнгүй
                         </button>
                     </div>
                 );

@@ -1,12 +1,14 @@
 'use client'
 
+import { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { IoChevronBack } from "react-icons/io5";
-import { FaCheck } from "react-icons/fa6";
+import { IoChevronBack, IoClose, IoMail } from "react-icons/io5";
+import { FaCheck, FaPhone } from "react-icons/fa6";
 import { FaRegClock } from "react-icons/fa";
 import { IoMdRestaurant } from "react-icons/io";
 import { MdDeliveryDining } from "react-icons/md";
 import { TbTruckDelivery } from "react-icons/tb";
+import RatingModal from "./RatingModal";
 
 type TrackingStatus = 'confirmed' | 'preparing' | 'ready' | 'picked_up' | 'delivered' | 'cancelled';
 
@@ -48,6 +50,8 @@ const getOrderData = (orderId: string) => {
         deliveryAddress: "ХУД, 3-р хороо, Хос даль аппартмент",
         driverName: "Одхүү Батцэцэг",
         driverRole: "Хүргэлтийн ажилтан",
+        driverPhone: "9911-2233",
+        driverEmail: "driver@ubdelivery.xyz",
         progress: 100,
         steps: [
             { id: '1', status: 'confirmed' as TrackingStatus, title: 'Таны захиалга баталгаажлаа', description: 'Таны захиалга баталгаажсан', date: '2025/10/31 - 13:03', isCompleted: true, isActive: false, isCancelled: false },
@@ -65,9 +69,20 @@ export default function OrderDetailSection() {
     const orderId = params.id as string;
     
     const orderData = getOrderData(orderId);
+    const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
+    const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+    const [isRated, setIsRated] = useState(false);
+
+    // Check if order is delivered (progress 100% and not cancelled)
+    const isDelivered = orderData.progress === 100 && !orderData.canRefund;
 
     const handleBack = () => {
         router.push('/home/orders');
+    };
+
+    const handleRatingSubmit = (rating: { food: number; delivery: number; comment: string }) => {
+        console.log('Rating submitted:', rating);
+        setIsRated(true);
     };
 
     const getStepIcon = (step: TrackingStep) => {
@@ -141,9 +156,74 @@ export default function OrderDetailSection() {
                                 <p className="text-xs text-mainGreen">{orderData.driverRole}</p>
                             </div>
                         </div>
-                        <button className="px-4 py-2 bg-mainGreen text-white text-sm rounded-full hover:bg-green-600 transition-colors">
+                        <button 
+                            onClick={() => setIsContactModalOpen(true)}
+                            className="px-4 py-2 bg-mainGreen text-white text-sm rounded-full hover:bg-green-600 transition-colors"
+                        >
                             Холбоо барих
                         </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Driver Contact Modal */}
+            {isContactModalOpen && orderData.driverName && (
+                <div 
+                    className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" 
+                    onClick={() => setIsContactModalOpen(false)}
+                >
+                    <div 
+                        className="bg-white rounded-2xl p-6 w-full max-w-md relative"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button 
+                            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+                            onClick={() => setIsContactModalOpen(false)}
+                        >
+                            <IoClose size={24} />
+                        </button>
+                        
+                        <h2 className="text-xl font-bold mb-2 text-center">Холбоо барих</h2>
+                        <p className="text-sm text-gray-500 text-center mb-6">Хүргэлтийн ажилтан</p>
+                        
+                        {/* Driver Avatar and Name */}
+                        <div className="flex flex-col items-center mb-6">
+                            <div className="w-16 h-16 bg-gray-300 rounded-full mb-2"></div>
+                            <p className="font-semibold">{orderData.driverName}</p>
+                            <p className="text-xs text-mainGreen">{orderData.driverRole}</p>
+                        </div>
+                        
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
+                                <div className="max-w-12 max-h-12 p-3 bg-mainGreen/10 rounded-full flex items-center justify-center">
+                                    <FaPhone className="text-mainGreen" size={20} />
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-500">Утасны дугаар</p>
+                                    <a 
+                                        href={`tel:${orderData.driverPhone}`} 
+                                        className="font-medium text-sm md:text-lg hover:text-mainGreen transition-colors"
+                                    >
+                                        {orderData.driverPhone || "9911-2233"}
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
+                                <div className="max-w-12 max-h-12 p-3 bg-mainGreen/10 rounded-full flex items-center justify-center">
+                                    <IoMail className="text-mainGreen" size={20} />
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-500">Имэйл хаяг</p>
+                                    <a 
+                                        href={`mailto:${orderData.driverEmail || 'driver@ubdelivery.xyz'}`} 
+                                        className="font-medium text-sm md:text-lg hover:text-mainGreen transition-colors"
+                                    >
+                                        {orderData.driverEmail || 'driver@ubdelivery.xyz'}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}
@@ -188,6 +268,42 @@ export default function OrderDetailSection() {
                     </div>
                 ))}
             </div>
+
+            {/* Rating Button - only show for delivered orders */}
+            {isDelivered && (
+                <div className="mt-8 pt-6 border-t border-gray-200">
+                    {isRated ? (
+                        <div className="text-center">
+                            <p className="text-gray-500 text-sm mb-2">Та энэ захиалгыг үнэлсэн байна</p>
+                            <button 
+                                disabled
+                                className="w-full py-3 bg-gray-200 text-gray-500 rounded-full font-medium cursor-not-allowed"
+                            >
+                                Үнэлсэн ✓
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="text-center">
+                            <p className="text-gray-600 text-sm mb-2">Захиалга амжилттай хүргэгдлээ!</p>
+                            <button 
+                                onClick={() => setIsRatingModalOpen(true)}
+                                className="w-full py-3 bg-mainGreen text-white rounded-full font-medium hover:bg-green-600 transition-colors"
+                            >
+                                Үнэлгээ өгөх
+                            </button>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Rating Modal */}
+            <RatingModal 
+                isOpen={isRatingModalOpen}
+                onClose={() => setIsRatingModalOpen(false)}
+                restaurantName={orderData.restaurantName}
+                orderId={orderData.orderId}
+                onSubmit={handleRatingSubmit}
+            />
         </div>
     );
 }
