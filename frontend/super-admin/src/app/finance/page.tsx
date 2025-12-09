@@ -85,7 +85,7 @@ export default function FinancePage() {
   return (
     <AdminLayout>
       <div>
-        <h1 className="text-2xl font-bold text-mainBlack mb-6">Finance</h1>
+        <h1 className="text-2xl font-bold text-mainBlack mb-6">Санхүү</h1>
 
         {/* Tabs */}
         <div className="flex items-center gap-3 mb-6">
@@ -93,13 +93,13 @@ export default function FinancePage() {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-6 py-2 rounded-full text-sm font-medium capitalize transition-colors ${
+              className={`px-6 py-2 rounded-full text-sm font-medium transition-colors ${
                 activeTab === tab
                   ? 'bg-mainGreen text-white'
                   : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
               }`}
             >
-              {tab}
+              {tab === 'overview' ? 'Тойм' : tab === 'refunds' ? 'Буцаалт' : 'Төлбөр'}
             </button>
           ))}
         </div>
@@ -107,21 +107,21 @@ export default function FinancePage() {
         {activeTab === 'overview' && (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <StatCard title="Today's Revenue" value={`$${mockPlatformStats.today.revenue.toLocaleString()}`} change={8.2} />
-              <StatCard title="This Week" value={`$${mockPlatformStats.week.revenue.toLocaleString()}`} change={12.5} />
-              <StatCard title="This Month" value={`$${mockPlatformStats.month.revenue.toLocaleString()}`} change={5.1} />
-              <StatCard title="Total Revenue" value={`$${(mockPlatformStats.today.revenue + mockPlatformStats.week.revenue + mockPlatformStats.month.revenue).toLocaleString()}`} change={15.3} />
+              <StatCard title="Өнөөдрийн орлого" value={`₮${mockPlatformStats.today.revenue.toLocaleString()}`} change={8.2} />
+              <StatCard title="Энэ долоо хоног" value={`₮${mockPlatformStats.week.revenue.toLocaleString()}`} change={12.5} />
+              <StatCard title="Энэ сар" value={`₮${mockPlatformStats.month.revenue.toLocaleString()}`} change={5.1} />
+              <StatCard title="Нийт орлого" value={`₮${(mockPlatformStats.today.revenue + mockPlatformStats.week.revenue + mockPlatformStats.month.revenue).toLocaleString()}`} change={15.3} />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="bg-white rounded-2xl border border-gray-100 p-6">
-                <h3 className="text-lg font-bold text-mainBlack mb-4">Pending Refunds ({refunds.filter(r => r.status === 'pending').length})</h3>
+                <h3 className="text-lg font-bold text-mainBlack mb-4">Хүлээгдэж буй буцаалт ({refunds.filter(r => r.status === 'pending').length})</h3>
                 <div className="space-y-3">
                   {refunds.filter(r => r.status === 'pending').slice(0, 3).map((refund) => (
                     <div key={refund.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
                       <div>
-                        <p className="font-medium text-sm">Order #{refund.orderId}</p>
-                        <p className="text-gray-400 text-xs">${refund.amount}</p>
+                        <p className="font-medium text-sm">Захиалга #{refund.orderId}</p>
+                        <p className="text-gray-400 text-xs">₮{refund.amount}</p>
                       </div>
                       <div className="flex gap-2">
                         <button onClick={() => handleRefundAction(refund.id, 'approve')} className="p-2 bg-mainGreen text-white rounded-full"><FiCheck size={14} /></button>
@@ -132,15 +132,15 @@ export default function FinancePage() {
                 </div>
               </div>
               <div className="bg-white rounded-2xl border border-gray-100 p-6">
-                <h3 className="text-lg font-bold text-mainBlack mb-4">Pending Payouts ({payouts.filter(p => p.status === 'pending').length})</h3>
+                <h3 className="text-lg font-bold text-mainBlack mb-4">Хүлээгдэж буй төлбөр ({payouts.filter(p => p.status === 'pending').length})</h3>
                 <div className="space-y-3">
                   {payouts.filter(p => p.status === 'pending').slice(0, 3).map((payout) => (
                     <div key={payout.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
                       <div>
                         <p className="font-medium text-sm">{payout.restaurantName}</p>
-                        <p className="text-gray-400 text-xs">${payout.amount}</p>
+                        <p className="text-gray-400 text-xs">₮{payout.amount}</p>
                       </div>
-                      <button onClick={() => handleProcessPayout(payout.id)} className="px-4 py-2 bg-mainGreen text-white text-xs rounded-full">Process</button>
+                      <button onClick={() => handleProcessPayout(payout.id)} className="px-4 py-2 bg-mainGreen text-white text-xs rounded-full">Шилжүүлэх</button>
                     </div>
                   ))}
                 </div>
@@ -154,12 +154,12 @@ export default function FinancePage() {
             <table className="w-full">
               <thead>
                 <tr className="bg-gray-100 text-gray-600 text-sm">
-                  <th className="text-left py-3 px-4 font-medium">Order ID</th>
-                  <th className="text-left py-3 px-4 font-medium">Customer</th>
-                  <th className="text-left py-3 px-4 font-medium">Amount</th>
-                  <th className="text-left py-3 px-4 font-medium">Reason</th>
-                  <th className="text-left py-3 px-4 font-medium">Status</th>
-                  <th className="text-left py-3 px-4 font-medium">Actions</th>
+                  <th className="text-left py-3 px-4 font-medium">Захиалгын ID</th>
+                  <th className="text-left py-3 px-4 font-medium">Хэрэглэгч</th>
+                  <th className="text-left py-3 px-4 font-medium">Дүн</th>
+                  <th className="text-left py-3 px-4 font-medium">Шалтгаан</th>
+                  <th className="text-left py-3 px-4 font-medium">Төлөв</th>
+                  <th className="text-left py-3 px-4 font-medium">Үйлдэл</th>
                 </tr>
               </thead>
               <tbody>
@@ -167,7 +167,7 @@ export default function FinancePage() {
                   <tr key={refund.id} className="border-b border-gray-100 last:border-b-0">
                     <td className="py-3 px-4 text-sm font-medium">#{refund.orderId}</td>
                     <td className="py-3 px-4 text-sm text-gray-500">{refund.customerName}</td>
-                    <td className="py-3 px-4 text-sm font-medium">${refund.amount}</td>
+                    <td className="py-3 px-4 text-sm font-medium">₮{refund.amount}</td>
                     <td className="py-3 px-4 text-sm text-gray-500">{refund.reason}</td>
                     <td className="py-3 px-4"><span className={`text-sm capitalize ${getStatusColor(refund.status)}`}>{refund.status}</span></td>
                     <td className="py-3 px-4">
@@ -190,11 +190,11 @@ export default function FinancePage() {
             <table className="w-full">
               <thead>
                 <tr className="bg-gray-100 text-gray-600 text-sm">
-                  <th className="text-left py-3 px-4 font-medium">Restaurant</th>
-                  <th className="text-left py-3 px-4 font-medium">Period</th>
-                  <th className="text-left py-3 px-4 font-medium">Amount</th>
-                  <th className="text-left py-3 px-4 font-medium">Status</th>
-                  <th className="text-left py-3 px-4 font-medium">Action</th>
+                  <th className="text-left py-3 px-4 font-medium">Ресторан</th>
+                  <th className="text-left py-3 px-4 font-medium">Хугацаа</th>
+                  <th className="text-left py-3 px-4 font-medium">Дүн</th>
+                  <th className="text-left py-3 px-4 font-medium">Төлөв</th>
+                  <th className="text-left py-3 px-4 font-medium">Үйлдэл</th>
                 </tr>
               </thead>
               <tbody>
@@ -202,11 +202,11 @@ export default function FinancePage() {
                   <tr key={payout.id} className="border-b border-gray-100 last:border-b-0">
                     <td className="py-3 px-4 text-sm font-medium">{payout.restaurantName}</td>
                     <td className="py-3 px-4 text-sm text-gray-500">{payout.period}</td>
-                    <td className="py-3 px-4 text-sm font-medium">${payout.amount}</td>
+                    <td className="py-3 px-4 text-sm font-medium">₮{payout.amount}</td>
                     <td className="py-3 px-4"><span className={`text-sm capitalize ${getStatusColor(payout.status)}`}>{payout.status}</span></td>
                     <td className="py-3 px-4">
                       {payout.status === 'pending' && (
-                        <button onClick={() => handleProcessPayout(payout.id)} className="px-4 py-2 bg-mainGreen text-white text-xs rounded-full">Process</button>
+                        <button onClick={() => handleProcessPayout(payout.id)} className="px-4 py-2 bg-mainGreen text-white text-xs rounded-full">Шилжүүлэх</button>
                       )}
                     </td>
                   </tr>

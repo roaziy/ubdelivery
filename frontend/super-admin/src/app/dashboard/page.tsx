@@ -13,7 +13,7 @@ import {
   mockOrders,
 } from '@/lib/mockData';
 
-function StatCard({ title, value, change, prefix = '$' }: { 
+function StatCard({ title, value, change, prefix = '₮' }: { 
     title: string; 
     value: number | string; 
     change: number;
@@ -31,7 +31,7 @@ function StatCard({ title, value, change, prefix = '$' }: {
             <div className={`flex items-center gap-1 mt-2 text-sm ${isPositive ? 'text-mainGreen' : 'text-red-500'}`}>
                 {isPositive ? <IoTrendingUp size={16} /> : <IoTrendingDown size={16} />}
                 <span>{isPositive ? '+' : ''}{change}%</span>
-                <span className="text-gray-400 ml-1">vs yesterday</span>
+                <span className="text-gray-400 ml-1">өчигдрөөс</span>
             </div>
         </div>
     );
@@ -99,29 +99,29 @@ export default function DashboardPage() {
   return (
     <AdminLayout>
       <div>
-        <h1 className="text-2xl font-bold text-mainBlack mb-6">Dashboard</h1>
+        <h1 className="text-2xl font-bold text-mainBlack mb-6">Хянах самбар</h1>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <StatCard 
-            title="Today's Revenue" 
+            title="Өнөөдрийн орлого" 
             value={stats?.today.revenue || 0} 
             change={8.2} 
           />
           <StatCard 
-            title="Today's Orders" 
+            title="Өнөөдрийн захиалга" 
             value={stats?.today.orders || 0}
             change={12.5}
             prefix=""
           />
           <StatCard 
-            title="Active Users" 
+            title="Идэвхтэй хэрэглэгч" 
             value={stats?.today.activeUsers || 0}
             change={5.1}
             prefix=""
           />
           <StatCard 
-            title="Active Drivers" 
+            title="Идэвхтэй жолооч" 
             value={stats?.today.activeDrivers || 0}
             change={-2.3}
             prefix=""
@@ -131,12 +131,12 @@ export default function DashboardPage() {
         {/* Recent Orders Section */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-mainBlack">Recent Orders</h2>
+            <h2 className="text-xl font-bold text-mainBlack">Сүүлийн захиалгууд</h2>
             <Link 
               href="/orders" 
               className="px-4 py-2 border border-gray-300 rounded-full text-sm hover:bg-gray-50 transition-colors"
             >
-              View All Orders
+              Бүгдийг харах
             </Link>
           </div>
 
@@ -144,11 +144,11 @@ export default function DashboardPage() {
             <table className="w-full">
               <thead>
                 <tr className="bg-gray-100 text-gray-600 text-sm">
-                  <th className="text-left py-3 px-4 font-medium">Order ID</th>
-                  <th className="text-left py-3 px-4 font-medium">Restaurant</th>
-                  <th className="text-left py-3 px-4 font-medium">Customer</th>
-                  <th className="text-left py-3 px-4 font-medium">Total</th>
-                  <th className="text-left py-3 px-4 font-medium">Status</th>
+                  <th className="text-left py-3 px-4 font-medium">Захиалгын ID</th>
+                  <th className="text-left py-3 px-4 font-medium">Ресторан</th>
+                  <th className="text-left py-3 px-4 font-medium">Хэрэглэгч</th>
+                  <th className="text-left py-3 px-4 font-medium">Нийт</th>
+                  <th className="text-left py-3 px-4 font-medium">Төлөв</th>
                 </tr>
               </thead>
               <tbody>
@@ -157,7 +157,7 @@ export default function DashboardPage() {
                     <td className="py-3 px-4 text-sm font-medium">#{order.id}</td>
                     <td className="py-3 px-4 text-sm">{order.restaurantName}</td>
                     <td className="py-3 px-4 text-sm text-gray-500">{order.customerName}</td>
-                    <td className="py-3 px-4 text-sm font-medium">${order.totalAmount.toLocaleString()}</td>
+                    <td className="py-3 px-4 text-sm font-medium">₮{order.totalAmount.toLocaleString()}</td>
                     <td className="py-3 px-4">
                       <span className={`text-sm capitalize ${getStatusColor(order.status)}`}>
                         {order.status}
@@ -175,19 +175,19 @@ export default function DashboardPage() {
           {/* Restaurant Applications */}
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-mainBlack">Restaurant Applications</h2>
+              <h2 className="text-xl font-bold text-mainBlack">Рестораны өргөдлүүд</h2>
               <Link 
                 href="/applications" 
                 className="px-4 py-2 border border-gray-300 rounded-full text-sm hover:bg-gray-50 transition-colors"
               >
-                View All
+                Бүгдийг харах
               </Link>
             </div>
 
             <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
               {pendingRestaurants.length === 0 ? (
                 <div className="p-8 text-center text-gray-400">
-                  No pending applications
+                  Хүлээгдэж буй өргөдөл байхгүй
                 </div>
               ) : (
                 <div className="divide-y divide-gray-100">
@@ -198,7 +198,7 @@ export default function DashboardPage() {
                         <p className="text-sm text-gray-400">{app.ownerName}</p>
                       </div>
                       <span className="px-3 py-1 bg-yellow-100 text-yellow-600 text-xs font-medium rounded-full">
-                        Pending
+                        Хүлээгдэж буй
                       </span>
                     </div>
                   ))}
@@ -210,19 +210,19 @@ export default function DashboardPage() {
           {/* Driver Applications */}
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-mainBlack">Driver Applications</h2>
+              <h2 className="text-xl font-bold text-mainBlack">Жолоочийн өргөдлүүд</h2>
               <Link 
                 href="/applications" 
                 className="px-4 py-2 border border-gray-300 rounded-full text-sm hover:bg-gray-50 transition-colors"
               >
-                View All
+                Бүгдийг харах
               </Link>
             </div>
 
             <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
               {pendingDrivers.length === 0 ? (
                 <div className="p-8 text-center text-gray-400">
-                  No pending applications
+                  Хүлээгдэж буй өргөдөл байхгүй
                 </div>
               ) : (
                 <div className="divide-y divide-gray-100">
@@ -230,10 +230,10 @@ export default function DashboardPage() {
                     <div key={app.id} className="p-4 flex items-center justify-between">
                       <div>
                         <p className="font-medium text-mainBlack">{app.driverName}</p>
-                        <p className="text-sm text-gray-400 capitalize">{app.vehicleType} Driver</p>
+                        <p className="text-sm text-gray-400 capitalize">{app.vehicleType} Жолооч</p>
                       </div>
                       <span className="px-3 py-1 bg-yellow-100 text-yellow-600 text-xs font-medium rounded-full">
-                        Pending
+                        Хүлээгдэж буй
                       </span>
                     </div>
                   ))}

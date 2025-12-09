@@ -63,13 +63,13 @@ export default function UsersPage() {
     <AdminLayout>
       <div>
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-mainBlack">Users</h1>
+          <h1 className="text-2xl font-bold text-mainBlack">Хэрэглэгч</h1>
           <div className="flex items-center gap-3">
             <span className="px-4 py-2 bg-green-100 text-mainGreen rounded-full text-sm font-medium">
-              {users.filter((u) => u.status === 'active').length} Active
+              {users.filter((u) => u.status === 'active').length} Идэвхтэй
             </span>
             <span className="px-4 py-2 bg-red-100 text-red-500 rounded-full text-sm font-medium">
-              {users.filter((u) => u.status === 'suspended').length} Suspended
+              {users.filter((u) => u.status === 'suspended').length} Түдгэлсэн
             </span>
           </div>
         </div>
@@ -79,7 +79,7 @@ export default function UsersPage() {
           <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
-            placeholder="Search users..."
+            placeholder="Хэрэглэгч хайх..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-full focus:outline-none focus:border-mainGreen"
@@ -91,13 +91,13 @@ export default function UsersPage() {
           <table className="w-full">
             <thead>
               <tr className="bg-gray-100 text-gray-600 text-sm">
-                <th className="text-left py-3 px-4 font-medium">Name</th>
-                <th className="text-left py-3 px-4 font-medium">Email</th>
-                <th className="text-left py-3 px-4 font-medium">Phone</th>
-                <th className="text-left py-3 px-4 font-medium">Orders</th>
-                <th className="text-left py-3 px-4 font-medium">Total Spent</th>
-                <th className="text-left py-3 px-4 font-medium">Status</th>
-                <th className="text-left py-3 px-4 font-medium">Action</th>
+                <th className="text-left py-3 px-4 font-medium">Нэр</th>
+                <th className="text-left py-3 px-4 font-medium">И-мэйл</th>
+                <th className="text-left py-3 px-4 font-medium">Утас</th>
+                <th className="text-left py-3 px-4 font-medium">Захиалга</th>
+                <th className="text-left py-3 px-4 font-medium">Нийт зарцуулсан</th>
+                <th className="text-left py-3 px-4 font-medium">Төлөв</th>
+                <th className="text-left py-3 px-4 font-medium">Үйлдэл</th>
               </tr>
             </thead>
             <tbody>
@@ -105,7 +105,7 @@ export default function UsersPage() {
                 <tr>
                   <td colSpan={7} className="py-8 text-center text-gray-400">
                     <FiUser className="mx-auto mb-2" size={32} />
-                    No users found
+                    Хэрэглэгч олдсонгүй
                   </td>
                 </tr>
               ) : (
@@ -115,7 +115,7 @@ export default function UsersPage() {
                     <td className="py-3 px-4 text-sm text-gray-500">{user.email}</td>
                     <td className="py-3 px-4 text-sm text-gray-500">{user.phone}</td>
                     <td className="py-3 px-4 text-sm text-gray-500">{user.totalOrders}</td>
-                    <td className="py-3 px-4 text-sm font-medium">${user.totalSpent.toLocaleString()}</td>
+                    <td className="py-3 px-4 text-sm font-medium">₮{user.totalSpent.toLocaleString()}</td>
                     <td className="py-3 px-4">
                       <span className={`text-sm capitalize ${getStatusColor(user.status)}`}>
                         {user.status}

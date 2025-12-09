@@ -27,13 +27,13 @@ export default function SettingsPage() {
     setSaving(true);
     await new Promise((resolve) => setTimeout(resolve, 1000));
     setSaving(false);
-    alert('Settings saved successfully!');
+    alert('Тохиргоо амжилттай хадгалагдлаа!');
   };
 
   return (
     <AdminLayout>
       <div>
-        <h1 className="text-2xl font-bold text-mainBlack mb-6">Settings</h1>
+        <h1 className="text-2xl font-bold text-mainBlack mb-6">Тохиргоо</h1>
 
         {/* Tabs */}
         <div className="flex items-center gap-3 mb-6">
@@ -45,7 +45,7 @@ export default function SettingsPage() {
                 : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
             }`}
           >
-            Profile
+            Профайл
           </button>
           <button
             onClick={() => setActiveSection('platform')}
@@ -55,7 +55,7 @@ export default function SettingsPage() {
                 : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
             }`}
           >
-            Platform
+            Платформ
           </button>
         </div>
 
@@ -63,7 +63,7 @@ export default function SettingsPage() {
           {activeSection === 'profile' && (
             <div className="space-y-6 max-w-md">
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-2">Name</label>
+                <label className="block text-sm font-medium text-gray-600 mb-2">Нэр</label>
                 <input
                   type="text"
                   value={profileData.name}
@@ -72,7 +72,7 @@ export default function SettingsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-2">Email</label>
+                <label className="block text-sm font-medium text-gray-600 mb-2">И-мэйл</label>
                 <input
                   type="email"
                   value={profileData.email}
@@ -81,23 +81,23 @@ export default function SettingsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-2">Current Password</label>
+                <label className="block text-sm font-medium text-gray-600 mb-2">Одоогийн нууц үг</label>
                 <input
                   type="password"
                   value={profileData.currentPassword}
                   onChange={(e) => setProfileData({ ...profileData, currentPassword: e.target.value })}
                   className="w-full px-4 py-3 border border-gray-200 rounded-full focus:outline-none focus:border-mainGreen"
-                  placeholder="Enter to change password"
+                  placeholder="Нууц үг солих бол оруулна уу"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-2">New Password</label>
+                <label className="block text-sm font-medium text-gray-600 mb-2">Шинэ нууц үг</label>
                 <input
                   type="password"
                   value={profileData.newPassword}
                   onChange={(e) => setProfileData({ ...profileData, newPassword: e.target.value })}
                   className="w-full px-4 py-3 border border-gray-200 rounded-full focus:outline-none focus:border-mainGreen"
-                  placeholder="Enter new password"
+                  placeholder="Шинэ нууц үг оруулна уу"
                 />
               </div>
             </div>
@@ -106,7 +106,7 @@ export default function SettingsPage() {
           {activeSection === 'platform' && (
             <div className="space-y-6 max-w-md">
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-2">Platform Name</label>
+                <label className="block text-sm font-medium text-gray-600 mb-2">Платформын нэр</label>
                 <input
                   type="text"
                   value={platformSettings.platformName}
@@ -115,7 +115,7 @@ export default function SettingsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-2">Support Email</label>
+                <label className="block text-sm font-medium text-gray-600 mb-2">Тусламжийн и-мэйл</label>
                 <input
                   type="email"
                   value={platformSettings.supportEmail}
@@ -124,7 +124,7 @@ export default function SettingsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-2">Delivery Fee ($)</label>
+                <label className="block text-sm font-medium text-gray-600 mb-2">Хүргэлтийн төлбөр (₮)</label>
                 <input
                   type="number"
                   value={platformSettings.deliveryFee}
@@ -133,7 +133,7 @@ export default function SettingsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-2">Service Fee (%)</label>
+                <label className="block text-sm font-medium text-gray-600 mb-2">Үйлчилгээний шимтгэл (%)</label>
                 <input
                   type="number"
                   value={platformSettings.serviceFeePercent}
@@ -142,7 +142,7 @@ export default function SettingsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-2">Minimum Order ($)</label>
+                <label className="block text-sm font-medium text-gray-600 mb-2">Хамгийн бага захиалга (₮)</label>
                 <input
                   type="number"
                   value={platformSettings.minOrderAmount}
@@ -159,7 +159,7 @@ export default function SettingsPage() {
             className="mt-6 flex items-center gap-2 px-6 py-3 bg-mainGreen text-white rounded-full font-medium hover:bg-green-600 disabled:opacity-50"
           >
             <FiSave size={18} />
-            {saving ? 'Saving...' : 'Save Changes'}
+            {saving ? 'Хадгалж байна...' : 'Хадгалах'}
           </button>
         </div>
       </div>

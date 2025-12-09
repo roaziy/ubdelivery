@@ -86,7 +86,7 @@ export default function ApplicationsPage() {
   return (
     <AdminLayout>
       <div>
-        <h1 className="text-2xl font-bold text-mainBlack mb-6">Applications</h1>
+        <h1 className="text-2xl font-bold text-mainBlack mb-6">Өргөдлүүд</h1>
 
         {/* Tabs */}
         <div className="flex items-center gap-3 mb-6">
@@ -97,7 +97,7 @@ export default function ApplicationsPage() {
             }`}
           >
             <MdStorefront size={18} />
-            Restaurants ({restaurantApps.filter((a) => a.status === 'pending').length})
+            Ресторан ({restaurantApps.filter((a) => a.status === 'pending').length})
           </button>
           <button
             onClick={() => setActiveTab('drivers')}
@@ -106,7 +106,7 @@ export default function ApplicationsPage() {
             }`}
           >
             <FiTruck size={18} />
-            Drivers ({driverApps.filter((a) => a.status === 'pending').length})
+            Жолооч ({driverApps.filter((a) => a.status === 'pending').length})
           </button>
         </div>
 
@@ -115,7 +115,7 @@ export default function ApplicationsPage() {
           <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
-            placeholder={`Search ${activeTab}...`}
+            placeholder={activeTab === 'restaurants' ? 'Ресторан хайх...' : 'Жолооч хайх...'}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-full focus:outline-none focus:border-mainGreen"
@@ -128,18 +128,18 @@ export default function ApplicationsPage() {
             <table className="w-full">
               <thead>
                 <tr className="bg-gray-100 text-gray-600 text-sm">
-                  <th className="text-left py-3 px-4 font-medium">Restaurant</th>
-                  <th className="text-left py-3 px-4 font-medium">Owner</th>
-                  <th className="text-left py-3 px-4 font-medium">Email</th>
-                  <th className="text-left py-3 px-4 font-medium">Phone</th>
-                  <th className="text-left py-3 px-4 font-medium">Status</th>
-                  <th className="text-left py-3 px-4 font-medium">Actions</th>
+                  <th className="text-left py-3 px-4 font-medium">Ресторан</th>
+                  <th className="text-left py-3 px-4 font-medium">Эзэн</th>
+                  <th className="text-left py-3 px-4 font-medium">И-мэйл</th>
+                  <th className="text-left py-3 px-4 font-medium">Утас</th>
+                  <th className="text-left py-3 px-4 font-medium">Төлөв</th>
+                  <th className="text-left py-3 px-4 font-medium">Үйлдэл</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredRestaurants.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="py-8 text-center text-gray-400">No applications found</td>
+                    <td colSpan={6} className="py-8 text-center text-gray-400">Өргөдөл олдсонгүй</td>
                   </tr>
                 ) : (
                   filteredRestaurants.map((app) => (
@@ -178,18 +178,18 @@ export default function ApplicationsPage() {
             <table className="w-full">
               <thead>
                 <tr className="bg-gray-100 text-gray-600 text-sm">
-                  <th className="text-left py-3 px-4 font-medium">Driver</th>
-                  <th className="text-left py-3 px-4 font-medium">Vehicle</th>
-                  <th className="text-left py-3 px-4 font-medium">Email</th>
-                  <th className="text-left py-3 px-4 font-medium">Phone</th>
-                  <th className="text-left py-3 px-4 font-medium">Status</th>
-                  <th className="text-left py-3 px-4 font-medium">Actions</th>
+                  <th className="text-left py-3 px-4 font-medium">Жолооч</th>
+                  <th className="text-left py-3 px-4 font-medium">Тээвэр</th>
+                  <th className="text-left py-3 px-4 font-medium">И-мэйл</th>
+                  <th className="text-left py-3 px-4 font-medium">Утас</th>
+                  <th className="text-left py-3 px-4 font-medium">Төлөв</th>
+                  <th className="text-left py-3 px-4 font-medium">Үйлдэл</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredDrivers.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="py-8 text-center text-gray-400">No applications found</td>
+                    <td colSpan={6} className="py-8 text-center text-gray-400">Өргөдөл олдсонгүй</td>
                   </tr>
                 ) : (
                   filteredDrivers.map((app) => (

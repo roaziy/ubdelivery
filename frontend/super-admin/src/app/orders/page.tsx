@@ -59,7 +59,7 @@ export default function OrdersPage() {
   return (
     <AdminLayout>
       <div>
-        <h1 className="text-2xl font-bold text-mainBlack mb-6">Orders</h1>
+        <h1 className="text-2xl font-bold text-mainBlack mb-6">Захиалгууд</h1>
 
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
@@ -67,7 +67,7 @@ export default function OrdersPage() {
             <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
-              placeholder="Search orders..."
+              placeholder="Захиалга хайх..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-full focus:outline-none focus:border-mainGreen"
@@ -95,13 +95,13 @@ export default function OrdersPage() {
           <table className="w-full">
             <thead>
               <tr className="bg-gray-100 text-gray-600 text-sm">
-                <th className="text-left py-3 px-4 font-medium">Order ID</th>
-                <th className="text-left py-3 px-4 font-medium">Restaurant</th>
-                <th className="text-left py-3 px-4 font-medium">Customer</th>
-                <th className="text-left py-3 px-4 font-medium">Driver</th>
-                <th className="text-left py-3 px-4 font-medium">Total</th>
-                <th className="text-left py-3 px-4 font-medium">Date</th>
-                <th className="text-left py-3 px-4 font-medium">Status</th>
+                <th className="text-left py-3 px-4 font-medium">Захиалгын ID</th>
+                <th className="text-left py-3 px-4 font-medium">Ресторан</th>
+                <th className="text-left py-3 px-4 font-medium">Хэрэглэгч</th>
+                <th className="text-left py-3 px-4 font-medium">Жолооч</th>
+                <th className="text-left py-3 px-4 font-medium">Нийт</th>
+                <th className="text-left py-3 px-4 font-medium">Огноо</th>
+                <th className="text-left py-3 px-4 font-medium">Төлөв</th>
               </tr>
             </thead>
             <tbody>
@@ -109,7 +109,7 @@ export default function OrdersPage() {
                 <tr>
                   <td colSpan={7} className="py-8 text-center text-gray-400">
                     <FiShoppingBag className="mx-auto mb-2" size={32} />
-                    No orders found
+                    Захиалга олдсонгүй
                   </td>
                 </tr>
               ) : (
@@ -119,7 +119,7 @@ export default function OrdersPage() {
                     <td className="py-3 px-4 text-sm">{order.restaurantName}</td>
                     <td className="py-3 px-4 text-sm text-gray-500">{order.customerName}</td>
                     <td className="py-3 px-4 text-sm text-gray-500">{order.driverName || '-'}</td>
-                    <td className="py-3 px-4 text-sm font-medium">${order.totalAmount.toLocaleString()}</td>
+                    <td className="py-3 px-4 text-sm font-medium">₮{order.totalAmount.toLocaleString()}</td>
                     <td className="py-3 px-4 text-sm text-gray-500">
                       {new Date(order.createdAt).toLocaleDateString()}
                     </td>
