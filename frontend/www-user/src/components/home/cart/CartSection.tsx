@@ -22,8 +22,8 @@ const sampleCartData: RestaurantCart[] = [
         name: "Modern Nomads",
         hours: "09:00 - 20:00",
         items: [
-            { id: 1, name: "Хүн аймар гоё пицза, Хүн аймар гоё пицза", restaurant: "Pizzahut mongolia", price: 35000, quantity: 1, deliveryFee: 0 },
-            { id: 2, name: "Хүн аймар гоё пицза, Хүн аймар гоё пицза", restaurant: "Pizzahut mongolia", price: 35000, quantity: 1, deliveryFee: 0 },
+            { id: 1, name: "Хүн аймар гоё Пицца, Хүн аймар гоё Пицца", restaurant: "Pizzahut mongolia", price: 35000, quantity: 1, deliveryFee: 0 },
+            { id: 2, name: "Хүн аймар гоё Пицца, Хүн аймар гоё Пицца", restaurant: "Pizzahut mongolia", price: 35000, quantity: 1, deliveryFee: 0 },
         ]
     },
     {
@@ -31,7 +31,7 @@ const sampleCartData: RestaurantCart[] = [
         name: "Pizzahut",
         hours: "09:00 - 20:00",
         items: [
-            { id: 3, name: "Хүн аймар гоё пицза, Хүн аймар гоё пицза", restaurant: "Pizzahut mongolia", price: 35000, quantity: 1, deliveryFee: 0 },
+            { id: 3, name: "Хүн аймар гоё Пицца, Хүн аймар гоё Пицца", restaurant: "Pizzahut mongolia", price: 35000, quantity: 1, deliveryFee: 0 },
         ]
     }
 ];

@@ -68,7 +68,7 @@ export default function FoodDetailModal({ food, isOpen, onClose }: FoodDetailMod
                     <div className="mb-4">
                         <h3 className="font-medium text-sm mb-2">Нэмэлт мэдээлэл</h3>
                         <p className="text-gray-600 text-sm">
-                            {food.description || "Энэхүү хүн аймар гоё пицза нь хүн аймар гоч пицза юм!!!"}
+                            {food.description || "Энэхүү хүн аймар гоё Пицца нь хүн аймар гоч Пицца юм!!!"}
                         </p>
                     </div>
 

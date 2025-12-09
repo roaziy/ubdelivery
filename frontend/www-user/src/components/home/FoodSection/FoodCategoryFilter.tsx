@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 // Sample food data
-const categories = ['Өнөөдрийн онцлох', 'Пицза', 'Монгол хоол', 'Солонгос хоол', 'Япон хоол', 'Түргэн хоол'];
+const categories = ['Өнөөдрийн онцлох', 'Пицца', 'Монгол хоол', 'Солонгос хоол', 'Япон хоол', 'Түргэн хоол'];
 
 export default function FoodCategoryFilter() {
     const [activeCategory, setActiveCategory] = useState(0);

@@ -14,35 +14,35 @@ export interface FoodItem {
     description?: string;
 }
 
-const categories = ['Бүх хоол', 'Пицза', 'Монгол хоол', 'Солонгос хоол', 'Япон хоол', 'Түргэн хоол'];
+const categories = ['Бүх хоол', 'Пицца', 'Монгол хоол', 'Солонгос хоол', 'Япон хоол', 'Түргэн хоол'];
 
 // Extended food items for the full list page
 const allFoodItems: FoodItem[] = [
-    { id: 1, name: "Хүн аймар гоё пицза, Хүн аймар гоё пицза", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё пицза нь хүн аймар гоч пицза юм!!!" },
-    { id: 2, name: "Хүн аймар гоё пицза, Хүн аймар гоё пицза", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё пицза нь хүн аймар гоч пицза юм!!!" },
-    { id: 3, name: "Хүн аймар гоё пицза, Хүн аймар гоё пицза", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё пицза нь хүн аймар гоч пицза юм!!!" },
-    { id: 4, name: "Хүн аймар гоё пицза, Хүн аймар гоё пицза", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё пицза нь хүн аймар гоч пицза юм!!!" },
-    { id: 5, name: "Хүн аймар гоё пицза, Хүн аймар гоё пицза", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё пицза нь хүн аймар гоч пицза юм!!!" },
-    { id: 6, name: "Хүн аймар гоё пицза, Хүн аймар гоё пицза", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё пицза нь хүн аймар гоч пицза юм!!!" },
-    { id: 7, name: "Хүн аймар гоё пицза, Хүн аймар гоё пицза", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё пицза нь хүн аймар гоч пицза юм!!!" },
-    { id: 8, name: "Хүн аймар гоё пицза, Хүн аймар гоё пицза", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё пицза нь хүн аймар гоч пицза юм!!!" },
-    { id: 9, name: "Хүн аймар гоё пицза, Хүн аймар гоё пицза", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё пицза нь хүн аймар гоч пицза юм!!!" },
-    { id: 10, name: "Хүн аймар гоё пицза, Хүн аймар гоё пицза", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё пицза нь хүн аймар гоч пицза юм!!!" },
-    { id: 11, name: "Хүн аймар гоё пицза, Хүн аймар гоё пицза", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё пицза нь хүн аймар гоч пицза юм!!!" },
-    { id: 12, name: "Хүн аймар гоё пицза, Хүн аймар гоё пицза", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё пицза нь хүн аймар гоч пицза юм!!!" },
-    { id: 13, name: "Хүн аймар гоё пицза, Хүн аймар гоё пицза", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё пицза нь хүн аймар гоч пицза юм!!!" },
-    { id: 14, name: "Хүн аймар гоё пицза, Хүн аймар гоё пицза", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё пицза нь хүн аймар гоч пицза юм!!!" },
-    { id: 15, name: "Хүн аймар гоё пицза, Хүн аймар гоё пицза", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё пицза нь хүн аймар гоч пицза юм!!!" },
-    { id: 16, name: "Хүн аймар гоё пицза, Хүн аймар гоё пицза", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё пицза нь хүн аймар гоч пицза юм!!!" },
-    { id: 17, name: "Хүн аймар гоё пицза, Хүн аймар гоё пицза", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё пицза нь хүн аймар гоч пицза юм!!!" },
-    { id: 18, name: "Хүн аймар гоё пицза, Хүн аймар гоё пицза", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё пицза нь хүн аймар гоч пицза юм!!!" },
-    { id: 19, name: "Хүн аймар гоё пицза, Хүн аймар гоё пицза", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё пицза нь хүн аймар гоч пицза юм!!!" },
-    { id: 20, name: "Хүн аймар гоё пицза, Хүн аймар гоё пицза", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё пицза нь хүн аймар гоч пицза юм!!!" },
-    { id: 21, name: "Хүн аймар гоё пицза, Хүн аймар гоё пицза", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё пицза нь хүн аймар гоч пицза юм!!!" },
-    { id: 22, name: "Хүн аймар гоё пицза, Хүн аймар гоё пицза", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё пицза нь хүн аймар гоч пицза юм!!!" },
-    { id: 23, name: "Хүн аймар гоё пицза, Хүн аймар гоё пицза", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё пицза нь хүн аймар гоч пицза юм!!!" },
-    { id: 24, name: "Хүн аймар гоё пицза, Хүн аймар гоё пицза", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё пицза нь хүн аймар гоч пицза юм!!!" },
-    { id: 25, name: "Хүн аймар гоё пицза, Хүн аймар гоё пицза", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё пицза нь хүн аймар гоч пицза юм!!!" },
+    { id: 1, name: "Хүн аймар гоё Пицца, Хүн аймар гоё Пицца", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё Пицца нь хүн аймар гоч Пицца юм!!!" },
+    { id: 2, name: "Хүн аймар гоё Пицца, Хүн аймар гоё Пицца", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё Пицца нь хүн аймар гоч Пицца юм!!!" },
+    { id: 3, name: "Хүн аймар гоё Пицца, Хүн аймар гоё Пицца", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё Пицца нь хүн аймар гоч Пицца юм!!!" },
+    { id: 4, name: "Хүн аймар гоё Пицца, Хүн аймар гоё Пицца", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё Пицца нь хүн аймар гоч Пицца юм!!!" },
+    { id: 5, name: "Хүн аймар гоё Пицца, Хүн аймар гоё Пицца", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё Пицца нь хүн аймар гоч Пицца юм!!!" },
+    { id: 6, name: "Хүн аймар гоё Пицца, Хүн аймар гоё Пицца", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё Пицца нь хүн аймар гоч Пицца юм!!!" },
+    { id: 7, name: "Хүн аймар гоё Пицца, Хүн аймар гоё Пицца", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё Пицца нь хүн аймар гоч Пицца юм!!!" },
+    { id: 8, name: "Хүн аймар гоё Пицца, Хүн аймар гоё Пицца", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё Пицца нь хүн аймар гоч Пицца юм!!!" },
+    { id: 9, name: "Хүн аймар гоё Пицца, Хүн аймар гоё Пицца", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё Пицца нь хүн аймар гоч Пицца юм!!!" },
+    { id: 10, name: "Хүн аймар гоё Пицца, Хүн аймар гоё Пицца", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё Пицца нь хүн аймар гоч Пицца юм!!!" },
+    { id: 11, name: "Хүн аймар гоё Пицца, Хүн аймар гоё Пицца", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё Пицца нь хүн аймар гоч Пицца юм!!!" },
+    { id: 12, name: "Хүн аймар гоё Пицца, Хүн аймар гоё Пицца", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё Пицца нь хүн аймар гоч Пицца юм!!!" },
+    { id: 13, name: "Хүн аймар гоё Пицца, Хүн аймар гоё Пицца", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё Пицца нь хүн аймар гоч Пицца юм!!!" },
+    { id: 14, name: "Хүн аймар гоё Пицца, Хүн аймар гоё Пицца", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё Пицца нь хүн аймар гоч Пицца юм!!!" },
+    { id: 15, name: "Хүн аймар гоё Пицца, Хүн аймар гоё Пицца", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё Пицца нь хүн аймар гоч Пицца юм!!!" },
+    { id: 16, name: "Хүн аймар гоё Пицца, Хүн аймар гоё Пицца", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё Пицца нь хүн аймар гоч Пицца юм!!!" },
+    { id: 17, name: "Хүн аймар гоё Пицца, Хүн аймар гоё Пицца", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё Пицца нь хүн аймар гоч Пицца юм!!!" },
+    { id: 18, name: "Хүн аймар гоё Пицца, Хүн аймар гоё Пицца", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё Пицца нь хүн аймар гоч Пицца юм!!!" },
+    { id: 19, name: "Хүн аймар гоё Пицца, Хүн аймар гоё Пицца", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё Пицца нь хүн аймар гоч Пицца юм!!!" },
+    { id: 20, name: "Хүн аймар гоё Пицца, Хүн аймар гоё Пицца", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё Пицца нь хүн аймар гоч Пицца юм!!!" },
+    { id: 21, name: "Хүн аймар гоё Пицца, Хүн аймар гоё Пицца", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё Пицца нь хүн аймар гоч Пицца юм!!!" },
+    { id: 22, name: "Хүн аймар гоё Пицца, Хүн аймар гоё Пицца", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё Пицца нь хүн аймар гоч Пицца юм!!!" },
+    { id: 23, name: "Хүн аймар гоё Пицца, Хүн аймар гоё Пицца", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё Пицца нь хүн аймар гоч Пицца юм!!!" },
+    { id: 24, name: "Хүн аймар гоё Пицца, Хүн аймар гоё Пицца", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё Пицца нь хүн аймар гоч Пицца юм!!!" },
+    { id: 25, name: "Хүн аймар гоё Пицца, Хүн аймар гоё Пицца", restaurant: "Pizzahut mongolia", price: 35000, rating: 32, description: "Энэхүү хүн аймар гоё Пицца нь хүн аймар гоч Пицца юм!!!" },
 ];
 
 export default function FoodsListSection() {
