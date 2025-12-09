@@ -9,7 +9,7 @@ interface RestaurantFoodSectionProps {
     restaurantName: string;
 }
 
-const categories = ['Бүх хоол', 'Үндсэн хоол', 'Хачир', 'Нэмэлт'];
+const categories = ['Бүгд', 'Үндсэн хоол', 'Хачир', 'Нэмэлт'];
 
 export default function RestaurantFoodSection({ restaurantName }: RestaurantFoodSectionProps) {
     const [activeCategory, setActiveCategory] = useState(0);

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { IoLocationSharp, IoSearch, IoPersonCircle } from "react-icons/io5";
+import { FiShoppingCart } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
@@ -89,6 +90,12 @@ export default function HeaderDesktop() {
                         <IoLocationSharp className="text-mainGreen" size={20} />
                         <span>Улаанбаатар</span>
                     </div>
+                    <Link 
+                        href="/home/cart" 
+                        className="relative p-2 hover:bg-gray-100 rounded-full transition-colors"
+                    >
+                        <FiShoppingCart className="text-gray-700" size={24} />
+                    </Link>
                     <div className="flex items-center gap-2">
                         <button 
                             onClick={handleLogout}

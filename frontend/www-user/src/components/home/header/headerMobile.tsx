@@ -4,6 +4,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { IoMenu } from "react-icons/io5";
+import { FiShoppingCart } from "react-icons/fi";
 import { useState } from "react";
 
 export default function HeaderMobile() {
@@ -25,6 +26,9 @@ export default function HeaderMobile() {
                         />
                     </Link>
                     <div className="flex items-center gap-3">
+                        <Link href="/home/cart" className="hidden md:block text-gray-700">
+                            <FiShoppingCart size={24} />
+                        </Link>
                         <button 
                             onClick={() => setIsMenuOpen(!isMenuOpen)}
                             className="text-mainGreen"
@@ -59,6 +63,14 @@ export default function HeaderMobile() {
                             className={`transition-all ${pathname === '/home/foods' ? 'text-mainGreen' : 'text-gray-900 hover:text-gray-800'}`}
                         >
                             Бүх хоол
+                        </Link>
+                        <Link 
+                            href="/home/cart" 
+                            draggable={false}
+                            onClick={() => setIsMenuOpen(false)}
+                            className={`transition-all ${pathname === '/home/cart' ? 'text-mainGreen' : 'text-gray-900 hover:text-gray-800'}`}
+                        >
+                            Сагс
                         </Link>
                     </nav>
                 )}
