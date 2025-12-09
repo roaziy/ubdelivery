@@ -37,8 +37,18 @@ export default function LoginForm() {
             sessionStorage.setItem('adminLoggedIn', 'true');
             sessionStorage.setItem('adminEmail', formData.email);
             
-            // Navigate to dashboard
-            router.push('/dashboard');
+            // Check if setup is already completed
+            // In real app, this would come from API response
+            const setupCompleted = sessionStorage.getItem('setupCompleted');
+            
+            if (setupCompleted) {
+                // Setup already done, go to dashboard
+                router.push('/dashboard');
+            } else {
+                // First time login, go to setup
+                router.push('/setup');
+            }
+            
             setIsLoading(false);
         }, 1000);
     };
