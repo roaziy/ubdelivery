@@ -25,7 +25,6 @@ export default function Header() {
                         width={160} 
                         height={40}
                     />
-                    <span className="text-mainGreen text-sm italic">admin panel</span>
                 </Link>
 
                 {/* Logout Button */}

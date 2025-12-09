@@ -26,7 +26,7 @@ export default function Step2Hours({
 
     return (
         <div className="flex flex-col min-h-[500px]">
-            <div className="flex-1 flex flex-col items-center justify-center max-w-[500px] mx-auto w-full">
+            <div className="flex-1 flex flex-col items-center justify-center max-w-[300px] mx-auto w-full">
                 {/* Question */}
                 <p className="text-center font-medium mb-6">
                     Танай ресторан 24 цаг ажилдаг уу?
