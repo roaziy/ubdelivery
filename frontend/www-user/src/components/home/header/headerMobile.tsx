@@ -27,7 +27,7 @@ export default function HeaderMobile() {
                         />
                     </Link>
                     <div className="flex items-center gap-3">
-                        <Link href="/home/settings" className="text-mainGreen">
+                        <Link href="/home/settings" className="text-mainGreen hidden md:block">
                             <IoPersonCircle size={28} />
                         </Link>
                         <button 
