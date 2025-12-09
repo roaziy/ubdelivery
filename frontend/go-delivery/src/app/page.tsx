@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { IoCall, IoLockClosed, IoEye, IoEyeOff } from 'react-icons/io5';
-import { MdDeliveryDining } from 'react-icons/md';
 
 export default function DriverLoginPage() {
     const router = useRouter();
@@ -65,8 +65,13 @@ export default function DriverLoginPage() {
             <div className="w-full max-w-[400px]">
                 {/* Logo */}
                 <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-20 h-20 bg-mainGreen rounded-full mb-4">
-                        <MdDeliveryDining className="text-white" size={40} />
+                    <div className="inline-flex items-center justify-center mb-4">
+                        <Image 
+                            src="/logos/logo.svg" 
+                            alt="UB Delivery" 
+                            width={80} 
+                            height={80}
+                        />
                     </div>
                     <h1 className="text-2xl font-bold text-mainBlack">Go Delivery</h1>
                     <p className="text-gray-500 mt-1">Хүргэлтийн ажилтны систем</p>

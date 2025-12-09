@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import DriverLayout from '@/components/layout/DriverLayout';
 import { IoCamera, IoCall, IoMail, IoStar, IoLogOut, IoChevronForward } from 'react-icons/io5';
-import { MdDeliveryDining } from 'react-icons/md';
 import { mockDriver } from '@/lib/mockData';
 
 export default function ProfilePage() {
@@ -108,7 +108,7 @@ export default function ProfilePage() {
                 <h3 className="font-semibold mb-3">Тээврийн хэрэгсэл</h3>
                 <div className="flex items-center gap-3">
                     <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center">
-                        <MdDeliveryDining size={24} className="text-gray-600" />
+                        <Image src="/logos/logo.svg" alt="Vehicle" width={28} height={28} />
                     </div>
                     <div>
                         <p className="font-medium">{getVehicleLabel(driver.vehicleType)}</p>

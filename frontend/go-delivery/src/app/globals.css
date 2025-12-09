@@ -1,37 +1,27 @@
 @import "tailwindcss";
 
 :root {
-  --mainGreen: #58BA5F;
-  --mainBlack: #1A1A1A;
-  --backgroundGreen: #F7F8F5;
+  --background: #ffffff;
 }
 
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
-}
-
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-}
-
-body {
-  color: var(--mainBlack);
-  background: var(--backgroundGreen);
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-/* Custom Colors for Tailwind */
-@theme {
+@theme inline {
+  --font-sans: var(--font-Montserrat-sans);
   --color-mainGreen: #58BA5F;
   --color-mainBlack: #1A1A1A;
   --color-backgroundGreen: #F7F8F5;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #ffffff;
+  }
+}
+
+body {
+  background: var(--background);
+  font-family: Montserrat, sans-serif;
+}
+
+::selection {
+  background-color: rgba(88, 186, 95, 0.2);
 }

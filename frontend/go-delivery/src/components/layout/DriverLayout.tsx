@@ -1,6 +1,7 @@
 'use client'
 
 import { usePathname, useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { IoHome, IoTime, IoWallet, IoPerson, IoNotifications } from 'react-icons/io5';
 import { MdDeliveryDining } from 'react-icons/md';
 
@@ -24,11 +25,14 @@ export default function DriverLayout({ children }: DriverLayoutProps) {
         <div className="min-h-screen bg-backgroundGreen pb-20">
             {/* Header */}
             <header className="bg-white border-b border-gray-100 sticky top-0 z-40">
-                <div className="max-w-[600px] mx-auto px-4 py-4 flex items-center justify-between">
+                <div className="max-w-[600px] mx-auto px-4 py-3 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-mainGreen rounded-full flex items-center justify-center">
-                            <MdDeliveryDining className="text-white" size={18} />
-                        </div>
+                        <Image 
+                            src="/logos/logo.svg" 
+                            alt="UB Delivery" 
+                            width={32} 
+                            height={32}
+                        />
                         <span className="font-bold text-lg">Go Delivery</span>
                     </div>
                     <button 

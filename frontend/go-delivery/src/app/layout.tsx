@@ -1,5 +1,11 @@
 import type { Metadata } from "next";
+import { Montserrat } from "next/font/google";
 import "./globals.css";
+
+const montserrat = Montserrat({
+  variable: "--font-Montserrat-sans",
+  subsets: ["latin", "cyrillic"],
+});
 
 export const metadata: Metadata = {
   title: "Go Delivery - Хүргэлтийн ажилтан",
@@ -13,7 +19,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="mn">
-      <body className="antialiased">
+      <body className={`${montserrat.variable} antialiased`}>
         {children}
       </body>
     </html>

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { IoChevronBack, IoCheckmark } from 'react-icons/io5';
 import { mockNotifications, formatTimeAgo } from '@/lib/mockData';
 
@@ -32,14 +33,19 @@ export default function NotificationsPage() {
         <div className="min-h-screen bg-backgroundGreen">
             {/* Header */}
             <header className="bg-white border-b border-gray-100 sticky top-0 z-40">
-                <div className="max-w-[600px] mx-auto px-4 py-4 flex items-center justify-between">
-                    <button 
-                        onClick={() => router.back()}
-                        className="p-2 hover:bg-gray-100 rounded-full"
-                    >
-                        <IoChevronBack size={22} />
-                    </button>
-                    <h1 className="font-bold text-lg">Мэдэгдэл</h1>
+                <div className="max-w-[600px] mx-auto px-4 py-3 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <button 
+                            onClick={() => router.back()}
+                            className="p-2 hover:bg-gray-100 rounded-full"
+                        >
+                            <IoChevronBack size={22} />
+                        </button>
+                        <div className="flex items-center gap-2">
+                            <Image src="/logos/logo.svg" alt="UB Delivery" width={28} height={28} />
+                            <h1 className="font-bold text-lg">Мэдэгдэл</h1>
+                        </div>
+                    </div>
                     {unreadCount > 0 && (
                         <button 
                             onClick={handleMarkAllRead}
@@ -48,7 +54,6 @@ export default function NotificationsPage() {
                             <IoCheckmark size={22} className="text-mainGreen" />
                         </button>
                     )}
-                    {unreadCount === 0 && <div className="w-10"></div>}
                 </div>
             </header>
 
