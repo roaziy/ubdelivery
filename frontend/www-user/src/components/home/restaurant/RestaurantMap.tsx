@@ -57,7 +57,7 @@ export default function RestaurantMap({ restaurants }: RestaurantMapProps) {
         Promise.all([
             import('react-leaflet'),
             import('leaflet'),
-            import('leaflet/dist/leaflet.css')
+            // import('leaflet/dist/leaflet.css')
         ]).then(([reactLeaflet, leaflet]) => {
             setLeafletModules({
                 MapContainer: reactLeaflet.MapContainer,
