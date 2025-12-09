@@ -5,7 +5,7 @@ import HeaderHomeBottom from "@/components/home/header/headerHomeBottom";
 import HeroBanner from "@/components/home/HeroBanner";
 import FoodCategoryFilter from "@/components/home/FoodSection/FoodCategoryFilter";
 import FoodSection from "@/components/home/FoodSection/FoodSection";
-import TodaysDeal from "@/components/home/TodaysDeal";
+import TodaysDeal from "@/components/home/TodaysDeal/TodaysDeal";
 import RestaurantCard from "@/components/home/restaurant/RestaurantCard";
 
 export default function HomePage() {
