@@ -5,6 +5,19 @@ import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = Router();
 
+// Helper function to generate order number
+async function generateOrderNumber() {
+  const today = new Date().toISOString().split('T')[0];
+  const { count } = await supabaseAdmin
+    .from('orders')
+    .select('*', { count: 'exact', head: true })
+    .gte('created_at', `${today}T00:00:00.000Z`)
+    .lt('created_at', `${today}T23:59:59.999Z`);
+  
+  const todayCount = (count || 0) + 1;
+  return `#${String(todayCount).padStart(4, '0')}`;
+}
+
 // ============================================
 // GET CART
 // ============================================
@@ -387,16 +400,21 @@ router.post('/checkout', verifyToken, asyncHandler(async (req, res) => {
   const deliveryFee = 3000;
   const totalAmount = subtotal + deliveryFee;
 
+  // Generate order number
+  const orderNumber = await generateOrderNumber();
+
   // Create order
   const { data: order, error: orderError } = await supabaseAdmin
     .from('orders')
     .insert({
       user_id: req.user.id,
       restaurant_id: cart.restaurant_id,
+      order_number: orderNumber,
       status: 'pending',
       subtotal,
       delivery_fee: deliveryFee,
-      total_amount: totalAmount,
+      total: totalAmount,
+      total_amount: totalAmount, // Support both column names
       delivery_address: address,
       delivery_notes: notes,
       payment_method: payment,

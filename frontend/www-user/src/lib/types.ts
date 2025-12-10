@@ -31,6 +31,7 @@ export interface Restaurant {
     reviewCount: number;
     address?: string;
     phone?: string;
+    email?: string;
     isOpen: boolean;
     deliveryTime: string;
     deliveryFee: number;

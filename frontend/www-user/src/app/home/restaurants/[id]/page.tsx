@@ -82,9 +82,9 @@ export default function RestaurantDetailPage() {
         reviews: restaurant.reviewCount || 0,
         distance: '0.20 км', // This would come from location calculation
         phone: restaurant.phone || '',
-        email: restaurant.phone || '', // Email not in Restaurant type, using phone as fallback
-        logo: restaurant.logo,
-        banner: restaurant.banner
+        email: restaurant.email || '',
+        logo: restaurant.logo || null,
+        banner: restaurant.banner || null
     };
 
     return (

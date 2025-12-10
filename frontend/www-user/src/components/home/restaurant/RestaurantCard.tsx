@@ -65,21 +65,33 @@ export default function RestaurantCard({ limit = 4 }: RestaurantCardListProps) {
                 >
                     <div className="relative">
                         <div className="h-24 md:h-28 bg-gray-300 rounded-t-xl">
-                            {restaurant.banner && (
+                            {restaurant.banner ? (
                                 <img 
                                     src={restaurant.banner} 
                                     alt={restaurant.name}
                                     className="w-full h-full object-cover rounded-t-xl"
+                                    onError={(e) => {
+                                        const target = e.target as HTMLImageElement;
+                                        target.style.display = 'none';
+                                    }}
                                 />
+                            ) : (
+                                <div className="w-full h-full bg-gray-300 rounded-t-xl"></div>
                             )}
                         </div>
                         <div className="absolute -bottom-2 left-4 bg-white w-12 h-12 border border-gray-200 rounded-xl overflow-hidden">
-                            {restaurant.logo && (
+                            {restaurant.logo ? (
                                 <img 
                                     src={restaurant.logo} 
                                     alt={restaurant.name}
                                     className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                        const target = e.target as HTMLImageElement;
+                                        target.style.display = 'none';
+                                    }}
                                 />
+                            ) : (
+                                <div className="w-full h-full bg-gray-200"></div>
                             )}
                         </div>
                         {!restaurant.isOpen && (

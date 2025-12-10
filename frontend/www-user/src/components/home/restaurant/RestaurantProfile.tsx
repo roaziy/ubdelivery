@@ -37,27 +37,47 @@ export default function RestaurantProfile({ restaurant }: RestaurantProfileProps
                             alt={restaurant.name}
                             className="w-full h-full object-cover"
                             onError={(e) => {
-                                (e.target as HTMLImageElement).style.display = 'none';
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                                const parent = target.parentElement;
+                                if (parent) {
+                                    parent.style.backgroundColor = '#9ca3af';
+                                }
                             }}
                         />
-                    ) : null}
+                    ) : (
+                        <div className="w-full h-full bg-gray-400"></div>
+                    )}
                     {/* Restaurant Info Overlay */}
-                    <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+                    <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between z-10">
                         <div className="flex items-center gap-4">
                             {restaurant.logo ? (
-                                <img 
-                                    src={restaurant.logo} 
-                                    alt={restaurant.name}
-                                    className="w-16 h-16 rounded-xl border-2 border-white object-cover bg-white"
-                                    onError={(e) => {
-                                        (e.target as HTMLImageElement).style.display = 'none';
-                                    }}
-                                />
+                                <div className="relative">
+                                    <img 
+                                        src={restaurant.logo} 
+                                        alt={restaurant.name}
+                                        className="w-16 h-16 rounded-xl border-2 border-white object-cover bg-white shadow-lg"
+                                        onError={(e) => {
+                                            const target = e.target as HTMLImageElement;
+                                            target.style.display = 'none';
+                                            const parent = target.parentElement;
+                                            if (parent && !parent.querySelector('.logo-placeholder')) {
+                                                const placeholder = document.createElement('div');
+                                                placeholder.className = 'logo-placeholder w-16 h-16 bg-gray-600 rounded-xl border-2 border-white';
+                                                parent.appendChild(placeholder);
+                                            }
+                                        }}
+                                    />
+                                </div>
                             ) : (
-                                <div className="w-16 h-16 bg-gray-600 rounded-xl border-2 border-white"></div>
+                                <div className="w-16 h-16 bg-gray-600 rounded-xl border-2 border-white shadow-lg"></div>
                             )}
-                            <div className="text-white">
+                            <div className="text-white drop-shadow-lg">
                                 <h1 className="text-2xl font-bold">{restaurant.name}</h1>
+                                {restaurant.type && (
+                                    <p className="text-sm opacity-90">{restaurant.type}</p>
+                                )}
                             </div>
                         </div>
                         <div className="flex items-center gap-3">
@@ -105,26 +125,47 @@ export default function RestaurantProfile({ restaurant }: RestaurantProfileProps
                             alt={restaurant.name}
                             className="w-full h-full object-cover"
                             onError={(e) => {
-                                (e.target as HTMLImageElement).style.display = 'none';
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                                const parent = target.parentElement;
+                                if (parent) {
+                                    parent.style.backgroundColor = '#9ca3af';
+                                }
                             }}
                         />
-                    ) : null}
+                    ) : (
+                        <div className="w-full h-full bg-gray-400"></div>
+                    )}
+                    {/* Gradient Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
                     {/* Restaurant Logo and Name */}
-                    <div className="absolute bottom-4 left-4 flex items-center gap-3">
+                    <div className="absolute bottom-4 left-4 flex items-center gap-3 z-10">
                         {restaurant.logo ? (
-                            <img 
-                                src={restaurant.logo} 
-                                alt={restaurant.name}
-                                className="w-12 h-12 rounded-xl border-2 border-white object-cover bg-white"
-                                onError={(e) => {
-                                    (e.target as HTMLImageElement).style.display = 'none';
-                                }}
-                            />
+                            <div className="relative">
+                                <img 
+                                    src={restaurant.logo} 
+                                    alt={restaurant.name}
+                                    className="w-12 h-12 rounded-xl border-2 border-white object-cover bg-white shadow-lg"
+                                    onError={(e) => {
+                                        const target = e.target as HTMLImageElement;
+                                        target.style.display = 'none';
+                                        const parent = target.parentElement;
+                                        if (parent && !parent.querySelector('.logo-placeholder')) {
+                                            const placeholder = document.createElement('div');
+                                            placeholder.className = 'logo-placeholder w-12 h-12 bg-gray-600 rounded-xl border-2 border-white';
+                                            parent.appendChild(placeholder);
+                                        }
+                                    }}
+                                />
+                            </div>
                         ) : (
-                            <div className="w-12 h-12 bg-gray-600 rounded-xl border-2 border-white"></div>
+                            <div className="w-12 h-12 bg-gray-600 rounded-xl border-2 border-white shadow-lg"></div>
                         )}
-                        <div className="text-white">
+                        <div className="text-white drop-shadow-lg">
                             <h1 className="text-xl font-bold">{restaurant.name}</h1>
+                            {restaurant.type && (
+                                <p className="text-xs opacity-90">{restaurant.type}</p>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -198,9 +239,15 @@ export default function RestaurantProfile({ restaurant }: RestaurantProfileProps
                                 </div>
                                 <div>
                                     <p className="text-sm text-gray-500">Имэйл хаяг</p>
-                                    <a href={`mailto:${restaurant.email || 'info@restaurant.mn'}`} className="font-medium text-sm md:text-lg hover:text-mainGreen transition-colors">
-                                        {restaurant.email || 'info@ubdelivery.xyz'}
-                                    </a>
+                                    {restaurant.email ? (
+                                        <a href={`mailto:${restaurant.email}`} className="font-medium text-sm md:text-lg hover:text-mainGreen transition-colors">
+                                            {restaurant.email}
+                                        </a>
+                                    ) : (
+                                        <span className="font-medium text-sm md:text-lg text-gray-400">
+                                            Имэйл байхгүй
+                                        </span>
+                                    )}
                                 </div>
                             </div>
                         </div>
