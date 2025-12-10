@@ -3,6 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // Production optimizations
   reactStrictMode: true,
+  output: 'standalone',
   
   // Image optimization
   images: {
@@ -30,12 +31,10 @@ const nextConfig: NextConfig = {
     ],
   },
 
-  // Environment variables validation (only in production)
-  ...(process.env.NODE_ENV === 'production' && {
-    env: {
-      NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'https://api.ubdelivery.xyz/api',
-    },
-  }),
+  // Environment variables for both development and production
+  env: {
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api',
+  },
 };
 
 export default nextConfig;

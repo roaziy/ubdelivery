@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  output: 'standalone',
   
   images: {
     remotePatterns: [
@@ -15,9 +16,18 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'go.ubdelivery.xyz',
+      },
+      {
+        protocol: 'https',
         hostname: '**.supabase.co',
       },
     ],
+  },
+
+  // Environment variables for production
+  env: {
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api',
   },
 };
 

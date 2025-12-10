@@ -82,9 +82,9 @@ export default function RestaurantDetailPage() {
         reviews: restaurant.reviewCount || 0,
         distance: '0.20 км', // This would come from location calculation
         phone: restaurant.phone || '',
-        email: restaurant.email || '',
-        logo: restaurant.logo || null,
-        banner: restaurant.banner || null
+        email: restaurant.email || undefined,
+        logo: restaurant.logo || undefined,
+        banner: restaurant.banner || undefined
     };
 
     return (

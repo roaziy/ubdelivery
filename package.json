@@ -1,0 +1,56 @@
+{
+  "name": "ubdelivery",
+  "version": "1.0.0",
+  "description": "UB Delivery - Complete Food Delivery Platform",
+  "private": true,
+  "scripts": {
+    "install:all": "npm run install:backend && npm run install:frontend",
+    "install:backend": "cd backend && npm install",
+    "install:frontend": "npm run install:www-user && npm run install:restaurant-admin && npm run install:super-admin && npm run install:go-delivery",
+    "install:www-user": "cd frontend/www-user && npm install",
+    "install:restaurant-admin": "cd frontend/restaurant-admin && npm install",
+    "install:super-admin": "cd frontend/super-admin && npm install",
+    "install:go-delivery": "cd frontend/go-delivery && npm install",
+    
+    "dev:backend": "cd backend && npm run dev",
+    "dev:www-user": "cd frontend/www-user && npm run dev",
+    "dev:restaurant-admin": "cd frontend/restaurant-admin && npm run dev -- -p 3001",
+    "dev:super-admin": "cd frontend/super-admin && npm run dev -- -p 3002",
+    "dev:go-delivery": "cd frontend/go-delivery && npm run dev -- -p 3003",
+    
+    "build:all": "npm run build:backend && npm run build:frontend",
+    "build:backend": "echo 'Backend is ready for production'",
+    "build:frontend": "npm run build:www-user && npm run build:restaurant-admin && npm run build:super-admin && npm run build:go-delivery",
+    "build:www-user": "cd frontend/www-user && npm run build",
+    "build:restaurant-admin": "cd frontend/restaurant-admin && npm run build",
+    "build:super-admin": "cd frontend/super-admin && npm run build",
+    "build:go-delivery": "cd frontend/go-delivery && npm run build",
+    
+    "start:backend": "cd backend && npm start",
+    "start:www-user": "cd frontend/www-user && npm start",
+    "start:restaurant-admin": "cd frontend/restaurant-admin && npm start -- -p 3001",
+    "start:super-admin": "cd frontend/super-admin && npm start -- -p 3002",
+    "start:go-delivery": "cd frontend/go-delivery && npm start -- -p 3003",
+
+    "lint": "npm run lint:www-user && npm run lint:restaurant-admin && npm run lint:super-admin && npm run lint:go-delivery",
+    "lint:www-user": "cd frontend/www-user && npx tsc --noEmit",
+    "lint:restaurant-admin": "cd frontend/restaurant-admin && npx tsc --noEmit",
+    "lint:super-admin": "cd frontend/super-admin && npx tsc --noEmit",
+    "lint:go-delivery": "cd frontend/go-delivery && npx tsc --noEmit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/roaziy/ubdelivery.git"
+  },
+  "keywords": [
+    "delivery",
+    "food",
+    "nextjs",
+    "express",
+    "supabase",
+    "firebase"
+  ],
+  "author": "roaziy",
+  "license": "MIT"
+}
+

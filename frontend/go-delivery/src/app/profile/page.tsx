@@ -108,7 +108,7 @@ export default function ProfilePage() {
         if (!driver) return;
         
         try {
-            const response = await profileService.updateProfile({ fullName: editedName });
+            const response = await profileService.updateProfile({ name: editedName });
             if (response.success && response.data) {
                 const transformed = transformDriver(response.data);
                 setDriver(transformed);

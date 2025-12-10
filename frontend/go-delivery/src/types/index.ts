@@ -104,6 +104,7 @@ export interface LoginResponse {
     user: {
         id: string;
         name: string;
+        full_name?: string;
         phone: string;
         email?: string;
         role: string;
