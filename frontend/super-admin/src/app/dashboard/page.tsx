@@ -5,6 +5,7 @@ import { IoTrendingUp, IoTrendingDown } from 'react-icons/io5';
 import Link from 'next/link';
 import AdminLayout from '@/components/layout/AdminLayout';
 import { analyticsService, restaurantApplicationService, driverApplicationService, orderService } from '@/lib/services';
+import { Order as OrderType } from '@/types';
 
 interface DashboardStats {
   orders: { total: number; pending: number; delivered: number; cancelled: number };
@@ -27,7 +28,7 @@ interface Application {
   vehicleType?: string;
 }
 
-interface Order {
+interface DashboardOrder {
   id: string;
   order_number?: string;
   status: string;
@@ -64,7 +65,7 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [pendingRestaurants, setPendingRestaurants] = useState<Application[]>([]);
   const [pendingDrivers, setPendingDrivers] = useState<Application[]>([]);
-  const [recentOrders, setRecentOrders] = useState<Order[]>([]);
+  const [recentOrders, setRecentOrders] = useState<DashboardOrder[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -73,30 +74,72 @@ export default function DashboardPage() {
         // Fetch stats
         const statsRes = await analyticsService.getPlatformStats();
         if (statsRes.success && statsRes.data) {
-          // Handle the nested data structure from backend
-          const data = statsRes.data as { stats?: DashboardStats } & DashboardStats;
-          setStats(data.stats || data);
+          // Transform PlatformStats to DashboardStats format
+          const platformStats = statsRes.data;
+          const transformedStats: DashboardStats = {
+            orders: {
+              total: platformStats.month?.orders || 0,
+              pending: 0, // Will be fetched separately if needed
+              delivered: platformStats.month?.orders || 0, // Using orders as delivered for now
+              cancelled: 0
+            },
+            revenue: {
+              total: platformStats.month?.revenue || 0,
+              deliveryFees: 0 // Will be fetched separately if needed
+            },
+            users: platformStats.month?.activeUsers || 0,
+            restaurants: 0, // Will be fetched separately if needed
+            drivers: platformStats.month?.activeDrivers || 0,
+            pendingApplications: 0 // Will be calculated from applications
+          };
+          setStats(transformedStats);
         }
 
         // Fetch restaurant applications
         const restaurantRes = await restaurantApplicationService.getApplications({ status: 'pending' });
         if (restaurantRes.success && restaurantRes.data) {
           const items = restaurantRes.data.items || restaurantRes.data;
-          setPendingRestaurants(Array.isArray(items) ? items : []);
+          const transformed = Array.isArray(items) ? items.map((app: any) => ({
+            id: app.id,
+            name: app.restaurantName || app.name || '',
+            phone: app.phone || '',
+            type: 'restaurant',
+            status: app.status || 'pending',
+            restaurantName: app.restaurantName || app.name,
+            ownerName: app.ownerName || app.name
+          })) : [];
+          setPendingRestaurants(transformed);
         }
 
         // Fetch driver applications
         const driverRes = await driverApplicationService.getApplications({ status: 'pending' });
         if (driverRes.success && driverRes.data) {
           const items = driverRes.data.items || driverRes.data;
-          setPendingDrivers(Array.isArray(items) ? items : []);
+          const transformed = Array.isArray(items) ? items.map((app: any) => ({
+            id: app.id,
+            name: app.driverName || app.name || '',
+            phone: app.phone || '',
+            type: 'driver',
+            status: app.status || 'pending',
+            driverName: app.driverName || app.name,
+            vehicleType: app.vehicleType || ''
+          })) : [];
+          setPendingDrivers(transformed);
         }
 
         // Fetch recent orders
         const ordersRes = await orderService.getOrders({ limit: 8 });
         if (ordersRes.success && ordersRes.data) {
           const items = ordersRes.data.items || ordersRes.data;
-          setRecentOrders(Array.isArray(items) ? items : []);
+          const transformed = Array.isArray(items) ? items.map((order: OrderType) => ({
+            id: order.id,
+            order_number: order.id, // Use id as order_number if not available
+            status: order.status,
+            total_amount: order.totalAmount,
+            restaurant: { name: order.restaurantName },
+            user: { full_name: order.customerName }
+          })) : [];
+          setRecentOrders(transformed);
         }
       } catch (error) {
         console.error('Dashboard fetch error:', error);

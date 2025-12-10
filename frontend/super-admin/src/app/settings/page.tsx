@@ -49,7 +49,7 @@ export default function SettingsPage() {
           const user = response.data;
           setProfileData(prev => ({
             ...prev,
-            name: user.name || user.full_name || '',
+            name: user.name || '',
             email: user.email || '',
           }));
         }

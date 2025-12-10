@@ -469,10 +469,12 @@ export const FinanceService = {
         const response = await analyticsService.getDailyStats();
         if (response.success && response.data) {
             // Transform to RevenueData format
-            const revenueData = response.data.map(item => ({
-                date: item.date,
-                revenue: item.revenue,
-                orders: item.orders,
+            const revenueData: RevenueData[] = response.data.map((item: any) => ({
+                month: item.date || item.month || '',
+                orderRevenue: item.revenue || item.orderRevenue || 0,
+                deliveryFees: item.deliveryFees || 0,
+                serviceFees: item.serviceFees || 0,
+                totalRevenue: item.revenue || item.totalRevenue || 0,
             }));
             return { success: true, data: revenueData };
         }
