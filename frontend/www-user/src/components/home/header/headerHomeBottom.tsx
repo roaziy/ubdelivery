@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { FaHome } from "react-icons/fa";
 import { FaCartShopping } from "react-icons/fa6";
 import { MdAccountCircle } from "react-icons/md";
+import { CartService, AuthService } from "@/lib/api";
 
 
 export default function HeaderHomeBottom() {
@@ -13,18 +14,33 @@ export default function HeaderHomeBottom() {
     const [cartGroupCount, setCartGroupCount] = useState(0);
 
     useEffect(() => {
-        // Get cart restaurant groups count (count by restaurant, not individual items)
-        const cartData = sessionStorage.getItem('cartRestaurants');
-        if (cartData) {
-            try {
-                const restaurants = JSON.parse(cartData);
-                setCartGroupCount(restaurants.length || 0);
-            } catch {
-                setCartGroupCount(2); // Default mock count
+        // Fetch real cart data from API
+        const fetchCartCount = async () => {
+            if (!AuthService.isLoggedIn()) {
+                setCartGroupCount(0);
+                return;
             }
-        } else {
-            setCartGroupCount(2); // Default mock count for demo (2 restaurants)
-        }
+
+            try {
+                const response = await CartService.get();
+                if (response.success && response.data) {
+                    // Count total items in cart
+                    const totalItems = response.data.items.reduce((sum: number, item: any) => sum + item.quantity, 0);
+                    setCartGroupCount(totalItems);
+                } else {
+                    setCartGroupCount(0);
+                }
+            } catch (error) {
+                console.error('Failed to fetch cart:', error);
+                setCartGroupCount(0);
+            }
+        };
+
+        fetchCartCount();
+        
+        // Refresh cart count periodically
+        const interval = setInterval(fetchCartCount, 5000);
+        return () => clearInterval(interval);
     }, []);
 
     return (

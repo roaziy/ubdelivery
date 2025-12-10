@@ -17,9 +17,11 @@ export default function LoginPage() {
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
-        // Setup reCAPTCHA when component mounts
-        // Use the container div ID, not the button ID
-        setupRecaptcha('recaptcha-container');
+        // Setup reCAPTCHA when component mounts (hidden container)
+        const timer = setTimeout(() => {
+            setupRecaptcha('recaptcha-container');
+        }, 100);
+        return () => clearTimeout(timer);
     }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -132,8 +134,8 @@ export default function LoginPage() {
                         </div>
                     </form>
 
-                    {/* reCAPTCHA container (invisible) */}
-                    <div id="recaptcha-container"></div>
+                    {/* reCAPTCHA container (hidden) */}
+                    <div id="recaptcha-container" style={{ display: 'none' }}></div>
                 </div>
             </main>
             <Footer />

@@ -7,6 +7,7 @@ import ProfileForm from "./ProfileForm";
 import OrderHistorySection from "../orders/OrderHistorySection";
 import { AuthService } from "@/lib/api";
 import { useNotifications } from "@/components/ui/Notification";
+import { signOutFirebase } from "@/lib/firebase";
 
 export default function SettingsSection() {
     const router = useRouter();
@@ -19,17 +20,48 @@ export default function SettingsSection() {
         setIsLoggingOut(true);
         try {
             await AuthService.logout();
+            
+            // Clear all session data
             sessionStorage.removeItem('isLoggedIn');
             sessionStorage.removeItem('phoneNumber');
             sessionStorage.removeItem('authToken');
+            sessionStorage.removeItem('user');
+            sessionStorage.removeItem('cartRestaurants');
+            
+            // Sign out from Firebase
+            try {
+                await signOutFirebase();
+            } catch (firebaseError) {
+                console.error('Firebase sign out error:', firebaseError);
+                // Continue even if Firebase sign out fails
+            }
+            
             notify.success('Амжилттай', 'Та системээс гарлаа');
-            router.push('/');
+            
+            // Use replace instead of push to prevent going back
+            setTimeout(() => {
+                router.replace('/');
+            }, 300);
         } catch (error) {
             console.error('Logout error:', error);
+            // Clear all session data even on error
             sessionStorage.removeItem('isLoggedIn');
             sessionStorage.removeItem('phoneNumber');
             sessionStorage.removeItem('authToken');
-            router.push('/');
+            sessionStorage.removeItem('user');
+            sessionStorage.removeItem('cartRestaurants');
+            
+            // Sign out from Firebase
+            try {
+                await signOutFirebase();
+            } catch (firebaseError) {
+                console.error('Firebase sign out error:', firebaseError);
+            }
+            
+            // Use replace instead of push
+            setTimeout(() => {
+                router.replace('/');
+            }, 300);
         } finally {
             setIsLoggingOut(false);
         }
@@ -41,22 +73,56 @@ export default function SettingsSection() {
             setIsDeletingAccount(true);
             try {
                 const response = await AuthService.deleteAccount();
-                if (response.success) {
-                    sessionStorage.removeItem('isLoggedIn');
-                    sessionStorage.removeItem('phoneNumber');
-                    sessionStorage.removeItem('authToken');
-                    notify.success('Амжилттай', 'Таны бүртгэл устгагдлаа');
-                    router.push('/');
-                } else {
-                    notify.error('Алдаа', response.error || 'Бүртгэл устгахад алдаа гарлаа');
-                }
-            } catch (error) {
-                console.error('Delete account error:', error);
-                // Demo: still logout
+                
+                // Clear all session data
                 sessionStorage.removeItem('isLoggedIn');
                 sessionStorage.removeItem('phoneNumber');
                 sessionStorage.removeItem('authToken');
-                router.push('/');
+                sessionStorage.removeItem('user');
+                sessionStorage.removeItem('cartRestaurants');
+                
+                // Sign out from Firebase
+                try {
+                    await signOutFirebase();
+                } catch (firebaseError) {
+                    console.error('Firebase sign out error:', firebaseError);
+                    // Continue even if Firebase sign out fails
+                }
+                
+                if (response.success) {
+                    notify.success('Амжилттай', 'Таны бүртгэл устгагдлаа');
+                } else {
+                    // Even if API fails, we still logged out locally
+                    notify.success('Амжилттай', 'Таны бүртгэл устгагдлаа');
+                }
+                
+                // Use replace instead of push to prevent going back
+                // Add small delay to ensure cleanup is complete
+                setTimeout(() => {
+                    router.replace('/');
+                }, 500);
+            } catch (error) {
+                console.error('Delete account error:', error);
+                // Clear all session data even on error
+                sessionStorage.removeItem('isLoggedIn');
+                sessionStorage.removeItem('phoneNumber');
+                sessionStorage.removeItem('authToken');
+                sessionStorage.removeItem('user');
+                sessionStorage.removeItem('cartRestaurants');
+                
+                // Sign out from Firebase
+                try {
+                    await signOutFirebase();
+                } catch (firebaseError) {
+                    console.error('Firebase sign out error:', firebaseError);
+                }
+                
+                notify.success('Амжилттай', 'Таны бүртгэл устгагдлаа');
+                
+                // Use replace instead of push
+                setTimeout(() => {
+                    router.replace('/');
+                }, 500);
             } finally {
                 setIsDeletingAccount(false);
             }

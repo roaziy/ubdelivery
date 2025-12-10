@@ -10,25 +10,25 @@ interface CommercialPost {
     link?: string;
 }
 
-// Commercial posts - in production, these would come from an API
+// Commercial posts for admin dashboard
 const commercialPosts: CommercialPost[] = [
     {
         id: '1',
-        image: '/LandingPage/iphone.png', // Replace with actual commercial images
-        title: 'Хямдралтай хоол',
-        link: '/home/foods'
+        image: '/Logotype.svg', // Replace with actual commercial images
+        title: 'Платформын мэдээлэл',
+        link: '/dashboard'
     },
     {
         id: '2',
-        image: '/LandingPage/iphone.png',
-        title: 'Шинэ ресторанууд',
-        link: '/home/restaurants'
+        image: '/Logotype.svg',
+        title: 'Шинэ захиалгууд',
+        link: '/orders'
     },
     {
         id: '3',
-        image: '/LandingPage/iphone.png',
-        title: 'Онцлох санал',
-        link: '/home'
+        image: '/Logotype.svg',
+        title: 'Санхүүгийн тайлан',
+        link: '/finance'
     }
 ];
 
@@ -51,38 +51,38 @@ export default function HeroBanner() {
     const currentPost = commercialPosts[currentIndex];
 
     return (
-        <section className="mb-8">
-            <div className="relative w-full h-[200px] md:h-[420px] rounded-2xl overflow-hidden group">
-                {/* Commercial Post Image */}
+        <section className="mb-6">
+            <div className="relative w-full h-[180px] md:h-[300px] rounded-2xl overflow-hidden group bg-gradient-to-r from-mainGreen to-green-600">
+                {/* Commercial Post Content */}
                 <div 
-                    className={`absolute inset-0 transition-opacity duration-500 ${
+                    className={`absolute inset-0 transition-opacity duration-500 flex items-center justify-center ${
                         fade ? 'opacity-100' : 'opacity-0'
                     }`}
                 >
                     {currentPost.image ? (
-                        <Image
-                            src={currentPost.image}
-                            alt={currentPost.title || 'Commercial'}
-                            fill
-                            className="object-cover"
-                            priority={currentIndex === 0}
-                        />
+                        <div className="relative w-full h-full">
+                            <Image
+                                src={currentPost.image}
+                                alt={currentPost.title || 'Commercial'}
+                                fill
+                                className="object-contain p-8"
+                                priority={currentIndex === 0}
+                            />
+                        </div>
                     ) : (
-                        <div className="w-full h-full bg-gradient-to-r from-mainGreen to-green-600 flex items-center justify-center">
-                            <div className="text-white text-center">
-                                <h2 className="text-2xl md:text-4xl font-bold mb-2">
-                                    {currentPost.title || 'UB Delivery'}
-                                </h2>
-                                <p className="text-sm md:text-lg opacity-90">
-                                    Хамгийн хурдан хоол хүргэлт
-                                </p>
-                            </div>
+                        <div className="text-white text-center px-8">
+                            <h2 className="text-2xl md:text-4xl font-bold mb-2">
+                                {currentPost.title || 'UB Delivery Admin'}
+                            </h2>
+                            <p className="text-sm md:text-lg opacity-90">
+                                Платформын удирдлага
+                            </p>
                         </div>
                     )}
                 </div>
 
                 {/* Overlay Gradient */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
 
                 {/* Navigation Dots */}
                 <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 z-10">
@@ -96,10 +96,10 @@ export default function HeroBanner() {
                                     setFade(true);
                                 }, 300);
                             }}
-                            className={`w-2 h-2 rounded-full transition-all ${
+                            className={`h-2 rounded-full transition-all ${
                                 index === currentIndex
                                     ? 'bg-white w-6'
-                                    : 'bg-white/50 hover:bg-white/75'
+                                    : 'bg-white/50 hover:bg-white/75 w-2'
                             }`}
                             aria-label={`Go to slide ${index + 1}`}
                         />
@@ -118,3 +118,4 @@ export default function HeroBanner() {
         </section>
     );
 }
+

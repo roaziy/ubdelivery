@@ -7,6 +7,7 @@ import FoodDetailModal from "@/components/home/FoodSection/FoodDetailModal";
 
 interface RestaurantFoodSectionProps {
     restaurantName: string;
+    restaurantId?: string;
 }
 
 const categories = ['Бүгд', 'Үндсэн хоол', 'Хачир', 'Нэмэлт'];

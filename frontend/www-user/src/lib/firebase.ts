@@ -92,7 +92,7 @@ auth.languageCode = 'mn';
 // Store confirmation result globally for verification
 let confirmationResult: ConfirmationResult | null = null;
 
-// Setup reCAPTCHA verifier
+// Setup reCAPTCHA verifier - truly invisible
 export function setupRecaptcha(containerId: string): RecaptchaVerifier | null {
   if (typeof window === 'undefined') return null;
   
@@ -107,16 +107,27 @@ export function setupRecaptcha(containerId: string): RecaptchaVerifier | null {
       }
     }
     
-    // Use a container div for reCAPTCHA instead of button ID
-    // This is more reliable for invisible reCAPTCHA
+    // Create hidden container if it doesn't exist
+    let container = document.getElementById(containerId);
+    if (!container) {
+      container = document.createElement('div');
+      container.id = containerId;
+      container.style.display = 'none';
+      container.style.visibility = 'hidden';
+      container.style.position = 'absolute';
+      container.style.left = '-9999px';
+      document.body.appendChild(container);
+    }
+    
+    // Use invisible reCAPTCHA - this prevents popups
     const verifier = new RecaptchaVerifier(auth, containerId, {
       size: 'invisible',
       callback: () => {
-        // reCAPTCHA solved - will proceed with submit function
+        // reCAPTCHA solved silently
         console.log('reCAPTCHA verified');
       },
       'expired-callback': () => {
-        // Response expired. Ask user to solve reCAPTCHA again.
+        // Silently handle expiration
         console.log('reCAPTCHA expired');
       }
     });

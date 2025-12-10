@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import dynamic from 'next/dynamic';
+import { CartService, AuthService } from "@/lib/api";
 
 const LocationPickerModal = dynamic(() => import('../restaurant/LocationPickerModal'), {
     ssr: false,
@@ -33,19 +34,33 @@ export default function HeaderDesktop() {
             setIsLoggedIn(true);
         }
 
-        // Get cart restaurant groups count (count by restaurant, not individual items)
-        const cartData = sessionStorage.getItem('cartRestaurants');
-        if (cartData) {
-            try {
-                const restaurants = JSON.parse(cartData);
-                // Count unique restaurants in cart
-                setCartItemCount(restaurants.length || 0);
-            } catch {
-                setCartItemCount(2); // Default mock count (2 restaurants)
+        // Fetch real cart data from API
+        const fetchCartCount = async () => {
+            if (!AuthService.isLoggedIn()) {
+                setCartItemCount(0);
+                return;
             }
-        } else {
-            setCartItemCount(2); // Default mock count for demo (2 restaurants)
-        }
+
+            try {
+                const response = await CartService.get();
+                if (response.success && response.data) {
+                    // Count total items in cart
+                    const totalItems = response.data.items.reduce((sum: number, item: any) => sum + item.quantity, 0);
+                    setCartItemCount(totalItems);
+                } else {
+                    setCartItemCount(0);
+                }
+            } catch (error) {
+                console.error('Failed to fetch cart:', error);
+                setCartItemCount(0);
+            }
+        };
+
+        fetchCartCount();
+        
+        // Refresh cart count periodically
+        const interval = setInterval(fetchCartCount, 5000);
+        return () => clearInterval(interval);
     }, [router]);
 
     if (!isLoggedIn) {

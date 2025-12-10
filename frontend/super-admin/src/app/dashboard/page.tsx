@@ -6,6 +6,7 @@ import Link from 'next/link';
 import AdminLayout from '@/components/layout/AdminLayout';
 import { analyticsService, restaurantApplicationService, driverApplicationService, orderService } from '@/lib/services';
 import { Order as OrderType } from '@/types';
+import HeroBanner from '@/components/ui/HeroBanner';
 
 interface DashboardStats {
   orders: { total: number; pending: number; delivered: number; cancelled: number };
@@ -193,6 +194,9 @@ export default function DashboardPage() {
     <AdminLayout>
       <div>
         <h1 className="text-2xl font-bold text-mainBlack mb-6">Хянах самбар</h1>
+
+        {/* Hero Banner with Commercial Posts */}
+        <HeroBanner />
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
