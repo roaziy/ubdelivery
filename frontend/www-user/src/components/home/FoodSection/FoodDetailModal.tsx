@@ -27,7 +27,7 @@ export default function FoodDetailModal({ food, isOpen, onClose }: FoodDetailMod
     const handleAddToCart = async () => {
         setIsAddingToCart(true);
         try {
-            const response = await CartAPI.addFood(parseInt(food.id), quantity);
+            const response = await CartAPI.addItem(food.id.toString(), quantity);
             if (response.success) {
                 notify.success('Амжилттай', `${food.name} (${quantity}ш) сагсанд нэмэгдлээ`);
                 setQuantity(1);

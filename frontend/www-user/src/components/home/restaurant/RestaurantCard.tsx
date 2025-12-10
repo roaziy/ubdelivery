@@ -21,9 +21,13 @@ export default function RestaurantCard({ limit = 4 }: RestaurantCardListProps) {
         const fetchRestaurants = async () => {
             setLoading(true);
             try {
-                const response = await RestaurantService.getFeatured();
+                const response = await RestaurantService.getAll({
+                    page: 1,
+                    pageSize: limit || 4,
+                    sortBy: 'rating'
+                });
                 if (response.success && response.data) {
-                    setRestaurants(response.data);
+                    setRestaurants(response.data.items);
                 } else {
                     // Fallback to mock data
                     await simulateDelay(800);

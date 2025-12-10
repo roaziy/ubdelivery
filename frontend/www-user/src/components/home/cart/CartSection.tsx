@@ -6,6 +6,7 @@ import { IoChevronBack, IoClose, IoMail } from "react-icons/io5";
 import { FaPhone } from "react-icons/fa6";
 import { useNotifications } from "@/components/ui/Notification";
 import { CartService, AuthService } from "@/lib/api";
+import { Cart } from "@/lib/types";
 import { Skeleton } from "@/components/ui/Skeleton";
 
 // Import sub-components
@@ -201,12 +202,9 @@ export default function CartSection() {
         notify.info('Төлбөр', 'Төлбөр боловсруулагдаж байна...');
         
         try {
-            const response = await OrderService.create({
+            const response = await CartService.checkout({
                 deliveryAddress: formData.address,
-                floor: formData.floor,
-                doorNumber: formData.doorNumber,
-                doorCode: formData.doorCode,
-                notes: formData.detailedAddress,
+                deliveryNotes: `${formData.floor ? `Давхар: ${formData.floor}, ` : ''}${formData.doorNumber ? `Хаалга: ${formData.doorNumber}, ` : ''}${formData.doorCode ? `Код: ${formData.doorCode}, ` : ''}${formData.detailedAddress || ''}`,
                 paymentMethod: formData.paymentMethod
             });
             

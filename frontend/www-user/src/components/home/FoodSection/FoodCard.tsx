@@ -24,9 +24,10 @@ export default function FoodCard({ onFoodClick, onAddToCart, limit }: FoodCardPr
         const fetchFoods = async () => {
             setLoading(true);
             try {
-                const response = await FoodService.getFeatured();
+                const response = await FoodService.getAll({ pageSize: limit || 20 });
                 if (response.success && response.data) {
-                    setFoods(response.data);
+                    const items = response.data.items || [];
+                    setFoods(limit ? items.slice(0, limit) : items);
                 } else {
                     // Fallback to mock data
                     await simulateDelay(800);
@@ -42,7 +43,7 @@ export default function FoodCard({ onFoodClick, onAddToCart, limit }: FoodCardPr
         };
         
         fetchFoods();
-    }, []);
+    }, [limit]);
 
     const handleAddToCart = (e: React.MouseEvent, food: FoodItem) => {
         e.stopPropagation();
