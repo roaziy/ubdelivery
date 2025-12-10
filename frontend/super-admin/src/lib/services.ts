@@ -21,15 +21,15 @@ import {
 // ============ AUTH SERVICES ============
 export const authService = {
     login: async (data: LoginRequest): Promise<ApiResponse<LoginResponse>> => {
-        return api.post<LoginResponse>('/admin/auth/login', data);
+        return api.post<LoginResponse>('/auth/admin/login', data);
     },
 
     logout: async (): Promise<ApiResponse<void>> => {
-        return api.post<void>('/admin/auth/logout', {});
+        return api.post<void>('/auth/logout', {});
     },
 
     getProfile: async (): Promise<ApiResponse<AdminUser>> => {
-        return api.get('/admin/profile');
+        return api.get('/auth/me');
     },
 };
 
@@ -41,24 +41,25 @@ export const restaurantApplicationService = {
         limit?: number;
     }): Promise<ApiResponse<PaginatedResponse<RestaurantApplication>>> => {
         const searchParams = new URLSearchParams();
+        searchParams.append('type', 'restaurant');
         if (params?.status) searchParams.append('status', params.status);
         if (params?.page) searchParams.append('page', params.page.toString());
         if (params?.limit) searchParams.append('limit', params.limit.toString());
         
-        const query = searchParams.toString() ? `?${searchParams.toString()}` : '';
-        return api.get<PaginatedResponse<RestaurantApplication>>(`/admin/restaurants/applications${query}`);
+        const query = `?${searchParams.toString()}`;
+        return api.get<PaginatedResponse<RestaurantApplication>>(`/applications${query}`);
     },
 
     getApplication: async (id: string): Promise<ApiResponse<RestaurantApplication>> => {
-        return api.get<RestaurantApplication>(`/admin/restaurants/applications/${id}`);
+        return api.get<RestaurantApplication>(`/applications/${id}`);
     },
 
-    approveApplication: async (id: string): Promise<ApiResponse<RestaurantApplication>> => {
-        return api.patch<RestaurantApplication>(`/admin/restaurants/applications/${id}/approve`, {});
+    approveApplication: async (id: string, password?: string): Promise<ApiResponse<RestaurantApplication>> => {
+        return api.post<RestaurantApplication>(`/applications/${id}/approve`, { password });
     },
 
     rejectApplication: async (id: string, reason: string): Promise<ApiResponse<RestaurantApplication>> => {
-        return api.patch<RestaurantApplication>(`/admin/restaurants/applications/${id}/reject`, { reason });
+        return api.post<RestaurantApplication>(`/applications/${id}/reject`, { reason });
     },
 };
 
@@ -70,24 +71,25 @@ export const driverApplicationService = {
         limit?: number;
     }): Promise<ApiResponse<PaginatedResponse<DriverApplication>>> => {
         const searchParams = new URLSearchParams();
+        searchParams.append('type', 'driver');
         if (params?.status) searchParams.append('status', params.status);
         if (params?.page) searchParams.append('page', params.page.toString());
         if (params?.limit) searchParams.append('limit', params.limit.toString());
         
-        const query = searchParams.toString() ? `?${searchParams.toString()}` : '';
-        return api.get<PaginatedResponse<DriverApplication>>(`/admin/drivers/applications${query}`);
+        const query = `?${searchParams.toString()}`;
+        return api.get<PaginatedResponse<DriverApplication>>(`/applications${query}`);
     },
 
     getApplication: async (id: string): Promise<ApiResponse<DriverApplication>> => {
-        return api.get<DriverApplication>(`/admin/drivers/applications/${id}`);
+        return api.get<DriverApplication>(`/applications/${id}`);
     },
 
-    approveApplication: async (id: string): Promise<ApiResponse<DriverApplication>> => {
-        return api.patch<DriverApplication>(`/admin/drivers/applications/${id}/approve`, {});
+    approveApplication: async (id: string, password?: string): Promise<ApiResponse<DriverApplication>> => {
+        return api.post<DriverApplication>(`/applications/${id}/approve`, { password });
     },
 
     rejectApplication: async (id: string, reason: string): Promise<ApiResponse<DriverApplication>> => {
-        return api.patch<DriverApplication>(`/admin/drivers/applications/${id}/reject`, { reason });
+        return api.post<DriverApplication>(`/applications/${id}/reject`, { reason });
     },
 };
 
@@ -110,7 +112,7 @@ export const restaurantService = {
     },
 
     getRestaurant: async (id: string): Promise<ApiResponse<Restaurant>> => {
-        return api.get<Restaurant>(`/admin/restaurants/${id}`);
+        return api.get<Restaurant>(`/restaurants/${id}`);
     },
 
     toggleActive: async (id: string, isActive: boolean): Promise<ApiResponse<Restaurant>> => {
@@ -128,20 +130,20 @@ export const driverService = {
     }): Promise<ApiResponse<PaginatedResponse<Driver>>> => {
         const searchParams = new URLSearchParams();
         if (params?.search) searchParams.append('search', params.search);
-        if (params?.isActive !== undefined) searchParams.append('isActive', params.isActive.toString());
+        if (params?.isActive !== undefined) searchParams.append('status', params.isActive ? 'active' : 'inactive');
         if (params?.page) searchParams.append('page', params.page.toString());
         if (params?.limit) searchParams.append('limit', params.limit.toString());
         
         const query = searchParams.toString() ? `?${searchParams.toString()}` : '';
-        return api.get<PaginatedResponse<Driver>>(`/admin/drivers${query}`);
+        return api.get<PaginatedResponse<Driver>>(`/drivers${query}`);
     },
 
     getDriver: async (id: string): Promise<ApiResponse<Driver>> => {
-        return api.get<Driver>(`/admin/drivers/${id}`);
+        return api.get<Driver>(`/drivers/${id}`);
     },
 
     toggleActive: async (id: string, isActive: boolean): Promise<ApiResponse<Driver>> => {
-        return api.patch<Driver>(`/admin/drivers/${id}/status`, { isActive });
+        return api.patch<Driver>(`/drivers/${id}/status`, { isActive });
     },
 };
 
@@ -149,11 +151,13 @@ export const driverService = {
 export const userService = {
     getUsers: async (params?: {
         search?: string;
+        role?: string;
         page?: number;
         limit?: number;
     }): Promise<ApiResponse<PaginatedResponse<User>>> => {
         const searchParams = new URLSearchParams();
         if (params?.search) searchParams.append('search', params.search);
+        if (params?.role) searchParams.append('role', params.role);
         if (params?.page) searchParams.append('page', params.page.toString());
         if (params?.limit) searchParams.append('limit', params.limit.toString());
         
@@ -163,6 +167,23 @@ export const userService = {
 
     getUser: async (id: string): Promise<ApiResponse<User>> => {
         return api.get<User>(`/admin/users/${id}`);
+    },
+
+    createUser: async (data: {
+        email: string;
+        password: string;
+        fullName: string;
+        role: string;
+    }): Promise<ApiResponse<User>> => {
+        return api.post<User>('/admin/users', data);
+    },
+
+    updateUser: async (id: string, data: Partial<User>): Promise<ApiResponse<User>> => {
+        return api.put<User>(`/admin/users/${id}`, data);
+    },
+
+    resetPassword: async (id: string, password?: string): Promise<ApiResponse<{ password: string }>> => {
+        return api.post<{ password: string }>(`/admin/users/${id}/reset-password`, { password });
     },
 };
 
@@ -183,17 +204,17 @@ export const orderService = {
         if (params?.status) searchParams.append('status', params.status);
         if (params?.restaurantId) searchParams.append('restaurantId', params.restaurantId);
         if (params?.driverId) searchParams.append('driverId', params.driverId);
-        if (params?.dateFrom) searchParams.append('dateFrom', params.dateFrom);
-        if (params?.dateTo) searchParams.append('dateTo', params.dateTo);
+        if (params?.dateFrom) searchParams.append('startDate', params.dateFrom);
+        if (params?.dateTo) searchParams.append('endDate', params.dateTo);
         if (params?.page) searchParams.append('page', params.page.toString());
         if (params?.limit) searchParams.append('limit', params.limit.toString());
         
         const query = searchParams.toString() ? `?${searchParams.toString()}` : '';
-        return api.get<PaginatedResponse<Order>>(`/admin/orders${query}`);
+        return api.get<PaginatedResponse<Order>>(`/orders${query}`);
     },
 
     getOrder: async (id: string): Promise<ApiResponse<Order>> => {
-        return api.get<Order>(`/admin/orders/${id}`);
+        return api.get<Order>(`/orders/${id}`);
     },
 };
 

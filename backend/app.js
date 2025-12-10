@@ -1,12 +1,10 @@
-const express = require('express');
+// Main entry point - redirects to src/app.js
+// Run with: npm start or node --experimental-modules src/app.js
 
-const app = express();
-const PORT = 5000;
+console.log('Starting UBDelivery Backend Server...');
+console.log('Loading from src/app.js...');
 
-app.listen(PORT, (error) =>{
-    if(!error)
-        console.log("Server is Successfully Running, and App is listening on port "+ PORT);
-    else 
-        console.log("Error occurred, server can't start", error);
-    }
-);
+import('./src/app.js').catch(err => {
+    console.error('Failed to start server:', err);
+    process.exit(1);
+});

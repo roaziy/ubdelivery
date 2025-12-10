@@ -24,11 +24,11 @@ export const authService = {
     },
 
     getProfile: async (): Promise<ApiResponse<Driver>> => {
-        return api.get('/driver/profile');
+        return api.get('/drivers/me/profile');
     },
 
     verifyToken: async (): Promise<ApiResponse<{ valid: boolean }>> => {
-        return api.get('/auth/verify');
+        return api.get('/auth/me');
     },
 
     register: async (data: {
@@ -39,18 +39,31 @@ export const authService = {
         vehicleType: string;
         vehiclePlate: string;
     }): Promise<ApiResponse<{ message: string }>> => {
-        return api.post('/auth/driver/register', data);
+        return api.post('/applications/driver', data);
     },
 };
 
 // ============ DRIVER PROFILE SERVICES ============
 export const profileService = {
     updateProfile: async (data: Partial<Driver>): Promise<ApiResponse<Driver>> => {
-        return api.put<Driver>('/driver/profile', data);
+        return api.put<Driver>('/drivers/me/profile', data);
     },
 
-    uploadAvatar: async (file: File): Promise<ApiResponse<{ url: string }>> => {
-        return api.post('/driver/profile/avatar', { file: file.name });
+    uploadAvatar: async (formData: FormData): Promise<ApiResponse<{ url: string }>> => {
+        const token = typeof window !== 'undefined' 
+            ? sessionStorage.getItem('auth_token') 
+            : null;
+        
+        const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/drivers/me/avatar`, 
+            {
+                method: 'POST',
+                headers: token ? { Authorization: `Bearer ${token}` } : {},
+                body: formData,
+            }
+        );
+        const data = await response.json();
+        return { success: response.ok, data: data.data };
     },
 
     updateBankInfo: async (data: {
@@ -58,7 +71,7 @@ export const profileService = {
         accountNumber: string;
         accountHolder: string;
     }): Promise<ApiResponse<void>> => {
-        return api.put('/driver/bank', data);
+        return api.put('/drivers/me/bank', data);
     },
 
     getBankInfo: async (): Promise<ApiResponse<{
@@ -66,42 +79,42 @@ export const profileService = {
         accountNumber: string;
         accountHolder: string;
     }>> => {
-        return api.get('/driver/bank');
+        return api.get('/drivers/me/bank');
     },
 
-    toggleOnlineStatus: async (isOnline: boolean): Promise<ApiResponse<{ isOnline: boolean }>> => {
-        return api.patch('/driver/status', { isOnline });
+    toggleOnlineStatus: async (isAvailable: boolean): Promise<ApiResponse<{ isAvailable: boolean }>> => {
+        return api.patch('/drivers/me/availability', { isAvailable });
     },
 
     updateLocation: async (location: Location): Promise<ApiResponse<void>> => {
-        return api.patch('/driver/location', location);
+        return api.patch('/drivers/me/location', location);
     },
 };
 
 // ============ DELIVERY SERVICES ============
 export const deliveryService = {
     getAvailableOrders: async (): Promise<ApiResponse<DeliveryOrder[]>> => {
-        return api.get<DeliveryOrder[]>('/driver/orders/available');
+        return api.get<DeliveryOrder[]>('/drivers/me/available-orders');
     },
 
     getActiveDelivery: async (): Promise<ApiResponse<DeliveryOrder | null>> => {
-        return api.get<DeliveryOrder | null>('/driver/orders/active');
+        return api.get<DeliveryOrder | null>('/orders?status=ready,picked_up');
     },
 
     acceptOrder: async (orderId: string): Promise<ApiResponse<DeliveryOrder>> => {
-        return api.post<DeliveryOrder>(`/driver/orders/${orderId}/accept`, {});
+        return api.post<DeliveryOrder>(`/drivers/me/accept-order/${orderId}`, {});
     },
 
     rejectOrder: async (orderId: string, reason: string): Promise<ApiResponse<void>> => {
-        return api.post<void>(`/driver/orders/${orderId}/reject`, { reason });
+        return api.post<void>(`/orders/${orderId}/reject`, { reason });
     },
 
     pickupOrder: async (orderId: string): Promise<ApiResponse<DeliveryOrder>> => {
-        return api.patch<DeliveryOrder>(`/driver/orders/${orderId}/pickup`, {});
+        return api.post<DeliveryOrder>(`/orders/${orderId}/pickup`, {});
     },
 
     completeDelivery: async (orderId: string): Promise<ApiResponse<DeliveryOrder>> => {
-        return api.patch<DeliveryOrder>(`/driver/orders/${orderId}/complete`, {});
+        return api.post<DeliveryOrder>(`/orders/${orderId}/deliver`, {});
     },
 
     getDeliveryHistory: async (params?: {
@@ -115,22 +128,22 @@ export const deliveryService = {
         if (params?.page) searchParams.append('page', params.page.toString());
         if (params?.limit) searchParams.append('limit', params.limit.toString());
         if (params?.status) searchParams.append('status', params.status);
-        if (params?.dateFrom) searchParams.append('dateFrom', params.dateFrom);
-        if (params?.dateTo) searchParams.append('dateTo', params.dateTo);
+        if (params?.dateFrom) searchParams.append('startDate', params.dateFrom);
+        if (params?.dateTo) searchParams.append('endDate', params.dateTo);
         
         const query = searchParams.toString() ? `?${searchParams.toString()}` : '';
-        return api.get<PaginatedResponse<DeliveryOrder>>(`/driver/orders/history${query}`);
+        return api.get<PaginatedResponse<DeliveryOrder>>(`/orders${query}`);
     },
 
     getOrder: async (orderId: string): Promise<ApiResponse<DeliveryOrder>> => {
-        return api.get<DeliveryOrder>(`/driver/orders/${orderId}`);
+        return api.get<DeliveryOrder>(`/orders/${orderId}`);
     },
 };
 
 // ============ EARNINGS SERVICES ============
 export const earningsService = {
     getSummary: async (): Promise<ApiResponse<EarningsSummary>> => {
-        return api.get<EarningsSummary>('/driver/earnings/summary');
+        return api.get<EarningsSummary>('/drivers/me/earnings');
     },
 
     getDailyEarnings: async (params?: {
@@ -138,15 +151,15 @@ export const earningsService = {
         dateTo?: string;
     }): Promise<ApiResponse<DailyEarnings[]>> => {
         const searchParams = new URLSearchParams();
-        if (params?.dateFrom) searchParams.append('dateFrom', params.dateFrom);
-        if (params?.dateTo) searchParams.append('dateTo', params.dateTo);
+        if (params?.dateFrom) searchParams.append('startDate', params.dateFrom);
+        if (params?.dateTo) searchParams.append('endDate', params.dateTo);
         
         const query = searchParams.toString() ? `?${searchParams.toString()}` : '';
-        return api.get<DailyEarnings[]>(`/driver/earnings/daily${query}`);
+        return api.get<DailyEarnings[]>(`/drivers/me/earnings${query}`);
     },
 
     requestPayout: async (amount: number): Promise<ApiResponse<PayoutHistory>> => {
-        return api.post<PayoutHistory>('/driver/earnings/payout', { amount });
+        return api.post<PayoutHistory>('/drivers/me/payout', { amount });
     },
 
     getPayoutHistory: async (params?: {
@@ -158,14 +171,18 @@ export const earningsService = {
         if (params?.limit) searchParams.append('limit', params.limit.toString());
         
         const query = searchParams.toString() ? `?${searchParams.toString()}` : '';
-        return api.get<PaginatedResponse<PayoutHistory>>(`/driver/earnings/payouts${query}`);
+        return api.get<PaginatedResponse<PayoutHistory>>(`/drivers/me/payouts${query}`);
     },
 };
 
 // ============ STATS SERVICES ============
 export const statsService = {
     getStats: async (): Promise<ApiResponse<DriverStats>> => {
-        return api.get<DriverStats>('/driver/stats');
+        return api.get<DriverStats>('/drivers/me/stats');
+    },
+
+    getDashboard: async (): Promise<ApiResponse<DriverStats>> => {
+        return api.get<DriverStats>('/dashboard/driver');
     },
 };
 
@@ -182,18 +199,18 @@ export const notificationService = {
         if (params?.unreadOnly) searchParams.append('unreadOnly', 'true');
         
         const query = searchParams.toString() ? `?${searchParams.toString()}` : '';
-        return api.get<PaginatedResponse<DriverNotification>>(`/driver/notifications${query}`);
+        return api.get<PaginatedResponse<DriverNotification>>(`/notifications${query}`);
     },
 
     markAsRead: async (id: string): Promise<ApiResponse<void>> => {
-        return api.patch<void>(`/driver/notifications/${id}/read`, {});
+        return api.patch<void>(`/notifications/${id}/read`, {});
     },
 
     markAllAsRead: async (): Promise<ApiResponse<void>> => {
-        return api.patch<void>('/driver/notifications/read-all', {});
+        return api.patch<void>('/notifications/read-all', {});
     },
 
     getUnreadCount: async (): Promise<ApiResponse<{ count: number }>> => {
-        return api.get('/driver/notifications/unread-count');
+        return api.get('/notifications/unread-count');
     },
 };

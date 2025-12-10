@@ -1,4 +1,4 @@
-import api, { ApiResponse, PaginatedResponse } from './api';
+import api, { ApiResponse, PaginatedResponse, uploadFile } from './api';
 import { 
     Order, 
     OrderStatus, 
@@ -38,13 +38,13 @@ export const authService = {
 // ============ RESTAURANT SERVICES ============
 export const restaurantService = {
     getMyRestaurant: async (): Promise<ApiResponse<Restaurant>> => {
-        return api.get<Restaurant>('/restaurant/me');
+        return api.get<Restaurant>('/restaurants/me');
     },
 
     updateRestaurant: async (
         data: Partial<Restaurant>
     ): Promise<ApiResponse<Restaurant>> => {
-        return api.put<Restaurant>('/restaurant/me', data);
+        return api.put<Restaurant>('/restaurants/me', data);
     },
 
     // Alias for updateRestaurant with settings-specific fields
@@ -58,7 +58,7 @@ export const restaurantService = {
         openTime?: string;
         closeTime?: string;
     }): Promise<ApiResponse<Restaurant>> => {
-        return api.put<Restaurant>('/restaurant/me', data);
+        return api.put<Restaurant>('/restaurants/me', data);
     },
 
     getSettings: async (): Promise<ApiResponse<{
@@ -73,33 +73,32 @@ export const restaurantService = {
         logoUrl: string;
         bannerUrl: string;
     }>> => {
-        return api.get('/restaurant/me/settings');
+        return api.get('/restaurants/me/settings');
     },
 
     uploadLogo: async (file: File): Promise<ApiResponse<{ url: string }>> => {
         const formData = new FormData();
-        formData.append('logo', file);
-        // Note: For file uploads, you'd typically handle this differently
-        return api.post('/restaurant/me/logo', { file: file.name });
+        formData.append('image', file);
+        return uploadFile('/restaurants/me/logo', formData);
     },
 
     uploadBanner: async (file: File): Promise<ApiResponse<{ url: string }>> => {
         const formData = new FormData();
-        formData.append('banner', file);
-        return api.post('/restaurant/me/banner', { file: file.name });
+        formData.append('image', file);
+        return uploadFile('/restaurants/me/banner', formData);
     },
 
     uploadCover: async (file: File): Promise<ApiResponse<{ url: string }>> => {
         const formData = new FormData();
-        formData.append('cover', file);
-        return api.post('/restaurant/me/cover', { file: file.name });
+        formData.append('image', file);
+        return uploadFile('/restaurants/me/banner', formData);
     },
 
     getSetupStatus: async (): Promise<ApiResponse<{ 
         completed: boolean;
         step?: number;
     }>> => {
-        return api.get('/restaurant/me/setup-status');
+        return api.get('/restaurants/me/setup-status');
     },
 
     completeSetup: async (data: {
@@ -108,50 +107,51 @@ export const restaurantService = {
         closeTime?: string;
         bankAccount?: string;
     }): Promise<ApiResponse<Restaurant>> => {
-        return api.post<Restaurant>('/restaurant/me/complete-setup', data);
+        return api.post<Restaurant>('/restaurants/me/complete-setup', data);
     },
 
     getHours: async (): Promise<ApiResponse<RestaurantHours[]>> => {
-        return api.get<RestaurantHours[]>('/restaurant/me/hours');
+        return api.get<RestaurantHours[]>('/restaurants/me/hours');
     },
 
     updateHours: async (
         hours: Partial<RestaurantHours>[]
     ): Promise<ApiResponse<RestaurantHours[]>> => {
-        return api.put<RestaurantHours[]>('/restaurant/me/hours', { hours });
+        return api.put<RestaurantHours[]>('/restaurants/me/hours', { hours });
     },
 
     getBankInfo: async (): Promise<ApiResponse<BankInfo>> => {
-        return api.get<BankInfo>('/restaurant/me/bank');
+        return api.get<BankInfo>('/restaurants/me/bank');
     },
 
     updateBankInfo: async (
         data: Partial<BankInfo>
     ): Promise<ApiResponse<BankInfo>> => {
-        return api.put<BankInfo>('/restaurant/me/bank', data);
+        return api.put<BankInfo>('/restaurants/me/bank', data);
     },
 
     toggleOpen: async (
         isOpen: boolean
     ): Promise<ApiResponse<{ isOpen: boolean }>> => {
-        return api.patch('/restaurant/me/status', { isOpen });
+        return api.patch('/restaurants/me/status', { isOpen });
     },
 };
 
 // ============ DASHBOARD SERVICES ============
 export const dashboardService = {
-    getStats: async (): Promise<ApiResponse<DashboardStats>> => {
-        return api.get<DashboardStats>('/dashboard/stats');
+    getStats: async (period?: string): Promise<ApiResponse<DashboardStats>> => {
+        const query = period ? `?period=${period}` : '';
+        return api.get<DashboardStats>(`/dashboard/restaurant${query}`);
     },
 
     getBestSelling: async (limit?: number): Promise<ApiResponse<BestSellingFood[]>> => {
         const query = limit ? `?limit=${limit}` : '';
-        return api.get<BestSellingFood[]>(`/dashboard/best-selling${query}`);
+        return api.get<BestSellingFood[]>(`/dashboard/restaurant${query}`);
     },
 
     getRecentOrders: async (limit?: number): Promise<ApiResponse<Order[]>> => {
         const query = limit ? `?limit=${limit}` : '';
-        return api.get<Order[]>(`/dashboard/recent-orders${query}`);
+        return api.get<Order[]>(`/dashboard/restaurant${query}`);
     },
 };
 
@@ -212,7 +212,9 @@ export const menuService = {
     },
 
     uploadFoodImage: async (id: string, file: File): Promise<ApiResponse<{ url: string }>> => {
-        return api.post(`/menu/foods/${id}/image`, { file: file.name });
+        const formData = new FormData();
+        formData.append('image', file);
+        return uploadFile(`/menu/foods/${id}/image`, formData);
     },
 };
 
@@ -245,20 +247,20 @@ export const orderService = {
         return api.get<Order>(`/orders/${id}`);
     },
 
-    acceptOrder: async (id: string): Promise<ApiResponse<Order>> => {
-        return api.patch<Order>(`/orders/${id}/accept`, {});
+    acceptOrder: async (id: string, estimatedTime?: number): Promise<ApiResponse<Order>> => {
+        return api.post<Order>(`/orders/${id}/accept`, { estimatedTime });
     },
 
     rejectOrder: async (id: string, reason: string): Promise<ApiResponse<Order>> => {
-        return api.patch<Order>(`/orders/${id}/reject`, { reason });
+        return api.post<Order>(`/orders/${id}/reject`, { reason });
     },
 
     markReady: async (id: string): Promise<ApiResponse<Order>> => {
-        return api.patch<Order>(`/orders/${id}/ready`, {});
+        return api.post<Order>(`/orders/${id}/ready`, {});
     },
 
     assignDriver: async (orderId: string, driverId: string): Promise<ApiResponse<Order>> => {
-        return api.patch<Order>(`/orders/${orderId}/assign-driver`, { driverId });
+        return api.post<Order>(`/orders/${orderId}/assign-driver`, { driverId });
     },
 
     getOrderStats: async (): Promise<ApiResponse<{
@@ -269,7 +271,7 @@ export const orderService = {
         completed: number;
         cancelled: number;
     }>> => {
-        return api.get('/orders/stats');
+        return api.get('/orders/stats/summary');
     },
 };
 
@@ -321,7 +323,7 @@ export const reviewService = {
         totalReviews: number;
         ratingDistribution: { rating: number; count: number }[];
     }>> => {
-        return api.get('/reviews/stats');
+        return api.get('/reviews/stats/summary');
     },
 };
 

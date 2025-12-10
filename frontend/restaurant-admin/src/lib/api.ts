@@ -70,4 +70,46 @@ export const api = {
     delete: <T>(endpoint: string) => apiRequest<T>(endpoint, { method: 'DELETE' }),
 };
 
+// File upload helper
+export async function uploadFile<T>(
+    endpoint: string,
+    formData: FormData
+): Promise<ApiResponse<T>> {
+    try {
+        const token = typeof window !== 'undefined' 
+            ? sessionStorage.getItem('auth_token') 
+            : null;
+        
+        const headers: HeadersInit = {
+            ...(token && { Authorization: `Bearer ${token}` }),
+        };
+
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+            method: 'POST',
+            headers,
+            body: formData,
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            return {
+                success: false,
+                error: data.message || 'Upload failed',
+            };
+        }
+
+        return {
+            success: true,
+            data: data.data || data,
+        };
+    } catch (error) {
+        console.error('Upload Error:', error);
+        return {
+            success: false,
+            error: 'Network error. Please try again.',
+        };
+    }
+}
+
 export default api;
