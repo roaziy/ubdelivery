@@ -18,7 +18,8 @@ export default function LoginPage() {
 
     useEffect(() => {
         // Setup reCAPTCHA when component mounts
-        setupRecaptcha('send-otp-button');
+        // Use the container div ID, not the button ID
+        setupRecaptcha('recaptcha-container');
     }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
