@@ -70,7 +70,7 @@ export default function LoginForm() {
                     sessionStorage.setItem('setupCompleted', 'true');
                 }
                 
-                notifications.success("Амжилттай нэвтэрлээ", "Тавтай морилно у|!");
+                notifications.success("Амжилттай нэвтэрлээ", "Тавтай морилно уу!");
                 
                 setTimeout(() => {
                     if (response.data?.restaurant) {

@@ -143,13 +143,6 @@ export default function DriverLoginPage() {
                             </a>
                         </p>
                     </div>
-
-                    {/* Demo Credentials */}
-                    <div className="mt-4 p-3 bg-gray-50 rounded-xl">
-                        <p className="text-xs text-gray-500 text-center">
-                            Туршилтын нэвтрэх: <strong>99001122</strong> / <strong>123456</strong>
-                        </p>
-                    </div>
                 </div>
             </div>
         </div>

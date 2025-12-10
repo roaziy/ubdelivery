@@ -14,6 +14,8 @@ interface Restaurant {
     distance: string;
     phone: string;
     email?: string;
+    logo?: string;
+    banner?: string;
 }
 
 interface RestaurantProfileProps {
@@ -28,10 +30,32 @@ export default function RestaurantProfile({ restaurant }: RestaurantProfileProps
             {/* Desktop Layout */}
             <div className="hidden md:block">
                 <div className="relative h-[200px] md:h-[300px] bg-gray-400 rounded-2xl overflow-hidden">
+                    {/* Restaurant Banner */}
+                    {restaurant.banner ? (
+                        <img 
+                            src={restaurant.banner} 
+                            alt={restaurant.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = 'none';
+                            }}
+                        />
+                    ) : null}
                     {/* Restaurant Info Overlay */}
                     <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
                         <div className="flex items-center gap-4">
-                            <div className="w-16 h-16 bg-gray-600 rounded-xl border-2 border-white"></div>
+                            {restaurant.logo ? (
+                                <img 
+                                    src={restaurant.logo} 
+                                    alt={restaurant.name}
+                                    className="w-16 h-16 rounded-xl border-2 border-white object-cover bg-white"
+                                    onError={(e) => {
+                                        (e.target as HTMLImageElement).style.display = 'none';
+                                    }}
+                                />
+                            ) : (
+                                <div className="w-16 h-16 bg-gray-600 rounded-xl border-2 border-white"></div>
+                            )}
                             <div className="text-white">
                                 <h1 className="text-2xl font-bold">{restaurant.name}</h1>
                             </div>
@@ -74,9 +98,31 @@ export default function RestaurantProfile({ restaurant }: RestaurantProfileProps
             {/* Mobile Layout */}
             <div className="md:hidden">
                 <div className="relative h-[180px] bg-gray-400 rounded-2xl overflow-hidden mb-4">
+                    {/* Restaurant Banner */}
+                    {restaurant.banner ? (
+                        <img 
+                            src={restaurant.banner} 
+                            alt={restaurant.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = 'none';
+                            }}
+                        />
+                    ) : null}
                     {/* Restaurant Logo and Name */}
                     <div className="absolute bottom-4 left-4 flex items-center gap-3">
-                        <div className="w-12 h-12 bg-gray-600 rounded-xl border-2 border-white"></div>
+                        {restaurant.logo ? (
+                            <img 
+                                src={restaurant.logo} 
+                                alt={restaurant.name}
+                                className="w-12 h-12 rounded-xl border-2 border-white object-cover bg-white"
+                                onError={(e) => {
+                                    (e.target as HTMLImageElement).style.display = 'none';
+                                }}
+                            />
+                        ) : (
+                            <div className="w-12 h-12 bg-gray-600 rounded-xl border-2 border-white"></div>
+                        )}
                         <div className="text-white">
                             <h1 className="text-xl font-bold">{restaurant.name}</h1>
                         </div>
