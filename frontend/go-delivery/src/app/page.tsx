@@ -138,7 +138,7 @@ export default function DriverLoginPage() {
                     <div className="mt-6 text-center">
                         <p className="text-sm text-gray-500">
                             Бүртгэл байхгүй юу?{' '}
-                            <a href="/register" className="text-mainGreen font-medium hover:underline">
+                            <a href="https://www.ubdelivery.xyz/collaborate" target="_blank" rel="noopener noreferrer" className="text-mainGreen font-medium hover:underline">
                                 Бүртгүүлэх
                             </a>
                         </p>

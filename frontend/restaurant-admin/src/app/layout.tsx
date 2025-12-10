@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Montserrat } from "next/font/google";
 import "./globals.css";
 import { NotificationProvider } from "@/components/ui/Notification";
+import { AuthProvider } from "@/components/providers/AuthProvider";
 
 const montserrat = Montserrat({
   variable: "--font-Montserrat-sans",
@@ -25,7 +26,9 @@ export default function RootLayout({
         className={`${montserrat.variable} flex flex-col min-h-full`}
       >
         <NotificationProvider>
-          {children}
+          <AuthProvider>
+            {children}
+          </AuthProvider>
         </NotificationProvider>
       </body>
     </html>

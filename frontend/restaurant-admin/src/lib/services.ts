@@ -41,8 +41,39 @@ export const restaurantService = {
         return api.get<Restaurant>('/restaurant/me');
     },
 
-    updateRestaurant: async (data: Partial<Restaurant>): Promise<ApiResponse<Restaurant>> => {
+    updateRestaurant: async (
+        data: Partial<Restaurant>
+    ): Promise<ApiResponse<Restaurant>> => {
         return api.put<Restaurant>('/restaurant/me', data);
+    },
+
+    // Alias for updateRestaurant with settings-specific fields
+    updateSettings: async (data: {
+        restaurantName?: string;
+        cuisineType?: string;
+        coordinates?: string;
+        phone?: string;
+        email?: string;
+        isActive?: boolean;
+        openTime?: string;
+        closeTime?: string;
+    }): Promise<ApiResponse<Restaurant>> => {
+        return api.put<Restaurant>('/restaurant/me', data);
+    },
+
+    getSettings: async (): Promise<ApiResponse<{
+        restaurantName: string;
+        cuisineType: string;
+        coordinates: string;
+        phone: string;
+        email: string;
+        isActive: boolean;
+        openTime: string;
+        closeTime: string;
+        logoUrl: string;
+        bannerUrl: string;
+    }>> => {
+        return api.get('/restaurant/me/settings');
     },
 
     uploadLogo: async (file: File): Promise<ApiResponse<{ url: string }>> => {
@@ -52,17 +83,41 @@ export const restaurantService = {
         return api.post('/restaurant/me/logo', { file: file.name });
     },
 
+    uploadBanner: async (file: File): Promise<ApiResponse<{ url: string }>> => {
+        const formData = new FormData();
+        formData.append('banner', file);
+        return api.post('/restaurant/me/banner', { file: file.name });
+    },
+
     uploadCover: async (file: File): Promise<ApiResponse<{ url: string }>> => {
         const formData = new FormData();
         formData.append('cover', file);
         return api.post('/restaurant/me/cover', { file: file.name });
     },
 
+    getSetupStatus: async (): Promise<ApiResponse<{ 
+        completed: boolean;
+        step?: number;
+    }>> => {
+        return api.get('/restaurant/me/setup-status');
+    },
+
+    completeSetup: async (data: {
+        is24Hours?: boolean | null;
+        openTime?: string;
+        closeTime?: string;
+        bankAccount?: string;
+    }): Promise<ApiResponse<Restaurant>> => {
+        return api.post<Restaurant>('/restaurant/me/complete-setup', data);
+    },
+
     getHours: async (): Promise<ApiResponse<RestaurantHours[]>> => {
         return api.get<RestaurantHours[]>('/restaurant/me/hours');
     },
 
-    updateHours: async (hours: Partial<RestaurantHours>[]): Promise<ApiResponse<RestaurantHours[]>> => {
+    updateHours: async (
+        hours: Partial<RestaurantHours>[]
+    ): Promise<ApiResponse<RestaurantHours[]>> => {
         return api.put<RestaurantHours[]>('/restaurant/me/hours', { hours });
     },
 
@@ -70,11 +125,15 @@ export const restaurantService = {
         return api.get<BankInfo>('/restaurant/me/bank');
     },
 
-    updateBankInfo: async (data: Partial<BankInfo>): Promise<ApiResponse<BankInfo>> => {
+    updateBankInfo: async (
+        data: Partial<BankInfo>
+    ): Promise<ApiResponse<BankInfo>> => {
         return api.put<BankInfo>('/restaurant/me/bank', data);
     },
 
-    toggleOpen: async (isOpen: boolean): Promise<ApiResponse<{ isOpen: boolean }>> => {
+    toggleOpen: async (
+        isOpen: boolean
+    ): Promise<ApiResponse<{ isOpen: boolean }>> => {
         return api.patch('/restaurant/me/status', { isOpen });
     },
 };

@@ -2,15 +2,15 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { MdOutlineEmail } from "react-icons/md";
-import { MdOutlinePassword } from "react-icons/md";
+import { MdOutlinePhone, MdOutlinePassword } from "react-icons/md";
 import { useNotifications } from "@/components/ui/Notification";
+import { authService } from "@/lib/services";
 
 export default function LoginForm() {
     const router = useRouter();
     const notifications = useNotifications();
     const [formData, setFormData] = useState({
-        email: "",
+        phone: "",
         password: ""
     });
     const [isLoading, setIsLoading] = useState(false);
@@ -19,28 +19,27 @@ export default function LoginForm() {
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
-    // Email validation helper
-    const isValidEmail = (email: string) => {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(email);
+    // Phone validation helper
+    const isValidPhone = (phone: string) => {
+        const phoneRegex = /^[0-9]{8}$/;
+        return phoneRegex.test(phone);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         
-        // Validation checks with custom notifications
-        if (!formData.email && !formData.password) {
-            notifications.warning("Талбарууд хоосон байна", "И-мэйл болон нууц үгээ оруулна уу");
+        if (!formData.phone && !formData.password) {
+            notifications.warning("Талбарууд хоосон байна", "Утас болон нууц үгээ оруулна уу");
             return;
         }
 
-        if (!formData.email) {
-            notifications.warning("И-мэйл хаяг оруулна уу", "Байгууллагын и-мэйл хаягаа оруулна уу");
+        if (!formData.phone) {
+            notifications.warning("Утасны дугаар оруулна уу", "Байгууллагын утасны дугаараа оруулна уу");
             return;
         }
 
-        if (!isValidEmail(formData.email)) {
-            notifications.error("И-мэйл хаяг буруу байна", "Зөв и-мэйл хаяг оруулна уу. Жишээ: example@company.mn");
+        if (!isValidPhone(formData.phone)) {
+            notifications.error("Утасны дугаар буруу байна", "8 оронтой утасны дугаар оруулна уу");
             return;
         }
 
@@ -56,46 +55,54 @@ export default function LoginForm() {
 
         setIsLoading(true);
         
-        // Simulate login - replace with actual API call
-        setTimeout(() => {
-            // Store login state
-            sessionStorage.setItem('adminLoggedIn', 'true');
-            sessionStorage.setItem('adminEmail', formData.email);
-            
-            // Show success notification
-            notifications.success("Амжилттай нэвтэрлээ", "Тавтай морилно уу!");
-            
-            // Check if setup is already completed
-            // In real app, this would come from API response
-            const setupCompleted = sessionStorage.getItem('setupCompleted');
-            
-            setTimeout(() => {
-                if (setupCompleted) {
-                    // Setup already done, go to dashboard
-                    router.push('/dashboard');
-                } else {
-                    // First time login, go to setup
-                    router.push('/setup');
+        try {
+            const response = await authService.login({
+                phone: formData.phone,
+                password: formData.password
+            });
+
+            if (response.success && response.data) {
+                sessionStorage.setItem('auth_token', response.data.token);
+                sessionStorage.setItem('adminLoggedIn', 'true');
+                
+                if (response.data.restaurant) {
+                    sessionStorage.setItem('restaurant', JSON.stringify(response.data.restaurant));
+                    sessionStorage.setItem('setupCompleted', 'true');
                 }
-            }, 500);
-            
+                
+                notifications.success("Амжилттай нэвтэрлээ", "Тавтай морилно у|!");
+                
+                setTimeout(() => {
+                    if (response.data?.restaurant) {
+                        router.push('/dashboard');
+                    } else {
+                        router.push('/setup');
+                    }
+                }, 500);
+            } else {
+                notifications.error("Нэвтрэх амжилтгүй", response.error || "Утас эсвэл нууц үг буруу байна");
+            }
+        } catch {
+            notifications.error("Алдаа гарлаа", "Сервертэй холбогдоход алдаа гарлаа");
+        } finally {
             setIsLoading(false);
-        }, 1000);
+        }
     };
 
     return (
         <form onSubmit={handleSubmit} className="w-full max-w-[400px] mx-auto px-6">
-            {/* Email Input */}
+            {/* Phone Input */}
             <div className="mb-4">
                 <div className="flex items-center border border-gray-300 rounded-full px-4 py-3 focus-within:border-mainGreen transition-colors">
-                    <MdOutlineEmail className="text-gray-400 mr-3 select-none" size={18} />
+                    <MdOutlinePhone className="text-gray-400 mr-3 select-none" size={18} />
                     <input
-                        type="text"
-                        value={formData.email}
-                        onChange={(e) => handleChange('email', e.target.value)}
-                        placeholder="Байгууллагын email хаяг"
+                        type="tel"
+                        value={formData.phone}
+                        onChange={(e) => handleChange('phone', e.target.value)}
+                        placeholder="Утасны дугаар"
                         className="flex-1 outline-none text-sm bg-transparent select-none"
                         draggable={false}
+                        maxLength={8}
                     />
                 </div>
             </div>
@@ -119,8 +126,11 @@ export default function LoginForm() {
                 type="submit"
                 disabled={isLoading}
                 draggable={false}
-                className="w-full bg-mainGreen text-white py-3 rounded-full font-medium hover:bg-green-600 transition-colors disabled:opacity-70 select-none"
+                className="w-full bg-mainGreen text-white py-3 rounded-full font-medium hover:bg-green-600 transition-colors disabled:opacity-70 select-none flex items-center justify-center gap-2"
             >
+                {isLoading && (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                )}
                 {isLoading ? "Нэвтэрч байна..." : "Нэвтрэх"}
             </button>
         </form>
