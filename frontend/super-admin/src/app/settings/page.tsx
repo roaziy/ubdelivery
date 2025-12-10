@@ -66,12 +66,41 @@ export default function SettingsPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      // TODO: Implement actual save logic when backend endpoint is ready
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Update profile if name or email changed
+      const updates: { name?: string; email?: string } = {};
+      if (profileData.name) updates.name = profileData.name;
+      if (profileData.email) updates.email = profileData.email;
+
+      if (Object.keys(updates).length > 0) {
+        await authService.updateProfile(updates);
+      }
+
+      // Change password if both current and new passwords are provided
+      if (profileData.currentPassword && profileData.newPassword) {
+        if (profileData.newPassword.length < 6) {
+          notify.error('Алдаа', 'Шинэ нууц үг хамгийн багадаа 6 тэмдэгт байх ёстой');
+          setSaving(false);
+          return;
+        }
+
+        await authService.changePassword({
+          currentPassword: profileData.currentPassword,
+          newPassword: profileData.newPassword
+        });
+
+        // Clear password fields after successful change
+        setProfileData(prev => ({
+          ...prev,
+          currentPassword: '',
+          newPassword: ''
+        }));
+      }
+
       notify.success('Амжилттай', 'Тохиргоо амжилттай хадгалагдлаа');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Save error:', error);
-      notify.error('Алдаа', 'Тохиргоо хадгалахад алдаа гарлаа');
+      const errorMessage = error?.error || error?.message || 'Тохиргоо хадгалахад алдаа гарлаа';
+      notify.error('Алдаа', errorMessage);
     } finally {
       setSaving(false);
     }

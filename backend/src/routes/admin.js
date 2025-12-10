@@ -188,17 +188,49 @@ router.post('/users/:id/reset-password', verifyToken, requireAdmin, asyncHandler
   const { id } = req.params;
   const { password } = req.body;
 
-  const newPassword = password || Math.random().toString(36).slice(-8);
+  // Check if user exists
+  const { data: targetUser, error: userError } = await supabaseAdmin
+    .from('users')
+    .select('id, email, phone, name, role')
+    .eq('id', id)
+    .single();
+
+  if (userError || !targetUser) {
+    return res.status(404).json({
+      success: false,
+      message: 'Хэрэглэгч олдсонгүй'
+    });
+  }
+
+  // Generate or use provided password
+  const newPassword = password || Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-4);
   const hashedPassword = await bcrypt.hash(newPassword, 12);
 
-  await supabaseAdmin
+  // Update password
+  const { error: updateError } = await supabaseAdmin
     .from('users')
     .update({ password_hash: hashedPassword })
     .eq('id', id);
 
+  if (updateError) {
+    return res.status(500).json({
+      success: false,
+      message: 'Нууц үг солиход алдаа гарлаа'
+    });
+  }
+
   res.json({
     success: true,
-    data: { password: newPassword }
+    data: { 
+      password: newPassword,
+      user: {
+        id: targetUser.id,
+        email: targetUser.email,
+        phone: targetUser.phone,
+        name: targetUser.name,
+        role: targetUser.role
+      }
+    }
   });
 }));
 

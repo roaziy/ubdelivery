@@ -141,17 +141,17 @@ export const restaurantService = {
 export const dashboardService = {
     getStats: async (period?: string): Promise<ApiResponse<DashboardStats>> => {
         const query = period ? `?period=${period}` : '';
-        return api.get<DashboardStats>(`/dashboard/restaurant${query}`);
+        return api.get<DashboardStats>(`/dashboard/restaurant/stats${query}`);
     },
 
     getBestSelling: async (limit?: number): Promise<ApiResponse<BestSellingFood[]>> => {
         const query = limit ? `?limit=${limit}` : '';
-        return api.get<BestSellingFood[]>(`/dashboard/restaurant${query}`);
+        return api.get<BestSellingFood[]>(`/dashboard/restaurant/best-selling${query}`);
     },
 
     getRecentOrders: async (limit?: number): Promise<ApiResponse<Order[]>> => {
         const query = limit ? `?limit=${limit}` : '';
-        return api.get<Order[]>(`/dashboard/restaurant${query}`);
+        return api.get<Order[]>(`/dashboard/restaurant/recent-orders${query}`);
     },
 };
 

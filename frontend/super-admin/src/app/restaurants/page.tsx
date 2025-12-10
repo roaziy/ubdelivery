@@ -173,6 +173,7 @@ export default function RestaurantsPage() {
           entityType="restaurant"
           entityName={passwordModal.restaurant?.name || ''}
           entityId={passwordModal.restaurant?.id || ''}
+          userId={(passwordModal.restaurant as any)?.owner?.id || (passwordModal.restaurant as any)?.ownerId || (passwordModal.restaurant as any)?.owner_id}
         />
       </div>
     </AdminLayout>

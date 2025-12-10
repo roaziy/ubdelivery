@@ -89,18 +89,43 @@ router.post('/restaurant/login', asyncHandler(async (req, res) => {
 
   // Find user by email or phone
   let query = supabaseAdmin.from('users').select('*');
+  let searchValue = '';
   
   if (email) {
     query = query.eq('email', email);
+    searchValue = email;
   } else {
-    // Format phone number (remove +976 prefix if present)
+    // Format phone number (remove +976 prefix if present, keep only digits)
     const cleanPhone = phone.replace(/^\+976/, '').replace(/\D/g, '');
     query = query.eq('phone', cleanPhone);
+    searchValue = cleanPhone;
+    console.log(`[Restaurant Login] Searching for phone: ${phone} -> cleaned: ${cleanPhone}`);
   }
 
   const { data: user, error } = await query.single();
+  
+  if (user) {
+    console.log(`[Restaurant Login] User found: ${user.id}, role: ${user.role}, has_password: ${!!user.password_hash}, is_active: ${user.is_active}`);
+  }
 
-  if (error || !user) {
+  // Better error handling - check if it's a "not found" error or other error
+  if (error) {
+    // If it's a "not found" error (PGRST116), return user not found
+    if (error.code === 'PGRST116' || error.message?.includes('No rows')) {
+      return res.status(401).json({
+        success: false,
+        message: 'Хэрэглэгч олдсонгүй'
+      });
+    }
+    // Log other errors for debugging
+    console.error('Database error in restaurant login:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Серверийн алдаа гарлаа'
+    });
+  }
+
+  if (!user) {
     return res.status(401).json({
       success: false,
       message: 'Хэрэглэгч олдсонгүй'
@@ -111,7 +136,7 @@ router.post('/restaurant/login', asyncHandler(async (req, res) => {
   if (!user.password_hash) {
     return res.status(401).json({
       success: false,
-      message: 'Нууц үг тохируулаагүй байна'
+      message: 'Нууц үг тохируулаагүй байна. Админаас нууц үг тохируулахыг хүснэ үү.'
     });
   }
 
@@ -133,17 +158,17 @@ router.post('/restaurant/login', asyncHandler(async (req, res) => {
   }
 
   // Check if user is restaurant admin or owns a restaurant
-  const { data: restaurant } = await supabaseAdmin
+  const { data: restaurant, error: restaurantError } = await supabaseAdmin
     .from('restaurants')
     .select('*')
     .eq('owner_id', user.id)
-    .single();
+    .maybeSingle(); // Use maybeSingle instead of single to avoid error if no restaurant
 
   // Allow login if user has restaurant_admin role OR owns a restaurant
   if (user.role !== 'restaurant_admin' && !restaurant) {
     return res.status(403).json({
       success: false,
-      message: 'Рестораны эрхгүй байна'
+      message: 'Рестораны эрхгүй байна. Ресторан бүртгүүлсэн эсэхийг шалгана уу.'
     });
   }
 
@@ -337,6 +362,120 @@ router.get('/me', verifyToken, asyncHandler(async (req, res) => {
       },
       ...additionalData
     }
+  });
+}));
+
+// ============================================
+// CHANGE PASSWORD (Own Password)
+// ============================================
+
+router.post('/change-password', verifyToken, asyncHandler(async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  const user = req.user;
+
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({
+      success: false,
+      message: 'Одоогийн болон шинэ нууц үг шаардлагатай'
+    });
+  }
+
+  if (newPassword.length < 6) {
+    return res.status(400).json({
+      success: false,
+      message: 'Шинэ нууц үг хамгийн багадаа 6 тэмдэгт байх ёстой'
+    });
+  }
+
+  // Get user with password hash
+  const { data: userWithPassword, error } = await supabaseAdmin
+    .from('users')
+    .select('password_hash')
+    .eq('id', user.id)
+    .single();
+
+  if (error || !userWithPassword) {
+    return res.status(404).json({
+      success: false,
+      message: 'Хэрэглэгч олдсонгүй'
+    });
+  }
+
+  // Verify current password
+  if (!userWithPassword.password_hash) {
+    return res.status(400).json({
+      success: false,
+      message: 'Одоогийн нууц үг тохируулаагүй байна'
+    });
+  }
+
+  const isValidPassword = await bcrypt.compare(currentPassword, userWithPassword.password_hash);
+  
+  if (!isValidPassword) {
+    return res.status(401).json({
+      success: false,
+      message: 'Одоогийн нууц үг буруу байна'
+    });
+  }
+
+  // Hash new password
+  const hashedPassword = await bcrypt.hash(newPassword, 12);
+
+  // Update password
+  const { error: updateError } = await supabaseAdmin
+    .from('users')
+    .update({ password_hash: hashedPassword })
+    .eq('id', user.id);
+
+  if (updateError) {
+    return res.status(500).json({
+      success: false,
+      message: 'Нууц үг солиход алдаа гарлаа'
+    });
+  }
+
+  res.json({
+    success: true,
+    message: 'Нууц үг амжилттай солигдлоо'
+  });
+}));
+
+// ============================================
+// UPDATE PROFILE
+// ============================================
+
+router.put('/me', verifyToken, asyncHandler(async (req, res) => {
+  const { name, email } = req.body;
+  const userId = req.user.id;
+
+  const updates = {};
+  if (name !== undefined) updates.name = name;
+  if (email !== undefined) updates.email = email;
+
+  if (Object.keys(updates).length === 0) {
+    return res.status(400).json({
+      success: false,
+      message: 'Өөрчлөх мэдээлэл оруулаагүй байна'
+    });
+  }
+
+  const { data: updatedUser, error } = await supabaseAdmin
+    .from('users')
+    .update(updates)
+    .eq('id', userId)
+    .select('id, email, phone, name, avatar_url, role')
+    .single();
+
+  if (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'Профайл шинэчлэхэд алдаа гарлаа'
+    });
+  }
+
+  res.json({
+    success: true,
+    data: updatedUser
   });
 }));
 

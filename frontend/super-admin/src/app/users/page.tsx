@@ -1,17 +1,22 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FiSearch, FiPause, FiPlay, FiUser } from 'react-icons/fi';
+import { FiSearch, FiPause, FiPlay, FiUser, FiSettings } from 'react-icons/fi';
 import AdminLayout from '@/components/layout/AdminLayout';
 import { User } from '@/types';
 import { UserService } from '@/lib/services';
 import { useNotifications } from '@/components/ui/Notification';
+import PasswordChangeModal from '@/components/ui/PasswordChangeModal';
 
 export default function UsersPage() {
   const notify = useNotifications();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [passwordModal, setPasswordModal] = useState<{ open: boolean; user: User | null }>({
+    open: false,
+    user: null
+  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -143,16 +148,25 @@ export default function UsersPage() {
                       </span>
                     </td>
                     <td className="py-3 px-4">
-                      <button
-                        onClick={() => handleToggleStatus(user.id, user.status, user.name || 'Хэрэглэгч')}
-                        className={`p-2 rounded-full ${
-                          user.status === 'active'
-                            ? 'bg-red-100 text-red-500 hover:bg-red-200'
-                            : 'bg-green-100 text-mainGreen hover:bg-green-200'
-                        }`}
-                      >
-                        {user.status === 'active' ? <FiPause size={16} /> : <FiPlay size={16} />}
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setPasswordModal({ open: true, user })}
+                          className="p-2 bg-gray-100 text-gray-600 rounded-full hover:bg-gray-200"
+                          title="Нууц үг солих"
+                        >
+                          <FiSettings size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleToggleStatus(user.id, user.status, user.name || 'Хэрэглэгч')}
+                          className={`p-2 rounded-full ${
+                            user.status === 'active'
+                              ? 'bg-red-100 text-red-500 hover:bg-red-200'
+                              : 'bg-green-100 text-mainGreen hover:bg-green-200'
+                          }`}
+                        >
+                          {user.status === 'active' ? <FiPause size={16} /> : <FiPlay size={16} />}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -160,6 +174,15 @@ export default function UsersPage() {
             </tbody>
           </table>
         </div>
+
+        <PasswordChangeModal
+          isOpen={passwordModal.open}
+          onClose={() => setPasswordModal({ open: false, user: null })}
+          entityType="user"
+          entityName={passwordModal.user?.name || passwordModal.user?.email || 'Хэрэглэгч'}
+          entityId={passwordModal.user?.id || ''}
+          userId={passwordModal.user?.id}
+        />
       </div>
     </AdminLayout>
   );

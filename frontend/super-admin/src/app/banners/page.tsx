@@ -5,6 +5,7 @@ import AdminLayout from '@/components/layout/AdminLayout';
 import { useNotifications } from '@/components/ui/Notification';
 import { IoAdd, IoTrash, IoPencil, IoImageOutline } from 'react-icons/io5';
 import Image from 'next/image';
+import api, { uploadFile } from '@/lib/api';
 
 interface Banner {
     id: string;
@@ -37,10 +38,11 @@ export default function BannersPage() {
     const fetchBanners = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/banners`);
-            const data = await response.json();
-            if (data.success) {
-                setBanners(data.data || []);
+            const response = await api.get<Banner[]>('/banners');
+            if (response.success && response.data) {
+                setBanners(Array.isArray(response.data) ? response.data : []);
+            } else {
+                notify.error('Алдаа', response.error || 'Баннеруудыг ачаалахад алдаа гарлаа');
             }
         } catch (error) {
             console.error('Failed to fetch banners:', error);
@@ -103,12 +105,6 @@ export default function BannersPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         
-        const token = sessionStorage.getItem('auth_token');
-        if (!token) {
-            notify.error('Алдаа', 'Нэвтэрнэ үү');
-            return;
-        }
-
         try {
             if (editingBanner) {
                 // Update existing banner
@@ -117,47 +113,33 @@ export default function BannersPage() {
                     const formDataToSend = new FormData();
                     formDataToSend.append('image', formData.image);
                     
-                    const imageResponse = await fetch(
-                        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/banners/${editingBanner.id}/image`,
-                        {
-                            method: 'POST',
-                            headers: {
-                                'Authorization': `Bearer ${token}`
-                            },
-                            body: formDataToSend
-                        }
+                    const imageResponse = await uploadFile<Banner>(
+                        `/banners/${editingBanner.id}/image`,
+                        formDataToSend
                     );
                     
-                    if (!imageResponse.ok) {
-                        throw new Error('Зураг хадгалахад алдаа гарлаа');
+                    if (!imageResponse.success) {
+                        throw new Error(imageResponse.error || 'Зураг хадгалахад алдаа гарлаа');
                     }
                 }
                 
                 // Update banner data
-                const updateResponse = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/banners/${editingBanner.id}`,
+                const updateResponse = await api.put<Banner>(
+                    `/banners/${editingBanner.id}`,
                     {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: JSON.stringify({
-                            title: formData.title,
-                            link: formData.link,
-                            is_active: formData.is_active,
-                            sort_order: formData.sort_order
-                        })
+                        title: formData.title,
+                        link: formData.link,
+                        is_active: formData.is_active,
+                        sort_order: formData.sort_order
                     }
                 );
                 
-                const updateData = await updateResponse.json();
-                if (updateData.success) {
+                if (updateResponse.success) {
                     notify.success('Амжилттай', 'Баннер шинэчлэгдлээ');
                     fetchBanners();
                     handleCloseModal();
                 } else {
-                    throw new Error(updateData.message || 'Шинэчлэхэд алдаа гарлаа');
+                    throw new Error(updateResponse.error || 'Шинэчлэхэд алдаа гарлаа');
                 }
             } else {
                 // Create new banner
@@ -173,24 +155,14 @@ export default function BannersPage() {
                 formDataToSend.append('is_active', formData.is_active.toString());
                 formDataToSend.append('sort_order', formData.sort_order.toString());
                 
-                const response = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/banners`,
-                    {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: formDataToSend
-                    }
-                );
+                const response = await uploadFile<Banner>('/banners', formDataToSend);
                 
-                const data = await response.json();
-                if (data.success) {
+                if (response.success) {
                     notify.success('Амжилттай', 'Баннер үүсгэгдлээ');
                     fetchBanners();
                     handleCloseModal();
                 } else {
-                    throw new Error(data.message || 'Үүсгэхэд алдаа гарлаа');
+                    throw new Error(response.error || 'Үүсгэхэд алдаа гарлаа');
                 }
             }
         } catch (error) {
@@ -204,29 +176,13 @@ export default function BannersPage() {
             return;
         }
 
-        const token = sessionStorage.getItem('auth_token');
-        if (!token) {
-            notify.error('Алдаа', 'Нэвтэрнэ үү');
-            return;
-        }
-
         try {
-            const response = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/banners/${id}`,
-                {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                }
-            );
-            
-            const data = await response.json();
-            if (data.success) {
+            const response = await api.delete<{ message: string }>(`/banners/${id}`);
+            if (response.success) {
                 notify.success('Амжилттай', 'Баннер устгагдлаа');
                 fetchBanners();
             } else {
-                throw new Error(data.message || 'Устгахад алдаа гарлаа');
+                throw new Error(response.error || 'Устгахад алдаа гарлаа');
             }
         } catch (error) {
             console.error('Delete error:', error);
@@ -235,28 +191,19 @@ export default function BannersPage() {
     };
 
     const handleToggleActive = async (banner: Banner) => {
-        const token = sessionStorage.getItem('auth_token');
-        if (!token) return;
-
         try {
-            const response = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/banners/${banner.id}`,
+            const response = await api.put<Banner>(
+                `/banners/${banner.id}`,
                 {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({
-                        is_active: !banner.is_active
-                    })
+                    is_active: !banner.is_active
                 }
             );
             
-            const data = await response.json();
-            if (data.success) {
+            if (response.success) {
                 notify.success('Амжилттай', `Баннер ${!banner.is_active ? 'идэвхжсэн' : 'идэвхгүй болсон'}`);
                 fetchBanners();
+            } else {
+                notify.error('Алдаа', response.error || 'Өөрчлөхөд алдаа гарлаа');
             }
         } catch (error) {
             console.error('Toggle error:', error);

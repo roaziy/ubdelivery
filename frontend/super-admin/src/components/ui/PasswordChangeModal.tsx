@@ -5,15 +5,18 @@ import { IoClose } from 'react-icons/io5';
 import { MdOutlinePassword } from 'react-icons/md';
 import { useNotifications } from './Notification';
 
+import { userService } from '@/lib/services';
+
 interface PasswordChangeModalProps {
     isOpen: boolean;
     onClose: () => void;
-    entityType: 'restaurant' | 'driver';
+    entityType: 'restaurant' | 'driver' | 'user';
     entityName: string;
     entityId: string;
+    userId?: string; // User ID for restaurant/driver owners or direct user
 }
 
-export default function PasswordChangeModal({ isOpen, onClose, entityType, entityName, entityId }: PasswordChangeModalProps) {
+export default function PasswordChangeModal({ isOpen, onClose, entityType, entityName, entityId, userId }: PasswordChangeModalProps) {
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -36,16 +39,36 @@ export default function PasswordChangeModal({ isOpen, onClose, entityType, entit
 
         setLoading(true);
         try {
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            console.log(`Changing password for ${entityType} ${entityId}:`, newPassword);
+            // Determine the user ID to reset password for
+            let targetUserId = userId;
             
-            notifications.success('Амжилттай', `${entityName}-н нууц үг амжилттай солигдлоо`);
-            setNewPassword('');
-            setConfirmPassword('');
-            onClose();
-        } catch {
-            notifications.error('Алдаа', 'Нууц үг солиход алдаа гарлаа. Дахин оролдоно уу.');
+            // If userId is not provided, use entityId (for direct user changes)
+            if (!targetUserId) {
+                if (entityType === 'user') {
+                    targetUserId = entityId;
+                } else {
+                    // For restaurant/driver, userId should be passed from parent
+                    // If not provided, show error
+                    notifications.error('Алдаа', 'Хэрэглэгчийн ID олдсонгүй. Ресторан эсвэл жолоочийн эзэмшлийн мэдээлэл дутуу байна.');
+                    setLoading(false);
+                    return;
+                }
+            }
+
+            const response = await userService.resetPassword(targetUserId, newPassword);
+            
+            if (response.success) {
+                notifications.success('Амжилттай', `${entityName}-н нууц үг амжилттай солигдлоо`);
+                setNewPassword('');
+                setConfirmPassword('');
+                onClose();
+            } else {
+                notifications.error('Алдаа', response.error || 'Нууц үг солиход алдаа гарлаа');
+            }
+        } catch (error: any) {
+            console.error('Password change error:', error);
+            const errorMessage = error?.error || error?.message || 'Нууц үг солиход алдаа гарлаа. Дахин оролдоно уу.';
+            notifications.error('Алдаа', errorMessage);
         } finally {
             setLoading(false);
         }

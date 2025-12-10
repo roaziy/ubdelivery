@@ -32,6 +32,14 @@ export const authService = {
     getProfile: async (): Promise<ApiResponse<AdminUser>> => {
         return api.get('/auth/me');
     },
+
+    changePassword: async (data: { currentPassword: string; newPassword: string }): Promise<ApiResponse<{ message: string }>> => {
+        return api.post('/auth/change-password', data);
+    },
+
+    updateProfile: async (data: { name?: string; email?: string }): Promise<ApiResponse<AdminUser>> => {
+        return api.put('/auth/me', data);
+    },
 };
 
 // ============ RESTAURANT APPLICATION SERVICES ============

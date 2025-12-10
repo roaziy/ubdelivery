@@ -4,9 +4,19 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   
   images: {
-    domains: [
-      'localhost',
-      'api.ubdelivery.xyz',
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+      },
+      {
+        protocol: 'https',
+        hostname: 'api.ubdelivery.xyz',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.supabase.co',
+      },
     ],
   },
 };

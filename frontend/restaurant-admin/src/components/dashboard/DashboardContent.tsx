@@ -46,6 +46,17 @@ interface RecentOrdersTableProps {
 function RecentOrdersTable({ orders, loading }: RecentOrdersTableProps) {
     if (loading) return <TableSkeleton rows={8} columns={5} />;
 
+    // Ensure orders is always an array
+    const ordersArray = Array.isArray(orders) ? orders : [];
+
+    if (ordersArray.length === 0) {
+        return (
+            <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
+                <p className="text-gray-500">Захиалга олдсонгүй</p>
+            </div>
+        );
+    }
+
     return (
         <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
             <table className="w-full">
@@ -59,7 +70,7 @@ function RecentOrdersTable({ orders, loading }: RecentOrdersTableProps) {
                     </tr>
                 </thead>
                 <tbody>
-                    {orders.map((order, index) => (
+                    {ordersArray.map((order, index) => (
                         <tr key={index} className="border-b border-gray-100 last:border-b-0">
                             <td className="py-3 px-4 text-sm">#{order.orderNumber}</td>
                             <td className="py-3 px-4 text-sm">
@@ -169,7 +180,11 @@ export default function DashboardContent() {
                 setBestSelling(bestSellingRes.data);
             }
             if (ordersRes.success && ordersRes.data) {
-                setRecentOrders(ordersRes.data);
+                // Ensure data is an array
+                const ordersData = Array.isArray(ordersRes.data) ? ordersRes.data : [];
+                setRecentOrders(ordersData);
+            } else {
+                setRecentOrders([]);
             }
         } catch (error) {
             console.error('Failed to fetch dashboard data:', error);

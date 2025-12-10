@@ -103,6 +103,230 @@ router.get('/restaurant', verifyToken, requireRestaurantOwner, asyncHandler(asyn
 }));
 
 // ============================================
+// RESTAURANT DASHBOARD STATS ONLY
+// ============================================
+
+router.get('/restaurant/stats', verifyToken, requireRestaurantOwner, asyncHandler(async (req, res) => {
+  const restaurantId = req.restaurant.id;
+  const { period = 'today' } = req.query;
+
+  // Calculate date range
+  const now = new Date();
+  let startDate;
+  
+  switch (period) {
+    case 'today':
+      startDate = new Date(now.setHours(0, 0, 0, 0)).toISOString();
+      break;
+    case 'week':
+      startDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      break;
+    case 'month':
+      startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+      break;
+    default:
+      startDate = new Date(now.setHours(0, 0, 0, 0)).toISOString();
+  }
+
+  // Get orders
+  const { data: orders } = await supabaseAdmin
+    .from('orders')
+    .select('id, status, total_amount, created_at')
+    .eq('restaurant_id', restaurantId)
+    .gte('created_at', startDate);
+
+  // Calculate stats
+  const todayOrders = orders?.filter(o => {
+    const orderDate = new Date(o.created_at);
+    const today = new Date();
+    return orderDate.toDateString() === today.toDateString();
+  }).length || 0;
+
+  const todayRevenue = orders?.filter(o => {
+    const orderDate = new Date(o.created_at);
+    const today = new Date();
+    return orderDate.toDateString() === today.toDateString() && o.status === 'delivered';
+  }).reduce((sum, o) => sum + parseFloat(o.total_amount), 0) || 0;
+
+  // Get previous period for trend calculation
+  const prevStartDate = new Date(new Date(startDate).getTime() - (new Date().getTime() - new Date(startDate).getTime()));
+  const { data: prevOrders } = await supabaseAdmin
+    .from('orders')
+    .select('id, status, total_amount, created_at')
+    .eq('restaurant_id', restaurantId)
+    .gte('created_at', prevStartDate.toISOString())
+    .lt('created_at', startDate);
+
+  const prevTodayOrders = prevOrders?.filter(o => {
+    const orderDate = new Date(o.created_at);
+    const prevToday = new Date(prevStartDate);
+    return orderDate.toDateString() === prevToday.toDateString();
+  }).length || 0;
+
+  const prevTodayRevenue = prevOrders?.filter(o => {
+    const orderDate = new Date(o.created_at);
+    const prevToday = new Date(prevStartDate);
+    return orderDate.toDateString() === prevToday.toDateString() && o.status === 'delivered';
+  }).reduce((sum, o) => sum + parseFloat(o.total_amount), 0) || 0;
+
+  const ordersTrend = prevTodayOrders > 0 
+    ? Math.round(((todayOrders - prevTodayOrders) / prevTodayOrders) * 100)
+    : todayOrders > 0 ? 100 : 0;
+
+  const revenueTrend = prevTodayRevenue > 0
+    ? Math.round(((todayRevenue - prevTodayRevenue) / prevTodayRevenue) * 100)
+    : todayRevenue > 0 ? 100 : 0;
+
+  res.json({
+    success: true,
+    data: {
+      todayOrders,
+      todayRevenue,
+      totalOrders: orders?.length || 0,
+      totalRevenue: orders?.filter(o => o.status === 'delivered')
+        .reduce((sum, o) => sum + parseFloat(o.total_amount), 0) || 0,
+      ordersTrend,
+      revenueTrend,
+      pendingOrders: orders?.filter(o => o.status === 'pending').length || 0
+    }
+  });
+}));
+
+// ============================================
+// RESTAURANT DASHBOARD BEST SELLING FOODS
+// ============================================
+
+router.get('/restaurant/best-selling', verifyToken, requireRestaurantOwner, asyncHandler(async (req, res) => {
+  const restaurantId = req.restaurant.id;
+  const limit = parseInt(req.query.limit) || 10;
+
+  // Get all delivered orders for this restaurant
+  const { data: deliveredOrders } = await supabaseAdmin
+    .from('orders')
+    .select('id')
+    .eq('restaurant_id', restaurantId)
+    .eq('status', 'delivered');
+
+  if (!deliveredOrders || deliveredOrders.length === 0) {
+    return res.json({
+      success: true,
+      data: []
+    });
+  }
+
+  const orderIds = deliveredOrders.map(o => o.id);
+
+  // Get order items for delivered orders
+  const { data: items } = await supabaseAdmin
+    .from('order_items')
+    .select(`
+      food_id,
+      quantity,
+      price,
+      food:foods(id, name, image_url)
+    `)
+    .in('order_id', orderIds);
+
+  if (!items || items.length === 0) {
+    return res.json({
+      success: true,
+      data: []
+    });
+  }
+
+  // Aggregate by food_id
+  const foodStats = {};
+  items.forEach(item => {
+    if (!item.food_id || !item.food) return;
+    const foodId = item.food_id;
+    if (!foodStats[foodId]) {
+      foodStats[foodId] = {
+        foodId,
+        foodName: item.food.name,
+        foodImage: item.food.image_url,
+        totalOrders: 0,
+        revenue: 0
+      };
+    }
+    foodStats[foodId].totalOrders += item.quantity;
+    foodStats[foodId].revenue += parseFloat(item.price) * item.quantity;
+  });
+
+  // Convert to array and sort by revenue
+  const bestSelling = Object.values(foodStats)
+    .sort((a, b) => b.revenue - a.revenue)
+    .slice(0, limit);
+
+  res.json({
+    success: true,
+    data: bestSelling
+  });
+}));
+
+// ============================================
+// RESTAURANT DASHBOARD RECENT ORDERS
+// ============================================
+
+router.get('/restaurant/recent-orders', verifyToken, requireRestaurantOwner, asyncHandler(async (req, res) => {
+  const restaurantId = req.restaurant.id;
+  const limit = parseInt(req.query.limit) || 10;
+
+  // Get recent orders
+  const { data: orders } = await supabaseAdmin
+    .from('orders')
+    .select(`
+      id,
+      order_number,
+      status,
+      total_amount,
+      created_at,
+      user:users!orders_user_id_fkey(id, phone, full_name)
+    `)
+    .eq('restaurant_id', restaurantId)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (!orders) {
+    return res.json({
+      success: true,
+      data: []
+    });
+  }
+
+  // Transform orders to match frontend Order interface
+  const transformedOrders = orders.map(order => ({
+    id: order.id,
+    orderNumber: order.order_number || order.id.slice(0, 8).toUpperCase(),
+    userId: order.user?.id || '',
+    userName: order.user?.full_name || null,
+    userPhone: order.user?.phone || '',
+    restaurantId: restaurantId,
+    driverId: null,
+    driverName: null,
+    status: order.status,
+    items: [],
+    subtotal: parseFloat(order.total_amount),
+    deliveryFee: 0,
+    serviceFee: 0,
+    discount: 0,
+    total: parseFloat(order.total_amount),
+    deliveryAddress: '',
+    deliveryLat: 0,
+    deliveryLng: 0,
+    notes: null,
+    estimatedDeliveryTime: null,
+    actualDeliveryTime: null,
+    createdAt: order.created_at,
+    updatedAt: order.created_at
+  }));
+
+  res.json({
+    success: true,
+    data: transformedOrders
+  });
+}));
+
+// ============================================
 // DRIVER DASHBOARD STATS
 // ============================================
 
