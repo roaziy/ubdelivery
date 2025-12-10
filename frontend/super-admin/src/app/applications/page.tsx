@@ -63,15 +63,17 @@ export default function ApplicationsPage() {
       if (type === 'restaurant') {
         const res = await restaurantApplicationService.approveApplication(id);
         if (res.success) {
-          setRestaurantApps((prev) => prev.map((a) => a.id === id ? { ...a, status: 'approved' } : a));
-          notify.success('Зөвшөөрөгдлөө', `${name} ресторан зөвшөөрөгдлөө`);
+          // Remove approved application from the list
+          setRestaurantApps((prev) => prev.filter((a) => a.id !== id));
+          notify.success('Зөвшөөрөгдлөө', `${name} ресторан зөвшөөрөгдлөө. Ресторанууд хуудас руу ороод шалгана уу.`);
         } else {
           notify.error('Алдаа', res.error || 'Зөвшөөрөхөд алдаа гарлаа');
         }
       } else {
         const res = await driverApplicationService.approveApplication(id);
         if (res.success) {
-          setDriverApps((prev) => prev.map((a) => a.id === id ? { ...a, status: 'approved' } : a));
+          // Remove approved application from the list
+          setDriverApps((prev) => prev.filter((a) => a.id !== id));
           notify.success('Зөвшөөрөгдлөө', `${name} жолооч зөвшөөрөгдлөө`);
         } else {
           notify.error('Алдаа', res.error || 'Зөвшөөрөхөд алдаа гарлаа');

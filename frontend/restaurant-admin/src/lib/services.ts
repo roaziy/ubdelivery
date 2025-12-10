@@ -78,13 +78,13 @@ export const restaurantService = {
 
     uploadLogo: async (file: File): Promise<ApiResponse<{ url: string }>> => {
         const formData = new FormData();
-        formData.append('image', file);
+        formData.append('logo', file);
         return uploadFile('/restaurants/me/logo', formData);
     },
 
     uploadBanner: async (file: File): Promise<ApiResponse<{ url: string }>> => {
         const formData = new FormData();
-        formData.append('image', file);
+        formData.append('banner', file);
         return uploadFile('/restaurants/me/banner', formData);
     },
 

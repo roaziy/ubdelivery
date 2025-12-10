@@ -83,7 +83,24 @@ export async function uploadFile<T>(
         
         const headers: HeadersInit = {
             ...(token && { Authorization: `Bearer ${token}` }),
+            // Don't set Content-Type - browser will set it with boundary for FormData
         };
+
+        // Log FormData contents for debugging
+        if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'production') {
+            console.log('Uploading to:', `${API_BASE_URL}${endpoint}`);
+            for (const [key, value] of formData.entries()) {
+                if (value instanceof File) {
+                    console.log(`FormData field "${key}":`, {
+                        name: value.name,
+                        type: value.type,
+                        size: value.size
+                    });
+                } else {
+                    console.log(`FormData field "${key}":`, value);
+                }
+            }
+        }
 
         const response = await fetch(`${API_BASE_URL}${endpoint}`, {
             method: 'POST',
@@ -91,14 +108,27 @@ export async function uploadFile<T>(
             body: formData,
         });
 
-        const data = await response.json();
-
         if (!response.ok) {
+            const errorText = await response.text();
+            let errorData;
+            try {
+                errorData = JSON.parse(errorText);
+            } catch {
+                errorData = { message: errorText || 'Upload failed' };
+            }
+            console.error('Upload failed:', {
+                status: response.status,
+                statusText: response.statusText,
+                endpoint,
+                error: errorData
+            });
             return {
                 success: false,
-                error: data.message || 'Upload failed',
+                error: errorData.message || 'Upload failed',
             };
         }
+
+        const data = await response.json();
 
         return {
             success: true,

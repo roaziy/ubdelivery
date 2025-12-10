@@ -19,7 +19,7 @@ export default function LoginPage() {
     useEffect(() => {
         // Setup reCAPTCHA when component mounts (hidden container)
         const timer = setTimeout(() => {
-            setupRecaptcha('recaptcha-container');
+        setupRecaptcha('recaptcha-container');
         }, 100);
         return () => clearTimeout(timer);
     }, []);

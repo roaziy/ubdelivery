@@ -91,8 +91,14 @@ router.get('/:id', verifyToken, requireAdmin, asyncHandler(async (req, res) => {
 // SUBMIT RESTAURANT APPLICATION (Public)
 // ============================================
 
+// Custom middleware to make documents optional for restaurant applications
+const uploadDocumentsOptional = (req, res, next) => {
+  req.requireFile = false; // Mark file as optional
+  uploadAndProcess('documents', 'document', 'applications')(req, res, next);
+};
+
 router.post('/restaurant', 
-  uploadAndProcess('documents', 'document', 'applications'),
+  uploadDocumentsOptional,
   asyncHandler(async (req, res) => {
     const {
       name, ownerName, owner_name,
@@ -302,7 +308,7 @@ router.post('/:id/approve', verifyToken, requireAdmin, asyncHandler(async (req, 
 
   // Create restaurant or driver
   if (application.type === 'restaurant') {
-    await supabaseAdmin
+    const { data: restaurant, error: restaurantError } = await supabaseAdmin
       .from('restaurants')
       .insert({
         owner_id: user.id,
@@ -312,8 +318,33 @@ router.post('/:id/approve', verifyToken, requireAdmin, asyncHandler(async (req, 
         address: application.address,
         cuisine_type: application.cuisine_type,
         description: application.description,
-        is_active: true
-      });
+        status: 'approved',
+        is_active: true,
+        is_open: true
+      })
+      .select()
+      .single();
+
+    if (restaurantError) {
+      console.error('Error creating restaurant:', restaurantError);
+      throw restaurantError;
+    }
+
+    // Create default food categories for new restaurant
+    const defaultCategories = [
+      { restaurant_id: restaurant.id, name: 'Үндсэн хоол', sort_order: 1 },
+      { restaurant_id: restaurant.id, name: 'Хачир', sort_order: 2 },
+      { restaurant_id: restaurant.id, name: 'Нэмэлт', sort_order: 3 }
+    ];
+
+    const { error: categoriesError } = await supabaseAdmin
+      .from('food_categories')
+      .insert(defaultCategories);
+
+    if (categoriesError) {
+      console.error('Error creating default categories:', categoriesError);
+      // Don't throw - categories can be created later
+    }
   } else {
     await supabaseAdmin
       .from('drivers')

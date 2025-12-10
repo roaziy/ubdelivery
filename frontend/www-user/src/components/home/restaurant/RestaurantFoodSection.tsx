@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { IoSearch } from "react-icons/io5";
-import { FoodItem } from "@/lib/types";
-import { FoodService, CartService } from "@/lib/api";
+import { FoodItem, FoodCategory } from "@/lib/types";
+import { FoodService, CartService, RestaurantService } from "@/lib/api";
 import FoodDetailModal from "@/components/home/FoodSection/FoodDetailModal";
 import { FoodCardSkeleton } from "@/components/ui/Skeleton";
 import { FaStar } from "react-icons/fa6";
@@ -15,10 +15,10 @@ interface RestaurantFoodSectionProps {
     restaurantId?: string;
 }
 
-const categories = ['Бүгд', 'Үндсэн хоол', 'Хачир', 'Нэмэлт'];
-
 export default function RestaurantFoodSection({ restaurantName, restaurantId }: RestaurantFoodSectionProps) {
-    const [activeCategory, setActiveCategory] = useState(0);
+    const [activeCategory, setActiveCategory] = useState<string | null>(null);
+    const [categories, setCategories] = useState<FoodCategory[]>([]);
+    const [categoriesLoading, setCategoriesLoading] = useState(true);
     const [selectedFood, setSelectedFood] = useState<FoodItem | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
@@ -37,6 +37,51 @@ export default function RestaurantFoodSection({ restaurantName, restaurantId }: 
         setIsModalOpen(false);
     };
 
+    // Fetch categories for this restaurant
+    useEffect(() => {
+        const fetchCategories = async () => {
+            if (!restaurantId) return;
+            
+            setCategoriesLoading(true);
+            try {
+                const response = await RestaurantService.getById(restaurantId);
+                if (response.success && response.data) {
+                    // Get categories from restaurant data
+                    const restaurantCategories = (response.data as any).food_categories || [];
+                    // Add "Бүгд" as first option
+                    setCategories([
+                        { id: 'all', name: 'Бүгд' },
+                        ...restaurantCategories.map((cat: any) => ({
+                            id: cat.id,
+                            name: cat.name
+                        }))
+                    ]);
+                } else {
+                    // Fallback to default categories
+                    setCategories([
+                        { id: 'all', name: 'Бүгд' },
+                        { id: 'main', name: 'Үндсэн хоол' },
+                        { id: 'extras', name: 'Хачир' },
+                        { id: 'addons', name: 'Нэмэлт' }
+                    ]);
+                }
+            } catch (error) {
+                console.error('Failed to fetch restaurant categories:', error);
+                // Fallback to default categories
+                setCategories([
+                    { id: 'all', name: 'Бүгд' },
+                    { id: 'main', name: 'Үндсэн хоол' },
+                    { id: 'extras', name: 'Хачир' },
+                    { id: 'addons', name: 'Нэмэлт' }
+                ]);
+            } finally {
+                setCategoriesLoading(false);
+            }
+        };
+
+        fetchCategories();
+    }, [restaurantId]);
+
     // Fetch foods for this restaurant
     useEffect(() => {
         const fetchFoods = async () => {
@@ -46,6 +91,7 @@ export default function RestaurantFoodSection({ restaurantName, restaurantId }: 
             try {
                 const response = await FoodService.getAll({
                     restaurantId: restaurantId,
+                    category: activeCategory === 'all' || !activeCategory ? undefined : activeCategory,
                     page: currentPage,
                     pageSize: 20
                 });
@@ -67,7 +113,7 @@ export default function RestaurantFoodSection({ restaurantName, restaurantId }: 
         };
 
         fetchFoods();
-    }, [restaurantId, currentPage]);
+    }, [restaurantId, activeCategory, currentPage]);
 
     const handleAddToCart = async (e: React.MouseEvent, food: FoodItem) => {
         e.stopPropagation();
@@ -101,19 +147,25 @@ export default function RestaurantFoodSection({ restaurantName, restaurantId }: 
             <section className="mb-6">
                 <h2 className="text-lg md:text-xl font-semibold mb-4 text-center">Хоолны ангилалууд</h2>
                 <div className="flex flex-wrap justify-center gap-2 md:gap-3 w-[250px] md:w-[500px] items-center mx-auto">
-                    {categories.map((category, index) => (
-                        <button 
-                            key={index}
-                            onClick={() => setActiveCategory(index)}
-                            className={`px-4 md:px-5 py-2 rounded-full text-sm transition-colors ${
-                                activeCategory === index 
-                                    ? 'bg-mainGreen text-white' 
-                                    : 'bg-white text-gray-700 border border-gray-300 hover:border-mainGreen'
-                            }`}
-                        >
-                            {category}
-                        </button>
-                    ))}
+                    {categoriesLoading ? (
+                        [...Array(4)].map((_, i) => (
+                            <div key={i} className="h-9 w-20 bg-gray-200 rounded-full animate-pulse" />
+                        ))
+                    ) : (
+                        categories.map((category) => (
+                            <button 
+                                key={category.id}
+                                onClick={() => setActiveCategory(category.id === 'all' ? null : category.id)}
+                                className={`px-4 md:px-5 py-2 rounded-full text-sm transition-colors ${
+                                    (activeCategory === null && category.id === 'all') || activeCategory === category.id
+                                        ? 'bg-mainGreen text-white' 
+                                        : 'bg-white text-gray-700 border border-gray-300 hover:border-mainGreen'
+                                }`}
+                            >
+                                {category.name}
+                            </button>
+                        ))
+                    )}
                 </div>
             </section>
 
@@ -185,7 +237,7 @@ export default function RestaurantFoodSection({ restaurantName, restaurantId }: 
                         &lt; Previous
                     </button>
                     {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                        let page;
+                        let page: number;
                         if (totalPages <= 5) {
                             page = i + 1;
                         } else if (currentPage <= 3) {

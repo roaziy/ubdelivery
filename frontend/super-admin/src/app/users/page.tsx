@@ -156,16 +156,16 @@ export default function UsersPage() {
                         >
                           <FiSettings size={16} />
                         </button>
-                        <button
-                          onClick={() => handleToggleStatus(user.id, user.status, user.name || 'Хэрэглэгч')}
-                          className={`p-2 rounded-full ${
-                            user.status === 'active'
-                              ? 'bg-red-100 text-red-500 hover:bg-red-200'
-                              : 'bg-green-100 text-mainGreen hover:bg-green-200'
-                          }`}
-                        >
-                          {user.status === 'active' ? <FiPause size={16} /> : <FiPlay size={16} />}
-                        </button>
+                      <button
+                        onClick={() => handleToggleStatus(user.id, user.status, user.name || 'Хэрэглэгч')}
+                        className={`p-2 rounded-full ${
+                          user.status === 'active'
+                            ? 'bg-red-100 text-red-500 hover:bg-red-200'
+                            : 'bg-green-100 text-mainGreen hover:bg-green-200'
+                        }`}
+                      >
+                        {user.status === 'active' ? <FiPause size={16} /> : <FiPlay size={16} />}
+                      </button>
                       </div>
                     </td>
                   </tr>

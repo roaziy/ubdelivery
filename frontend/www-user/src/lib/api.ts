@@ -276,7 +276,7 @@ export const FoodService = {
         return {
             success: true,
             data: [
-                { id: 'all', name: 'Бүгд' },
+                // { id: 'all', name: 'Бүгд' },
                 { id: 'burger', name: 'Бургер' },
                 { id: 'pizza', name: 'Пицца' },
                 { id: 'chicken', name: 'Тахиа' },
@@ -286,6 +286,8 @@ export const FoodService = {
                 { id: 'mongolian', name: 'Монгол' },
                 { id: 'dessert', name: 'Амттан' },
                 { id: 'drinks', name: 'Уух зүйл' },
+                { id: 'extras', name: 'Хачир' },
+                { id: 'addons', name: 'Нэмэлт' },
             ]
         };
     },

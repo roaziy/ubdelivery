@@ -75,9 +75,9 @@ export default function SettingsSection() {
                 const response = await AuthService.deleteAccount();
                 
                 // Clear all session data
-                sessionStorage.removeItem('isLoggedIn');
-                sessionStorage.removeItem('phoneNumber');
-                sessionStorage.removeItem('authToken');
+                    sessionStorage.removeItem('isLoggedIn');
+                    sessionStorage.removeItem('phoneNumber');
+                    sessionStorage.removeItem('authToken');
                 sessionStorage.removeItem('user');
                 sessionStorage.removeItem('cartRestaurants');
                 

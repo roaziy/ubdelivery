@@ -109,6 +109,7 @@ export function uploadAndProcess(fieldName, type = 'food', folder = 'images') {
   return async (req, res, next) => {
     upload.single(fieldName)(req, res, async (err) => {
       if (err) {
+        console.error('Upload error:', err);
         if (err instanceof multer.MulterError) {
           if (err.code === 'LIMIT_FILE_SIZE') {
             return res.status(400).json({
@@ -116,30 +117,58 @@ export function uploadAndProcess(fieldName, type = 'food', folder = 'images') {
               message: 'Файлын хэмжээ хэт их байна (max 10MB)'
             });
           }
+          if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+            return res.status(400).json({
+              success: false,
+              message: `Файлын талбар буруу байна. '${fieldName}' талбарыг ашиглана уу`
+            });
+          }
         }
         return res.status(400).json({
           success: false,
-          message: err.message
+          message: err.message || 'Файл илгээхэд алдаа гарлаа'
         });
       }
 
-      if (req.file) {
-        try {
-          const imageUrl = await processAndUploadImage(
-            req.file.buffer,
-            type,
-            folder
-          );
-          req.uploadedImageUrl = imageUrl;
-        } catch (error) {
-          return res.status(500).json({
-            success: false,
-            message: 'Зураг боловсруулахад алдаа гарлаа'
-          });
+      // File is optional if requireFile is explicitly set to false
+      if (!req.file) {
+        if (req.requireFile === false) {
+          // File is optional, continue without it
+          req.uploadedImageUrl = null;
+          next();
+          return;
         }
+        // File is required but not provided
+        console.error('No file received. Field name:', fieldName, 'Request body keys:', Object.keys(req.body || {}));
+        return res.status(400).json({
+          success: false,
+          message: `Файл олдсонгүй. '${fieldName}' талбарт файл илгээнэ үү`
+        });
       }
 
-      next();
+      // Process file if provided
+      try {
+        console.log('Processing file:', {
+          fieldname: req.file.fieldname,
+          originalname: req.file.originalname,
+          mimetype: req.file.mimetype,
+          size: req.file.size
+        });
+        
+        const imageUrl = await processAndUploadImage(
+          req.file.buffer,
+          type,
+          folder
+        );
+        req.uploadedImageUrl = imageUrl;
+        next();
+      } catch (error) {
+        console.error('Image processing error:', error);
+        return res.status(500).json({
+          success: false,
+          message: 'Зураг боловсруулахад алдаа гарлаа: ' + (error.message || 'Unknown error')
+        });
+      }
     });
   };
 }

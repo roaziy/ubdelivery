@@ -211,6 +211,7 @@ router.post('/me/logo',
   uploadAndProcess('logo', 'logo', 'restaurants/logos'),
   asyncHandler(async (req, res) => {
     if (!req.uploadedImageUrl) {
+      console.error('Logo upload failed: uploadedImageUrl is missing');
       return res.status(400).json({
         success: false,
         message: 'Зураг олдсонгүй'

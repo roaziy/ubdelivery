@@ -58,10 +58,10 @@ export default function PasswordChangeModal({ isOpen, onClose, entityType, entit
             const response = await userService.resetPassword(targetUserId, newPassword);
             
             if (response.success) {
-                notifications.success('Амжилттай', `${entityName}-н нууц үг амжилттай солигдлоо`);
-                setNewPassword('');
-                setConfirmPassword('');
-                onClose();
+            notifications.success('Амжилттай', `${entityName}-н нууц үг амжилттай солигдлоо`);
+            setNewPassword('');
+            setConfirmPassword('');
+            onClose();
             } else {
                 notifications.error('Алдаа', response.error || 'Нууц үг солиход алдаа гарлаа');
             }

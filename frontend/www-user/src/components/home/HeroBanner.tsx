@@ -83,7 +83,7 @@ export default function HeroBanner() {
 
     const currentPost = banners[currentIndex];
 
-    return (
+    return ( 
         <section className="mb-8">
             <div className="relative w-full h-[200px] md:h-[420px] rounded-2xl overflow-hidden group">
                 {/* Commercial Post Image */}

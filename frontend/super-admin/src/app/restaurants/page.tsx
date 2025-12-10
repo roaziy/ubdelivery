@@ -16,14 +16,26 @@ export default function RestaurantsPage() {
   const [passwordModal, setPasswordModal] = useState<{ open: boolean; restaurant: Restaurant | null }>({ open: false, restaurant: null });
   const notify = useNotifications();
 
-  useEffect(() => {
-    const fetchData = async () => {
+  const fetchRestaurants = async () => {
+    setLoading(true);
       try {
         const response = await RestaurantService.getAllRestaurants();
         if (response.success && response.data) {
           const data = response.data as any;
           const items = data.items || data;
-          setRestaurants(Array.isArray(items) ? items : []);
+        // Transform restaurant data to match frontend types
+        const transformed = Array.isArray(items) ? items.map((r: any) => ({
+          ...r,
+          status: r.is_active 
+            ? (r.status === 'approved' ? 'active' : 'pending')
+            : 'suspended',
+          ownerName: r.owner?.full_name || r.owner_name || '',
+          cuisineType: r.cuisine_type || r.cuisineType || '',
+          totalOrders: r.total_orders || r.totalOrders || 0,
+          totalRevenue: r.total_revenue || r.totalRevenue || 0,
+          reviewCount: r.review_count || r.reviewCount || 0,
+        })) : [];
+        setRestaurants(transformed);
         }
       } catch (error) {
         console.error('Error fetching restaurants:', error);
@@ -32,7 +44,20 @@ export default function RestaurantsPage() {
         setLoading(false);
       }
     };
-    fetchData();
+
+  useEffect(() => {
+    fetchRestaurants();
+  }, []);
+
+  // Refresh when page becomes visible (user navigates back)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchRestaurants();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, []);
 
   const handleToggleStatus = async (id: string, currentStatus: string, name: string) => {

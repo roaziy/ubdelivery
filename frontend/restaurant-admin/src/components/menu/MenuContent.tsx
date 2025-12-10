@@ -29,6 +29,14 @@ interface AddFoodModalProps {
 function AddFoodModal({ isOpen, onClose, onSuccess, categories, editFood }: AddFoodModalProps) {
     const notify = useNotifications();
     const [loading, setLoading] = useState(false);
+    const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+    
+    // Debug: Log categories when modal opens
+    useEffect(() => {
+        if (isOpen) {
+            console.log('AddFoodModal opened with categories:', categories);
+        }
+    }, [isOpen, categories]);
     const [formData, setFormData] = useState<FoodFormData>({
         name: "",
         price: "",
@@ -39,6 +47,8 @@ function AddFoodModal({ isOpen, onClose, onSuccess, categories, editFood }: AddF
     });
 
     useEffect(() => {
+        if (!isOpen) return;
+        
         if (editFood) {
             setFormData({
                 name: editFood.name,
@@ -48,13 +58,24 @@ function AddFoodModal({ isOpen, onClose, onSuccess, categories, editFood }: AddF
                 preparationTime: editFood.preparationTime.toString(),
                 image: null,
             });
+            setImagePreviewUrl(editFood.image || null);
         } else {
             setFormData({
                 name: "", price: "", description: "", 
                 categoryId: "", preparationTime: "15", image: null
             });
+            setImagePreviewUrl(null);
         }
     }, [editFood, isOpen]);
+
+    // Cleanup object URL when component unmounts or image changes
+    useEffect(() => {
+        return () => {
+            if (imagePreviewUrl && imagePreviewUrl.startsWith('blob:')) {
+                URL.revokeObjectURL(imagePreviewUrl);
+            }
+        };
+    }, [imagePreviewUrl]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -78,8 +99,25 @@ function AddFoodModal({ isOpen, onClose, onSuccess, categories, editFood }: AddF
                 ? await menuService.updateFood(editFood.id, data)
                 : await menuService.createFood(data);
 
-            if (response.success) {
-                notify.success('Амжилттай', editFood ? 'Хоол шинэчлэгдлээ' : 'Шинэ хоол нэмэгдлээ');
+            if (response.success && response.data) {
+                // Upload image if provided
+                if (formData.image) {
+                    try {
+                        const imageResponse = await menuService.uploadFoodImage(response.data.id, formData.image);
+                        if (!imageResponse.success) {
+                            console.error('Image upload error:', imageResponse.error);
+                            notify.warning('Анхаар', `Хоол хадгалагдсан боловч зураг хадгалахад алдаа гарлаа: ${imageResponse.error}`);
+                        } else {
+                            notify.success('Амжилттай', editFood ? 'Хоол шинэчлэгдлээ' : 'Шинэ хоол нэмэгдлээ');
+                        }
+                    } catch (imageError: any) {
+                        console.error('Image upload error:', imageError);
+                        notify.warning('Анхаар', `Хоол хадгалагдсан боловч зураг хадгалахад алдаа гарлаа: ${imageError?.message || 'Unknown error'}`);
+                    }
+                } else {
+                    notify.success('Амжилттай', editFood ? 'Хоол шинэчлэгдлээ' : 'Шинэ хоол нэмэгдлээ');
+                }
+
                 onSuccess();
                 onClose();
             } else {
@@ -135,18 +173,26 @@ function AddFoodModal({ isOpen, onClose, onSuccess, categories, editFood }: AddF
 
                             <div>
                                 <label className="block text-sm font-medium mb-2">
-                                    Хоолны төрөл <span className="text-red-500">*</span>
+                                    Хоолны ангилал <span className="text-red-500">*</span>
                                 </label>
                                 <select
                                     value={formData.categoryId}
                                     onChange={(e) => setFormData(prev => ({ ...prev, categoryId: e.target.value }))}
-                                    className="w-full px-4 py-3 bg-gray-100 rounded-xl text-sm outline-none focus:ring-2 focus:ring-mainGreen"
+                                    className="w-full px-4 py-3 bg-gray-100 rounded-xl text-sm outline-none focus:ring-2 focus:ring-mainGreen disabled:opacity-50 disabled:cursor-not-allowed"
+                                    disabled={categories.length === 0}
                                 >
-                                    <option value="">Сонгох</option>
+                                    <option value="">
+                                        {categories.length === 0 ? 'Ангилал байхгүй байна' : 'Сонгох'}
+                                    </option>
                                     {categories.map(cat => (
                                         <option key={cat.id} value={cat.id}>{cat.name}</option>
                                     ))}
                                 </select>
+                                {categories.length === 0 && (
+                                    <p className="text-xs text-red-500 mt-1">
+                                        Ангилал байхгүй байна. Эхлээд ангилал үүсгэнэ үү.
+                                    </p>
+                                )}
                             </div>
 
                             <div>
@@ -181,12 +227,109 @@ function AddFoodModal({ isOpen, onClose, onSuccess, categories, editFood }: AddF
                                 <label className="block text-sm font-medium mb-2">
                                     Хоолны зураг
                                 </label>
-                                <div className="border-2 border-dashed border-gray-300 rounded-xl h-[200px] flex items-center justify-center cursor-pointer hover:border-mainGreen transition-colors">
-                                    <div className="text-center text-gray-400 text-sm">
-                                        <p>Дарж эсвэл зөөж тавина</p>
-                                        <p>хоолны зургийг байршуулна уу</p>
-                                    </div>
-                                </div>
+                                <input
+                                    type="file"
+                                    accept="image/png, image/jpeg, image/webp, image/jpg"
+                                    onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) {
+                                            if (file.size > 5 * 1024 * 1024) {
+                                                notify.error('Алдаа', 'Файлын хэмжээ 5MB-аас хэтрэхгүй байх ёстой');
+                                                e.target.value = ''; // Reset input
+                                                return;
+                                            }
+                                            // Validate file type
+                                            const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+                                            if (!validTypes.includes(file.type)) {
+                                                notify.error('Алдаа', 'Зөвхөн PNG, JPEG, JPG, WEBP формат зөвшөөрөгдөнө');
+                                                e.target.value = ''; // Reset input
+                                                return;
+                                            }
+                                            // Cleanup previous preview URL
+                                            if (imagePreviewUrl && imagePreviewUrl.startsWith('blob:')) {
+                                                URL.revokeObjectURL(imagePreviewUrl);
+                                            }
+                                            const previewUrl = URL.createObjectURL(file);
+                                            setImagePreviewUrl(previewUrl);
+                                            setFormData(prev => ({ ...prev, image: file }));
+                                        }
+                                    }}
+                                    className="hidden"
+                                    id="foodImage"
+                                />
+                                <label
+                                    htmlFor="foodImage"
+                                    className="border-2 border-dashed border-gray-300 rounded-xl h-[200px] flex items-center justify-center cursor-pointer hover:border-mainGreen transition-colors relative"
+                                    onDragOver={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        e.currentTarget.classList.add('border-mainGreen', 'bg-green-50');
+                                    }}
+                                    onDragLeave={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        e.currentTarget.classList.remove('border-mainGreen', 'bg-green-50');
+                                    }}
+                                    onDrop={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        e.currentTarget.classList.remove('border-mainGreen', 'bg-green-50');
+                                        
+                                        const file = e.dataTransfer.files?.[0];
+                                        if (file) {
+                                            if (file.size > 5 * 1024 * 1024) {
+                                                notify.error('Алдаа', 'Файлын хэмжээ 5MB-аас хэтрэхгүй байх ёстой');
+                                                return;
+                                            }
+                                            const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+                                            if (!validTypes.includes(file.type)) {
+                                                notify.error('Алдаа', 'Зөвхөн PNG, JPEG, JPG, WEBP формат зөвшөөрөгдөнө');
+                                                return;
+                                            }
+                                            // Cleanup previous preview URL
+                                            if (imagePreviewUrl && imagePreviewUrl.startsWith('blob:')) {
+                                                URL.revokeObjectURL(imagePreviewUrl);
+                                            }
+                                            const previewUrl = URL.createObjectURL(file);
+                                            setImagePreviewUrl(previewUrl);
+                                            setFormData(prev => ({ ...prev, image: file }));
+                                        }
+                                    }}
+                                >
+                                    {imagePreviewUrl ? (
+                                        <div className="relative w-full h-full">
+                                            <img 
+                                                src={imagePreviewUrl} 
+                                                alt="Preview" 
+                                                className="w-full h-full object-cover rounded-xl"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    // Cleanup object URL
+                                                    if (imagePreviewUrl && imagePreviewUrl.startsWith('blob:')) {
+                                                        URL.revokeObjectURL(imagePreviewUrl);
+                                                    }
+                                                    setImagePreviewUrl(null);
+                                                    setFormData(prev => ({ ...prev, image: null }));
+                                                    // Reset file input
+                                                    const input = document.getElementById('foodImage') as HTMLInputElement;
+                                                    if (input) input.value = '';
+                                                }}
+                                                className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 z-10"
+                                            >
+                                                <IoClose size={16} />
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="text-center text-gray-400 text-sm">
+                                            <p>Дарж эсвэл зөөж тавина</p>
+                                            <p>хоолны зургийг байршуулна уу</p>
+                                        </div>
+                                    )}
+                                </label>
                             </div>
                         </div>
                     </div>
@@ -342,11 +485,40 @@ export default function MenuContent() {
             const response = await menuService.getCategories();
             if (response.success && response.data) {
                 setCategories(response.data);
+                // Check for missing default categories and create them
+                const requiredCategories = ['Үндсэн хоол', 'Хачир', 'Нэмэлт'];
+                const existingCategoryNames = response.data.map((cat: FoodCategory) => cat.name);
+                const missingCategories = requiredCategories.filter(name => !existingCategoryNames.includes(name));
+                
+                if (missingCategories.length > 0) {
+                    try {
+                        console.log('Creating missing categories:', missingCategories);
+                        const createdCategories = [...response.data];
+                        for (const name of missingCategories) {
+                            const createResponse = await menuService.createCategory(name);
+                            if (createResponse.success && createResponse.data) {
+                                createdCategories.push(createResponse.data);
+                                console.log('Created category:', name);
+                            }
+                        }
+                        if (createdCategories.length > response.data.length) {
+                            setCategories(createdCategories);
+                            notify.success('Амжилттай', `${missingCategories.length} ангилал нэмэгдлээ`);
+                        }
+                    } catch (createError) {
+                        console.error('Failed to create missing categories:', createError);
+                        notify.error('Анхаар', 'Ангилал үүсгэхэд алдаа гарлаа. Та гараар ангилал нэмэх хэрэгтэй.');
+                    }
+                }
+            } else {
+                console.error('Failed to fetch categories:', response.error);
+                notify.error('Алдаа', response.error || 'Ангилал авахад алдаа гарлаа');
             }
         } catch (error) {
             console.error('Failed to fetch categories:', error);
+            notify.error('Алдаа', 'Ангилал авахад алдаа гарлаа');
         }
-    }, []);
+    }, [notify]);
 
     const fetchFoods = useCallback(async () => {
         setLoading(true);

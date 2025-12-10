@@ -103,7 +103,7 @@ router.post('/restaurant/login', asyncHandler(async (req, res) => {
   }
 
   const { data: user, error } = await query.single();
-  
+
   if (user) {
     console.log(`[Restaurant Login] User found: ${user.id}, role: ${user.role}, has_password: ${!!user.password_hash}, is_active: ${user.is_active}`);
   }

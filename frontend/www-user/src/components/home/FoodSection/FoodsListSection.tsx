@@ -31,12 +31,12 @@ export default function FoodsListSection() {
             try {
                 const response = await FoodService.getCategories();
                 if (response.success && response.data) {
-                    setCategories([{ id: 'all', name: 'Бүх хоол', icon: '🍽️' }, ...response.data]);
+                    setCategories([{ id: 'all', name: 'Бүх хоол'}, ...response.data]);
                 }
             } catch (error) {
                 console.error('Error fetching categories:', error);
                 // Set default categories
-                setCategories([{ id: 'all', name: 'Бүх хоол', icon: '🍽️' }]);
+                setCategories([{ id: 'all', name: 'Бүх хоол' }]);
             } finally {
                 setCategoriesLoading(false);
             }
