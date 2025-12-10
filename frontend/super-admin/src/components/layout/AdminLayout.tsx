@@ -6,7 +6,7 @@ import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { IoNotificationsOutline } from "react-icons/io5";
 import { MdDashboard, MdStorefront } from "react-icons/md";
-import { FiFileText, FiTruck, FiUsers, FiShoppingBag, FiDollarSign, FiSettings } from "react-icons/fi";
+import { FiFileText, FiTruck, FiUsers, FiShoppingBag, FiDollarSign, FiSettings, FiImage } from "react-icons/fi";
 
 interface NavItem {
     label: string;
@@ -22,6 +22,7 @@ const navItems: NavItem[] = [
     { label: "Хэрэглэгч", href: "/users", icon: <FiUsers size={20} /> },
     { label: "Захиалга", href: "/orders", icon: <FiShoppingBag size={20} /> },
     { label: "Санхүү", href: "/finance", icon: <FiDollarSign size={20} /> },
+    { label: "Баннерууд", href: "/banners", icon: <FiImage size={20} /> },
     { label: "Тохиргоо", href: "/settings", icon: <FiSettings size={20} /> },
 ];
 

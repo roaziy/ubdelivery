@@ -5,50 +5,83 @@ import Image from "next/image";
 
 interface CommercialPost {
     id: string;
-    image: string;
+    image_url: string;
     title?: string;
     link?: string;
 }
 
-// Commercial posts - in production, these would come from an API
-const commercialPosts: CommercialPost[] = [
-    {
-        id: '1',
-        image: '/LandingPage/iphone.png', // Replace with actual commercial images
-        title: 'Хямдралтай хоол',
-        link: '/home/foods'
-    },
-    {
-        id: '2',
-        image: '/LandingPage/iphone.png',
-        title: 'Шинэ ресторанууд',
-        link: '/home/restaurants'
-    },
-    {
-        id: '3',
-        image: '/LandingPage/iphone.png',
-        title: 'Онцлох санал',
-        link: '/home'
-    }
-];
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 export default function HeroBanner() {
+    const [banners, setBanners] = useState<CommercialPost[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [fade, setFade] = useState(true);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        const fetchBanners = async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/banners?active=true`);
+                const data = await response.json();
+                if (data.success && data.data && data.data.length > 0) {
+                    setBanners(data.data);
+                } else {
+                    // Fallback to default banners if API fails
+                    setBanners([
+                        {
+                            id: '1',
+                            image_url: '/LandingPage/iphone.png',
+                            title: 'Хямдралтай хоол',
+                            link: '/home/foods'
+                        }
+                    ]);
+                }
+            } catch (error) {
+                console.error('Failed to fetch banners:', error);
+                // Fallback to default banner
+                setBanners([
+                    {
+                        id: '1',
+                        image_url: '/LandingPage/iphone.png',
+                        title: 'UB Delivery',
+                        link: '/home'
+                    }
+                ]);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchBanners();
+    }, []);
+
+    useEffect(() => {
+        if (banners.length === 0) return;
+        
         const interval = setInterval(() => {
             setFade(false);
             setTimeout(() => {
-                setCurrentIndex((prev) => (prev + 1) % commercialPosts.length);
+                setCurrentIndex((prev) => (prev + 1) % banners.length);
                 setFade(true);
             }, 300); // Fade out duration
         }, 5000); // Change every 5 seconds
 
         return () => clearInterval(interval);
-    }, []);
+    }, [banners.length]);
 
-    const currentPost = commercialPosts[currentIndex];
+    if (loading) {
+        return (
+            <section className="mb-8">
+                <div className="w-full h-[200px] md:h-[420px] bg-gray-300 rounded-2xl animate-pulse"></div>
+            </section>
+        );
+    }
+
+    if (banners.length === 0) {
+        return null;
+    }
+
+    const currentPost = banners[currentIndex];
 
     return (
         <section className="mb-8">
@@ -59,9 +92,9 @@ export default function HeroBanner() {
                         fade ? 'opacity-100' : 'opacity-0'
                     }`}
                 >
-                    {currentPost.image ? (
+                    {currentPost.image_url ? (
                         <Image
-                            src={currentPost.image}
+                            src={currentPost.image_url}
                             alt={currentPost.title || 'Commercial'}
                             fill
                             className="object-cover"
@@ -86,7 +119,7 @@ export default function HeroBanner() {
 
                 {/* Navigation Dots */}
                 <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 z-10">
-                    {commercialPosts.map((_, index) => (
+                    {banners.map((_, index) => (
                         <button
                             key={index}
                             onClick={() => {

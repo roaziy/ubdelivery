@@ -41,13 +41,14 @@ async function apiRequest<T>(
         if (!response.ok) {
             return {
                 success: false,
-                error: data.message || 'Something went wrong',
+                error: data.message || data.error || 'Something went wrong',
             };
         }
 
+        // Handle nested data structure
         return {
             success: true,
-            data,
+            data: data.data || data,
         };
     } catch (error) {
         console.error('API Error:', error);

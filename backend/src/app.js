@@ -15,6 +15,7 @@ import notificationsRoutes from './routes/notifications.js';
 import dashboardRoutes from './routes/dashboard.js';
 import adminRoutes from './routes/admin.js';
 import cartRoutes from './routes/cart.js';
+import bannerRoutes from './routes/banners.js';
 
 // Load environment variables
 dotenv.config();
@@ -80,6 +81,7 @@ app.use('/api/notifications', notificationsRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/cart', cartRoutes);
+app.use('/api/banners', bannerRoutes);
 
 // Public restaurant endpoints for www-user
 app.get('/api/public/restaurants', async (req, res, next) => {

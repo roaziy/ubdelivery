@@ -5,50 +5,83 @@ import Image from "next/image";
 
 interface CommercialPost {
     id: string;
-    image: string;
+    image_url: string;
     title?: string;
     link?: string;
 }
 
-// Commercial posts for admin dashboard
-const commercialPosts: CommercialPost[] = [
-    {
-        id: '1',
-        image: '/Logotype.svg', // Replace with actual commercial images
-        title: 'Платформын мэдээлэл',
-        link: '/dashboard'
-    },
-    {
-        id: '2',
-        image: '/Logotype.svg',
-        title: 'Шинэ захиалгууд',
-        link: '/orders'
-    },
-    {
-        id: '3',
-        image: '/Logotype.svg',
-        title: 'Санхүүгийн тайлан',
-        link: '/finance'
-    }
-];
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 export default function HeroBanner() {
+    const [banners, setBanners] = useState<CommercialPost[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [fade, setFade] = useState(true);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        const fetchBanners = async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/banners?active=true`);
+                const data = await response.json();
+                if (data.success && data.data && data.data.length > 0) {
+                    setBanners(data.data);
+                } else {
+                    // Fallback to default banners if API fails
+                    setBanners([
+                        {
+                            id: '1',
+                            image_url: '/Logotype.svg',
+                            title: 'Платформын мэдээлэл',
+                            link: '/dashboard'
+                        }
+                    ]);
+                }
+            } catch (error) {
+                console.error('Failed to fetch banners:', error);
+                // Fallback to default banner
+                setBanners([
+                    {
+                        id: '1',
+                        image_url: '/Logotype.svg',
+                        title: 'UB Delivery Admin',
+                        link: '/dashboard'
+                    }
+                ]);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchBanners();
+    }, []);
+
+    useEffect(() => {
+        if (banners.length === 0) return;
+        
         const interval = setInterval(() => {
             setFade(false);
             setTimeout(() => {
-                setCurrentIndex((prev) => (prev + 1) % commercialPosts.length);
+                setCurrentIndex((prev) => (prev + 1) % banners.length);
                 setFade(true);
             }, 300); // Fade out duration
         }, 5000); // Change every 5 seconds
 
         return () => clearInterval(interval);
-    }, []);
+    }, [banners.length]);
 
-    const currentPost = commercialPosts[currentIndex];
+    if (loading) {
+        return (
+            <section className="mb-6">
+                <div className="w-full h-[180px] md:h-[300px] bg-gray-300 rounded-2xl animate-pulse"></div>
+            </section>
+        );
+    }
+
+    if (banners.length === 0) {
+        return null;
+    }
+
+    const currentPost = banners[currentIndex];
 
     return (
         <section className="mb-6">
@@ -59,10 +92,10 @@ export default function HeroBanner() {
                         fade ? 'opacity-100' : 'opacity-0'
                     }`}
                 >
-                    {currentPost.image ? (
+                    {currentPost.image_url ? (
                         <div className="relative w-full h-full">
                             <Image
-                                src={currentPost.image}
+                                src={currentPost.image_url}
                                 alt={currentPost.title || 'Commercial'}
                                 fill
                                 className="object-contain p-8"
@@ -86,7 +119,7 @@ export default function HeroBanner() {
 
                 {/* Navigation Dots */}
                 <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 z-10">
-                    {commercialPosts.map((_, index) => (
+                    {banners.map((_, index) => (
                         <button
                             key={index}
                             onClick={() => {

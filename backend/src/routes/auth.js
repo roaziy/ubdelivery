@@ -93,7 +93,9 @@ router.post('/restaurant/login', asyncHandler(async (req, res) => {
   if (email) {
     query = query.eq('email', email);
   } else {
-    query = query.eq('phone', phone);
+    // Format phone number (remove +976 prefix if present)
+    const cleanPhone = phone.replace(/^\+976/, '').replace(/\D/g, '');
+    query = query.eq('phone', cleanPhone);
   }
 
   const { data: user, error } = await query.single();
@@ -105,8 +107,16 @@ router.post('/restaurant/login', asyncHandler(async (req, res) => {
     });
   }
 
+  // Check if user has password hash
+  if (!user.password_hash) {
+    return res.status(401).json({
+      success: false,
+      message: 'Нууц үг тохируулаагүй байна'
+    });
+  }
+
   // Verify password
-  const isValidPassword = await bcrypt.compare(password, user.password_hash || '');
+  const isValidPassword = await bcrypt.compare(password, user.password_hash);
   
   if (!isValidPassword) {
     return res.status(401).json({
@@ -122,12 +132,20 @@ router.post('/restaurant/login', asyncHandler(async (req, res) => {
     });
   }
 
-  // Get restaurant info
+  // Check if user is restaurant admin or owns a restaurant
   const { data: restaurant } = await supabaseAdmin
     .from('restaurants')
     .select('*')
     .eq('owner_id', user.id)
     .single();
+
+  // Allow login if user has restaurant_admin role OR owns a restaurant
+  if (user.role !== 'restaurant_admin' && !restaurant) {
+    return res.status(403).json({
+      success: false,
+      message: 'Рестораны эрхгүй байна'
+    });
+  }
 
   const token = generateToken(user);
 
