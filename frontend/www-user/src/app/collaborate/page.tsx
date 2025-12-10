@@ -4,7 +4,7 @@ import { useState } from "react";
 import Header from "@/components/LandingPage/header/header";
 import Footer from "@/components/LandingPage/footer/footer";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 interface SubmitResult {
   success: boolean;

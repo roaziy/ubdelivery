@@ -55,7 +55,7 @@ export const profileService = {
             : null;
         
         const response = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/drivers/me/avatar`, 
+            `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/drivers/me/avatar`, 
             {
                 method: 'POST',
                 headers: token ? { Authorization: `Bearer ${token}` } : {},

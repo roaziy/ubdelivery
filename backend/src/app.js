@@ -20,7 +20,7 @@ import cartRoutes from './routes/cart.js';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 5000;
 
 // ============================================
 // MIDDLEWARE
@@ -30,9 +30,9 @@ const PORT = process.env.PORT || 3001;
 app.use(cors({
   origin: [
     'http://localhost:3000',
+    'http://localhost:3001',
     'http://localhost:3002',
     'http://localhost:3003',
-    'http://localhost:3004',
     process.env.WWW_USER_URL,
     process.env.RESTAURANT_ADMIN_URL,
     process.env.SUPER_ADMIN_URL,

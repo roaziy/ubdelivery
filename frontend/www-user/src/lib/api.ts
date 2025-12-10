@@ -14,7 +14,7 @@ import {
 } from './types';
 
 // Base API URL - will be replaced with actual backend URL
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 // Helper function for API calls
 async function fetchApi<T>(
