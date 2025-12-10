@@ -188,11 +188,64 @@ export const menuService = {
         if (params?.isAvailable !== undefined) searchParams.append('isAvailable', params.isAvailable.toString());
         
         const query = searchParams.toString() ? `?${searchParams.toString()}` : '';
-        return api.get<PaginatedResponse<Food>>(`/menu/foods${query}`);
+        const response = await api.get<any>(`/menu/foods${query}`);
+        
+        // Transform the response to match Food interface
+        if (response.success && response.data) {
+            return {
+                success: true,
+                data: {
+                    items: response.data.items?.map((item: any) => ({
+                        id: item.id,
+                        name: item.name,
+                        description: item.description || '',
+                        price: parseFloat(item.price) || 0,
+                        discountPrice: item.discount_price ? parseFloat(item.discount_price) : null,
+                        image: item.image_url || null,
+                        categoryId: item.category_id || item.category?.id || '',
+                        restaurantId: item.restaurant_id,
+                        isAvailable: item.is_available ?? true,
+                        preparationTime: item.preparation_time || 15,
+                        createdAt: item.created_at,
+                        updatedAt: item.updated_at
+                    })) || [],
+                    total: response.data.total || 0,
+                    page: response.data.page || 1,
+                    limit: response.data.limit || 20,
+                    totalPages: response.data.totalPages || 1
+                }
+            };
+        }
+        
+        return response;
     },
 
     getFood: async (id: string): Promise<ApiResponse<Food>> => {
-        return api.get<Food>(`/menu/foods/${id}`);
+        const response = await api.get<any>(`/menu/foods/${id}`);
+        
+        // Transform the response to match Food interface
+        if (response.success && response.data) {
+            const item = response.data;
+            return {
+                success: true,
+                data: {
+                    id: item.id,
+                    name: item.name,
+                    description: item.description || '',
+                    price: parseFloat(item.price) || 0,
+                    discountPrice: item.discount_price ? parseFloat(item.discount_price) : null,
+                    image: item.image_url || null,
+                    categoryId: item.category_id || item.category?.id || '',
+                    restaurantId: item.restaurant_id,
+                    isAvailable: item.is_available ?? true,
+                    preparationTime: item.preparation_time || 15,
+                    createdAt: item.created_at,
+                    updatedAt: item.updated_at
+                }
+            };
+        }
+        
+        return response;
     },
 
     createFood: async (data: Partial<Food>): Promise<ApiResponse<Food>> => {

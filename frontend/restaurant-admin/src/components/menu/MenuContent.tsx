@@ -225,8 +225,18 @@ function FoodCard({ food, onToggle, onEdit }: FoodCardProps) {
     return (
         <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
             <div className="relative h-36 bg-gray-300">
-                {food.image && (
-                    <Image src={food.image} alt={food.name} fill className="object-cover" />
+                {food.image ? (
+                    <Image 
+                        src={food.image} 
+                        alt={food.name} 
+                        fill 
+                        className="object-cover"
+                        unoptimized={food.image?.includes('supabase.co')}
+                    />
+                ) : (
+                    <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400 text-sm">
+                        Зураг байхгүй
+                    </div>
                 )}
                 <div className="absolute top-2 right-2 bg-white/90 rounded-full px-2 py-1 flex items-center gap-1">
                     <MdThumbUp className="text-mainGreen" size={14} />

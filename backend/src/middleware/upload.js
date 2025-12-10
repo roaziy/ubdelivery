@@ -66,12 +66,19 @@ export async function processAndUploadImage(
       throw new Error('Зураг хадгалахад алдаа гарлаа');
     }
 
-    // Get public URL
+    // Get public URL - ensure we return the correct format
     const { data: urlData } = supabaseAdmin.storage
       .from('uploads')
       .getPublicUrl(fileName);
 
-    return urlData.publicUrl;
+    // Return the public URL - this should be in format:
+    // https://[project].supabase.co/storage/v1/object/public/uploads/[path]
+    const publicUrl = urlData?.publicUrl || urlData;
+    
+    // Log for debugging
+    console.log('Uploaded image URL:', publicUrl);
+    
+    return publicUrl;
   } catch (error) {
     console.error('Image processing error:', error);
     throw error;

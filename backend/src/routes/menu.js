@@ -170,11 +170,11 @@ router.get('/foods', optionalAuth, asyncHandler(async (req, res) => {
   res.json({
     success: true,
     data: {
-      items: foods,
-      total: count,
+      items: foods || [],
+      total: count || 0,
       page: parseInt(page),
       limit: parseInt(limit),
-      totalPages: Math.ceil(count / parseInt(limit))
+      totalPages: Math.ceil((count || 0) / parseInt(limit))
     }
   });
 }));

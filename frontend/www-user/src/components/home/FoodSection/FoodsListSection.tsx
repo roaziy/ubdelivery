@@ -136,12 +136,20 @@ export default function FoodsListSection() {
             onClick={() => handleFoodClick(item)}
         >
             <div className={`relative ${isMobile ? 'h-32' : 'h-32 md:h-36'} bg-gray-300`}>
-                {item.image && (
+                {item.image ? (
                     <img 
                         src={item.image} 
                         alt={item.name}
                         className="w-full h-full object-cover"
+                        onError={(e) => {
+                            // Fallback if image fails to load
+                            (e.target as HTMLImageElement).style.display = 'none';
+                        }}
                     />
+                ) : (
+                    <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400 text-xs">
+                        Зураг байхгүй
+                    </div>
                 )}
                 <div className="absolute top-2 right-2 bg-white text-xs font-medium px-2 py-1 rounded-full flex items-center gap-1 select-none">
                     <FaStar className="text-mainGreen" /> {item.rating}
