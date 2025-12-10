@@ -209,7 +209,10 @@ router.post('/driver/login', asyncHandler(async (req, res) => {
   if (email) {
     query = query.eq('email', email);
   } else {
-    query = query.eq('phone', phone);
+    // Format phone number (remove +976 prefix if present, keep only digits)
+    const cleanPhone = phone.replace(/^\+976/, '').replace(/\D/g, '');
+    query = query.eq('phone', cleanPhone);
+    console.log(`[Driver Login] Searching for phone: ${phone} -> cleaned: ${cleanPhone}`);
   }
 
   const { data: user, error } = await query.single();
@@ -228,7 +231,15 @@ router.post('/driver/login', asyncHandler(async (req, res) => {
     });
   }
 
-  const isValidPassword = await bcrypt.compare(password, user.password_hash || '');
+  // Check if user has password hash
+  if (!user.password_hash) {
+    return res.status(401).json({
+      success: false,
+      message: 'Нууц үг тохируулаагүй байна. Админаас нууц үг тохируулахыг хүснэ үү.'
+    });
+  }
+
+  const isValidPassword = await bcrypt.compare(password, user.password_hash);
   
   if (!isValidPassword) {
     return res.status(401).json({
@@ -237,19 +248,15 @@ router.post('/driver/login', asyncHandler(async (req, res) => {
     });
   }
 
-  // Get driver info
+  // Get driver info (optional - driver may not exist yet)
   const { data: driver } = await supabaseAdmin
     .from('drivers')
     .select('*')
     .eq('user_id', user.id)
-    .single();
+    .maybeSingle();
 
-  if (!driver || driver.status !== 'approved') {
-    return res.status(403).json({
-      success: false,
-      message: 'Таны жолоочийн бүртгэл баталгаажаагүй байна'
-    });
-  }
+  // Allow login regardless of driver status or existence
+  // Driver record can be created/approved later
 
   const token = generateToken(user);
 
@@ -261,10 +268,11 @@ router.post('/driver/login', asyncHandler(async (req, res) => {
         id: user.id,
         email: user.email,
         phone: user.phone,
-        name: user.name,
+        name: user.full_name || user.name || '',
+        full_name: user.full_name || user.name || '',
         role: user.role
       },
-      driver
+      driver: driver || null
     }
   });
 }));

@@ -1,11 +1,14 @@
 'use client'
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import DriverLayout from '@/components/layout/DriverLayout';
 import { IoWallet, IoTrendingUp, IoCalendar, IoCheckmarkCircle, IoTime, IoArrowForward, IoClose, IoCard } from 'react-icons/io5';
-import { mockEarningsSummary, mockDailyEarnings, mockPayoutHistory, formatCurrency, mockDriver } from '@/lib/mockData';
+import { formatCurrency } from '@/lib/mockData';
 import { useNotifications } from '@/components/ui/Notification';
+import { earningsService, authService } from '@/lib/services';
+import { transformEarningsSummary, transformDailyEarnings, transformDriver } from '@/lib/transformers';
+import { EarningsSummary, DailyEarnings, PayoutHistory, Driver } from '@/types';
 
 type EarningsTab = 'summary' | 'daily' | 'payouts';
 
@@ -21,18 +24,74 @@ export default function EarningsPage() {
     const router = useRouter();
     const notify = useNotifications();
     const [activeTab, setActiveTab] = useState<EarningsTab>('summary');
-    const [summary] = useState(mockEarningsSummary);
-    const [dailyEarnings] = useState(mockDailyEarnings);
-    const [payoutHistory] = useState(mockPayoutHistory);
+    const [summary, setSummary] = useState<EarningsSummary>({
+        today: 0,
+        thisWeek: 0,
+        thisMonth: 0,
+        totalDeliveries: 0,
+        averagePerDelivery: 0,
+        pendingPayout: 0,
+    });
+    const [dailyEarnings, setDailyEarnings] = useState<DailyEarnings[]>([]);
+    const [payoutHistory, setPayoutHistory] = useState<PayoutHistory[]>([]);
+    const [driver, setDriver] = useState<Driver | null>(null);
+    const [loading, setLoading] = useState(true);
     
     // Withdraw modal state
     const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
     const [withdrawStep, setWithdrawStep] = useState<'amount' | 'bank' | 'confirm' | 'success'>('amount');
     const [withdrawAmount, setWithdrawAmount] = useState('');
-    const [selectedBank, setSelectedBank] = useState(mockDriver.bankInfo?.bankId || '');
-    const [accountNumber, setAccountNumber] = useState(mockDriver.bankInfo?.accountNumber || '');
-    const [accountHolder, setAccountHolder] = useState(mockDriver.bankInfo?.accountHolder || mockDriver.name);
+    const [selectedBank, setSelectedBank] = useState('');
+    const [accountNumber, setAccountNumber] = useState('');
+    const [accountHolder, setAccountHolder] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
+
+    useEffect(() => {
+        fetchEarningsData();
+        fetchProfile();
+    }, [activeTab]);
+
+    const fetchEarningsData = async () => {
+        setLoading(true);
+        try {
+            if (activeTab === 'summary') {
+                const response = await earningsService.getSummary();
+                if (response.success && response.data) {
+                    setSummary(transformEarningsSummary(response.data));
+                }
+            } else if (activeTab === 'daily') {
+                const response = await earningsService.getDailyEarnings();
+                if (response.success && response.data) {
+                    setDailyEarnings(transformDailyEarnings(response.data));
+                }
+            } else if (activeTab === 'payouts') {
+                const response = await earningsService.getPayoutHistory();
+                if (response.success && response.data) {
+                    setPayoutHistory(response.data.items || []);
+                }
+            }
+        } catch (error) {
+            console.error('Failed to fetch earnings:', error);
+            notify.error('Алдаа', 'Мэдээлэл авахад алдаа гарлаа');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchProfile = async () => {
+        try {
+            const response = await authService.getProfile();
+            if (response.success && response.data) {
+                const transformed = transformDriver(response.data);
+                setDriver(transformed);
+                setSelectedBank(transformed.bankInfo?.bankId || '');
+                setAccountNumber(transformed.bankInfo?.accountNumber || '');
+                setAccountHolder(transformed.bankInfo?.accountHolder || transformed.name);
+            }
+        } catch (error) {
+            console.error('Failed to fetch profile:', error);
+        }
+    };
 
     const maxWithdrawAmount = summary.pendingPayout;
     const selectedBankInfo = banks.find(b => b.id === selectedBank);
@@ -75,9 +134,14 @@ export default function EarningsPage() {
     const handleConfirmWithdraw = async () => {
         setIsProcessing(true);
         try {
-            // TODO: API call to process withdrawal
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            setWithdrawStep('success');
+            const amount = parseInt(withdrawAmount.replace(/,/g, ''));
+            const response = await earningsService.requestPayout(amount);
+            if (response.success) {
+                setWithdrawStep('success');
+                fetchEarningsData(); // Refresh earnings
+            } else {
+                notify.error('Алдаа', response.error || 'Шилжүүлэг хийхэд алдаа гарлаа');
+            }
         } catch (error) {
             notify.error('Алдаа', 'Шилжүүлэг хийхэд алдаа гарлаа');
         } finally {
@@ -137,6 +201,12 @@ export default function EarningsPage() {
         <DriverLayout>
             <h1 className="text-xl font-bold mb-4">Орлого</h1>
 
+            {loading && (
+                <div className="bg-white rounded-2xl p-8 text-center">
+                    <p className="text-gray-400">Уншиж байна...</p>
+                </div>
+            )}
+
             {/* Tabs */}
             <div className="flex gap-2 mb-6">
                 {tabs.map(tab => {
@@ -159,7 +229,7 @@ export default function EarningsPage() {
             </div>
 
             {/* Summary Tab */}
-            {activeTab === 'summary' && (
+            {!loading && activeTab === 'summary' && (
                 <div className="space-y-4">
                     {/* Main Balance */}
                     <div className="bg-gradient-to-r from-mainGreen to-green-400 rounded-2xl p-6 text-white">
@@ -206,7 +276,7 @@ export default function EarningsPage() {
             )}
 
             {/* Daily Tab */}
-            {activeTab === 'daily' && (
+            {!loading && activeTab === 'daily' && (
                 <div className="space-y-3">
                     {dailyEarnings.map((day, index) => (
                         <div key={day.date} className="bg-white rounded-xl p-4">
@@ -237,7 +307,7 @@ export default function EarningsPage() {
             )}
 
             {/* Payouts Tab */}
-            {activeTab === 'payouts' && (
+            {!loading && activeTab === 'payouts' && (
                 <div className="space-y-4">
                     {/* Bank Info */}
                     <div className="bg-white rounded-xl p-4">

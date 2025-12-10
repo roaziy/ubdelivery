@@ -1,18 +1,44 @@
 'use client'
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import DriverLayout from '@/components/layout/DriverLayout';
 import { IoCheckmarkCircle, IoCloseCircle, IoTime } from 'react-icons/io5';
-import { mockDeliveryHistory, formatCurrency, formatTimeAgo } from '@/lib/mockData';
+import { formatCurrency, formatTimeAgo } from '@/lib/mockData';
+import { deliveryService } from '@/lib/services';
+import { transformOrder } from '@/lib/transformers';
+import { DeliveryOrder } from '@/types';
+import { useNotifications } from '@/components/ui/Notification';
 
 export default function HistoryPage() {
-    const [history] = useState(mockDeliveryHistory);
+    const notify = useNotifications();
+    const [history, setHistory] = useState<DeliveryOrder[]>([]);
     const [filter, setFilter] = useState<'all' | 'delivered' | 'cancelled'>('all');
+    const [loading, setLoading] = useState(true);
 
-    const filteredHistory = history.filter(order => {
-        if (filter === 'all') return true;
-        return order.status === filter;
-    });
+    useEffect(() => {
+        fetchHistory();
+    }, []);
+
+    const fetchHistory = async () => {
+        setLoading(true);
+        try {
+            const response = await deliveryService.getDeliveryHistory({
+                page: 1,
+                limit: 50,
+            });
+            if (response.success && response.data) {
+                const transformed = response.data.items?.map(transformOrder) || [];
+                setHistory(transformed);
+            } else {
+                notify.error('Алдаа', 'Түүх авахад алдаа гарлаа');
+            }
+        } catch (error) {
+            console.error('Failed to fetch history:', error);
+            notify.error('Алдаа', 'Түүх авахад алдаа гарлаа');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const getStatusBadge = (status: string) => {
         switch (status) {
@@ -35,9 +61,22 @@ export default function HistoryPage() {
         }
     };
 
+    const filteredHistory = history.filter(order => {
+        if (filter === 'all') return true;
+        if (filter === 'delivered') return order.status === 'delivered';
+        if (filter === 'cancelled') return order.status === 'cancelled';
+        return true;
+    });
+
     return (
         <DriverLayout>
             <h1 className="text-xl font-bold mb-4">Хүргэлтийн түүх</h1>
+
+            {loading && (
+                <div className="bg-white rounded-2xl p-8 text-center">
+                    <p className="text-gray-400">Уншиж байна...</p>
+                </div>
+            )}
 
             {/* Filters */}
             <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
@@ -61,8 +100,9 @@ export default function HistoryPage() {
             </div>
 
             {/* History List */}
-            <div className="space-y-3">
-                {filteredHistory.map(order => (
+            {!loading && (
+                <div className="space-y-3">
+                    {filteredHistory.map(order => (
                     <div key={order.id} className="bg-white rounded-xl p-4">
                         <div className="flex items-start justify-between mb-2">
                             <div>
@@ -83,30 +123,33 @@ export default function HistoryPage() {
                             <span>→ {order.deliveryAddress}</span>
                         </div>
                     </div>
-                ))}
-            </div>
+                    ))}
+                </div>
+            )}
 
-            {filteredHistory.length === 0 && (
+            {!loading && filteredHistory.length === 0 && (
                 <div className="bg-white rounded-2xl p-8 text-center">
                     <p className="text-gray-400">Түүх байхгүй</p>
                 </div>
             )}
 
             {/* Summary */}
-            <div className="mt-6 bg-gray-800 text-white rounded-2xl p-4">
-                <div className="flex justify-between items-center">
-                    <div>
-                        <p className="text-gray-400 text-sm">Нийт хүргэлт</p>
-                        <p className="text-2xl font-bold">{history.length}</p>
-                    </div>
-                    <div className="text-right">
-                        <p className="text-gray-400 text-sm">Нийт орлого</p>
-                        <p className="text-2xl font-bold text-mainGreen">
-                            {formatCurrency(history.reduce((sum, o) => sum + o.deliveryFee, 0))}
-                        </p>
+            {!loading && (
+                <div className="mt-6 bg-gray-800 text-white rounded-2xl p-4">
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <p className="text-gray-400 text-sm">Нийт хүргэлт</p>
+                            <p className="text-2xl font-bold">{history.length}</p>
+                        </div>
+                        <div className="text-right">
+                            <p className="text-gray-400 text-sm">Нийт орлого</p>
+                            <p className="text-2xl font-bold text-mainGreen">
+                                {formatCurrency(history.reduce((sum, o) => sum + o.deliveryFee, 0))}
+                            </p>
+                        </div>
                     </div>
                 </div>
-            </div>
+            )}
         </DriverLayout>
     );
 }

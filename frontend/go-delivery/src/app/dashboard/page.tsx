@@ -5,24 +5,99 @@ import { useRouter } from 'next/navigation';
 import DriverLayout from '@/components/layout/DriverLayout';
 import { IoLocationSharp, IoCall, IoNavigate } from 'react-icons/io5';
 import { MdDeliveryDining, MdRestaurant } from 'react-icons/md';
-import { mockDriver, mockDriverStats, mockAvailableOrders, formatCurrency } from '@/lib/mockData';
+import { formatCurrency } from '@/lib/mockData';
+import { statsService, deliveryService, profileService } from '@/lib/services';
+import { transformStats, transformOrder } from '@/lib/transformers';
+import { DriverStats, DeliveryOrder } from '@/types';
+import { useNotifications } from '@/components/ui/Notification';
 
 export default function DriverDashboard() {
     const router = useRouter();
-    const [isOnline, setIsOnline] = useState(mockDriver.isOnline);
-    const [stats] = useState(mockDriverStats);
-    const [availableOrders] = useState(mockAvailableOrders);
+    const notify = useNotifications();
+    const [isOnline, setIsOnline] = useState(false);
+    const [stats, setStats] = useState<DriverStats>({
+        todayDeliveries: 0,
+        todayEarnings: 0,
+        weekDeliveries: 0,
+        weekEarnings: 0,
+        rating: 0,
+        completionRate: 0,
+        averageDeliveryTime: 0,
+    });
+    const [availableOrders, setAvailableOrders] = useState<DeliveryOrder[]>([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const token = sessionStorage.getItem('driver_token');
         if (!token) {
             router.push('/');
+            return;
         }
+        fetchDashboardData();
     }, [router]);
 
-    const handleToggleOnline = () => {
-        setIsOnline(!isOnline);
-        // TODO: API call to update online status
+    const fetchDashboardData = async () => {
+        setLoading(true);
+        try {
+            // Fetch dashboard stats
+            const statsResponse = await statsService.getDashboard();
+            if (statsResponse.success && statsResponse.data) {
+                const dashboardData = statsResponse.data as any;
+                setStats(transformStats(dashboardData));
+                setIsOnline(dashboardData.stats?.isAvailable || false);
+                
+                // Transform available orders
+                if (dashboardData.availableOrders) {
+                    const transformed = dashboardData.availableOrders.map(transformOrder);
+                    setAvailableOrders(transformed);
+                }
+            }
+
+            // Fetch available orders separately
+            const ordersResponse = await deliveryService.getAvailableOrders();
+            if (ordersResponse.success && ordersResponse.data) {
+                const transformed = ordersResponse.data.map(transformOrder);
+                setAvailableOrders(transformed);
+            }
+        } catch (error) {
+            console.error('Failed to fetch dashboard data:', error);
+            notify.error('Алдаа', 'Мэдээлэл авахад алдаа гарлаа');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleToggleOnline = async () => {
+        const newStatus = !isOnline;
+        setIsOnline(newStatus);
+        
+        try {
+            const response = await profileService.toggleOnlineStatus(newStatus);
+            if (!response.success) {
+                setIsOnline(!newStatus); // Revert on error
+                notify.error('Алдаа', 'Статус өөрчлөхөд алдаа гарлаа');
+            } else {
+                notify.success('Амжилттай', newStatus ? 'Идэвхжлээ' : 'Идэвхгүй боллоо');
+            }
+        } catch (error) {
+            setIsOnline(!newStatus);
+            notify.error('Алдаа', 'Статус өөрчлөхөд алдаа гарлаа');
+        }
+    };
+
+    const handleAcceptOrder = async (orderId: string) => {
+        try {
+            const response = await deliveryService.acceptOrder(orderId);
+            if (response.success) {
+                notify.success('Амжилттай', 'Захиалга хүлээн авлаа');
+                router.push(`/deliveries`);
+                fetchDashboardData(); // Refresh data
+            } else {
+                notify.error('Алдаа', response.error || 'Захиалга авахад алдаа гарлаа');
+            }
+        } catch (error) {
+            notify.error('Алдаа', 'Захиалга авахад алдаа гарлаа');
+        }
     };
 
     return (
@@ -88,8 +163,15 @@ export default function DriverDashboard() {
                 </div>
             </div>
 
+            {/* Loading State */}
+            {loading && (
+                <div className="bg-white rounded-2xl p-8 text-center">
+                    <p className="text-gray-400">Уншиж байна...</p>
+                </div>
+            )}
+
             {/* Available Orders */}
-            {isOnline && availableOrders.length > 0 && (
+            {!loading && isOnline && availableOrders.length > 0 && (
                 <div>
                     <h3 className="font-semibold mb-3">Боломжит хүргэлтүүд</h3>
                     <div className="space-y-3">
@@ -136,13 +218,7 @@ export default function DriverDashboard() {
                                 {/* Actions */}
                                 <div className="flex gap-2">
                                     <button 
-                                        onClick={() => console.log('Decline order:', order.id)}
-                                        className="flex-1 py-2 border border-gray-200 rounded-full text-sm font-medium hover:bg-gray-50"
-                                    >
-                                        Татгалзах
-                                    </button>
-                                    <button 
-                                        onClick={() => router.push(`/deliveries/${order.id}`)}
+                                        onClick={() => handleAcceptOrder(order.id)}
                                         className="flex-1 py-2 bg-mainGreen text-white rounded-full text-sm font-medium hover:bg-green-600"
                                     >
                                         Хүлээн авах

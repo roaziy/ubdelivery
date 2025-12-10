@@ -1,45 +1,110 @@
 'use client'
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import DriverLayout from '@/components/layout/DriverLayout';
 import { IoLocationSharp, IoCall, IoNavigate, IoCheckmarkCircle } from 'react-icons/io5';
 import { MdRestaurant } from 'react-icons/md';
-import { mockAvailableOrders, formatCurrency, formatTimeAgo } from '@/lib/mockData';
+import { formatCurrency, formatTimeAgo } from '@/lib/mockData';
 import { DeliveryOrder } from '@/types';
 import { useNotifications } from '@/components/ui/Notification';
+import { deliveryService } from '@/lib/services';
+import { transformOrder } from '@/lib/transformers';
 
 type DeliveryTab = 'available' | 'active';
 
 export default function DeliveriesPage() {
+    const router = useRouter();
     const notify = useNotifications();
     const [activeTab, setActiveTab] = useState<DeliveryTab>('available');
-    const [availableOrders] = useState(mockAvailableOrders);
+    const [availableOrders, setAvailableOrders] = useState<DeliveryOrder[]>([]);
     const [activeDelivery, setActiveDelivery] = useState<DeliveryOrder | null>(null);
     const [deliveryStep, setDeliveryStep] = useState<'pickup' | 'delivering'>('pickup');
+    const [loading, setLoading] = useState(true);
 
-    const handleAcceptOrder = (order: DeliveryOrder) => {
-        setActiveDelivery(order);
-        setActiveTab('active');
-        setDeliveryStep('pickup');
-        notify.success('Захиалга хүлээн авлаа', `${order.restaurantName} руу очно уу`);
+    useEffect(() => {
+        fetchOrders();
+        fetchActiveDelivery();
+    }, []);
+
+    const fetchOrders = async () => {
+        try {
+            const response = await deliveryService.getAvailableOrders();
+            if (response.success && response.data) {
+                const transformed = response.data.map(transformOrder);
+                setAvailableOrders(transformed);
+            }
+        } catch (error) {
+            console.error('Failed to fetch orders:', error);
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const handleDeclineOrder = (orderId: string) => {
-        notify.info('Татгалзлаа', 'Захиалга татгалзлаа');
-        // TODO: API call
+    const fetchActiveDelivery = async () => {
+        try {
+            const response = await deliveryService.getActiveDelivery();
+            if (response.success && response.data) {
+                const transformed = transformOrder(response.data);
+                setActiveDelivery(transformed);
+                setActiveTab('active');
+                setDeliveryStep(transformed.status === 'picked_up' ? 'delivering' : 'pickup');
+            }
+        } catch (error) {
+            console.error('Failed to fetch active delivery:', error);
+        }
     };
 
-    const handlePickedUp = () => {
-        setDeliveryStep('delivering');
-        notify.success('Хоол авлаа', 'Хэрэглэгч рүү хүргэнэ үү');
-        // TODO: API call
+    const handleAcceptOrder = async (order: DeliveryOrder) => {
+        try {
+            const response = await deliveryService.acceptOrder(order.id);
+            if (response.success) {
+                const transformed = transformOrder(response.data);
+                setActiveDelivery(transformed);
+                setActiveTab('active');
+                setDeliveryStep('pickup');
+                notify.success('Захиалга хүлээн авлаа', `${order.restaurantName} руу очно уу`);
+                fetchOrders(); // Refresh available orders
+            } else {
+                notify.error('Алдаа', response.error || 'Захиалга авахад алдаа гарлаа');
+            }
+        } catch (error) {
+            notify.error('Алдаа', 'Захиалга авахад алдаа гарлаа');
+        }
     };
 
-    const handleDelivered = () => {
-        notify.success('Хүргэлт дууслаа', 'Орлого: ₮' + formatCurrency(activeDelivery?.deliveryFee || 0));
-        setActiveDelivery(null);
-        setActiveTab('available');
-        // TODO: API call
+    const handlePickedUp = async () => {
+        if (!activeDelivery) return;
+        
+        try {
+            const response = await deliveryService.pickupOrder(activeDelivery.id);
+            if (response.success) {
+                setDeliveryStep('delivering');
+                notify.success('Хоол авлаа', 'Хэрэглэгч рүү хүргэнэ үү');
+            } else {
+                notify.error('Алдаа', response.error || 'Хоол авах тэмдэглэхэд алдаа гарлаа');
+            }
+        } catch (error) {
+            notify.error('Алдаа', 'Хоол авах тэмдэглэхэд алдаа гарлаа');
+        }
+    };
+
+    const handleDelivered = async () => {
+        if (!activeDelivery) return;
+        
+        try {
+            const response = await deliveryService.completeDelivery(activeDelivery.id);
+            if (response.success) {
+                notify.success('Хүргэлт дууслаа', 'Орлого: ₮' + formatCurrency(activeDelivery.deliveryFee));
+                setActiveDelivery(null);
+                setActiveTab('available');
+                fetchOrders(); // Refresh available orders
+            } else {
+                notify.error('Алдаа', response.error || 'Хүргэлт дуусгахад алдаа гарлаа');
+            }
+        } catch (error) {
+            notify.error('Алдаа', 'Хүргэлт дуусгахад алдаа гарлаа');
+        }
     };
 
     return (
@@ -68,8 +133,15 @@ export default function DeliveriesPage() {
                 </button>
             </div>
 
+            {/* Loading */}
+            {loading && activeTab === 'available' && (
+                <div className="bg-white rounded-2xl p-8 text-center">
+                    <p className="text-gray-400">Уншиж байна...</p>
+                </div>
+            )}
+
             {/* Available Orders */}
-            {activeTab === 'available' && (
+            {!loading && activeTab === 'available' && (
                 <div className="space-y-4">
                     {availableOrders.map(order => (
                         <div key={order.id} className="bg-white rounded-2xl p-4">
@@ -120,12 +192,6 @@ export default function DeliveriesPage() {
 
                             {/* Actions */}
                             <div className="flex gap-2">
-                                <button 
-                                    onClick={() => console.log('Decline order:', order.id)}
-                                    className="flex-1 py-2.5 border border-gray-200 rounded-full text-sm font-medium hover:bg-gray-50"
-                                >
-                                    Татгалзах
-                                </button>
                                 <button 
                                     onClick={() => handleAcceptOrder(order)}
                                     className="flex-1 py-2.5 bg-mainGreen text-white rounded-full text-sm font-medium hover:bg-green-600"

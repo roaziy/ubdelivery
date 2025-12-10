@@ -107,6 +107,9 @@ export async function deleteImage(imageUrl) {
 // Upload middleware with processing
 export function uploadAndProcess(fieldName, type = 'food', folder = 'images') {
   return async (req, res, next) => {
+    // Ensure requireFile is checked before multer processes the request
+    const isFileOptional = req.requireFile === false;
+    
     upload.single(fieldName)(req, res, async (err) => {
       if (err) {
         console.error('Upload error:', err);
@@ -132,7 +135,7 @@ export function uploadAndProcess(fieldName, type = 'food', folder = 'images') {
 
       // File is optional if requireFile is explicitly set to false
       if (!req.file) {
-        if (req.requireFile === false) {
+        if (isFileOptional) {
           // File is optional, continue without it
           req.uploadedImageUrl = null;
           next();

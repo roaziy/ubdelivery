@@ -100,11 +100,45 @@ router.get('/:id', verifyToken, requireAdmin, asyncHandler(async (req, res) => {
 // ============================================
 
 router.get('/me/profile', verifyToken, requireDriver, asyncHandler(async (req, res) => {
+  // If driver record doesn't exist, return user info only
+  if (!req.driver) {
+    // Get fresh user data to ensure we have the latest name
+    const { data: freshUser } = await supabaseAdmin
+      .from('users')
+      .select('id, full_name, name, email, phone, avatar_url')
+      .eq('id', req.user.id)
+      .single();
+
+    const userName = freshUser?.full_name || freshUser?.name || req.user.full_name || req.user.name || '';
+    
+    return res.json({
+      success: true,
+      data: {
+        id: null,
+        user: {
+          id: freshUser?.id || req.user.id,
+          full_name: userName,
+          name: userName,
+          email: freshUser?.email || req.user.email,
+          phone: freshUser?.phone || req.user.phone,
+          avatar_url: freshUser?.avatar_url || req.user.avatar_url
+        },
+        status: 'pending',
+        vehicle_type: null,
+        vehicle_number: null,
+        license_number: null,
+        is_available: false,
+        rating: 0,
+        total_deliveries: 0
+      }
+    });
+  }
+
   const { data: driver, error } = await supabaseAdmin
     .from('drivers')
     .select(`
       *,
-      user:users!drivers_user_id_fkey(id, full_name, email, phone, avatar_url),
+      user:users!drivers_user_id_fkey(id, full_name, name, email, phone, avatar_url),
       bank_account:bank_accounts(*)
     `)
     .eq('id', req.driver.id)
@@ -127,55 +161,90 @@ router.put('/me/profile', verifyToken, requireDriver, asyncHandler(async (req, r
     vehicleType, vehicle_type,
     vehicleNumber, vehicle_number,
     licenseNumber, license_number,
-    fullName, phone
+    fullName, name, phone
   } = req.body;
+  
+  // Support both 'name' and 'fullName' for compatibility
+  const userName = fullName || name;
 
-  // Update driver info
-  const driverUpdates = {};
-  if (vehicleType || vehicle_type) {
-    driverUpdates.vehicle_type = vehicleType || vehicle_type;
-  }
-  if (vehicleNumber || vehicle_number) {
-    driverUpdates.vehicle_number = vehicleNumber || vehicle_number;
-  }
-  if (licenseNumber || license_number) {
-    driverUpdates.license_number = licenseNumber || license_number;
-  }
-
-  if (Object.keys(driverUpdates).length) {
-    driverUpdates.updated_at = new Date().toISOString();
-    await supabaseAdmin
-      .from('drivers')
-      .update(driverUpdates)
-      .eq('id', req.driver.id);
-  }
-
-  // Update user info
+  // Update user info first (always available)
   const userUpdates = {};
-  if (fullName) userUpdates.full_name = fullName;
+  if (userName) {
+    userUpdates.full_name = userName;
+    userUpdates.name = userName; // Update both fields for compatibility
+  }
   if (phone) userUpdates.phone = phone;
 
   if (Object.keys(userUpdates).length) {
-    await supabaseAdmin
+    const { error: userUpdateError } = await supabaseAdmin
       .from('users')
       .update(userUpdates)
       .eq('id', req.user.id);
+    
+    if (userUpdateError) throw userUpdateError;
   }
 
-  // Get updated profile
-  const { data: driver } = await supabaseAdmin
-    .from('drivers')
-    .select(`
-      *,
-      user:users!drivers_user_id_fkey(id, full_name, email, phone, avatar_url)
-    `)
-    .eq('id', req.driver.id)
-    .single();
+  // Update driver info (only if driver record exists)
+  if (req.driver) {
+    const driverUpdates = {};
+    if (vehicleType || vehicle_type) {
+      driverUpdates.vehicle_type = vehicleType || vehicle_type;
+    }
+    if (vehicleNumber || vehicle_number) {
+      driverUpdates.vehicle_number = vehicleNumber || vehicle_number;
+    }
+    if (licenseNumber || license_number) {
+      driverUpdates.license_number = licenseNumber || license_number;
+    }
 
-  res.json({
-    success: true,
-    data: driver
-  });
+    if (Object.keys(driverUpdates).length) {
+      driverUpdates.updated_at = new Date().toISOString();
+      await supabaseAdmin
+        .from('drivers')
+        .update(driverUpdates)
+        .eq('id', req.driver.id);
+    }
+
+    // Get updated profile with driver record
+    const { data: driver, error } = await supabaseAdmin
+      .from('drivers')
+      .select(`
+        *,
+        user:users!drivers_user_id_fkey(id, full_name, name, email, phone, avatar_url),
+        bank_account:bank_accounts(*)
+      `)
+      .eq('id', req.driver.id)
+      .single();
+
+    if (error) throw error;
+
+    return res.json({
+      success: true,
+      data: driver
+    });
+  } else {
+    // Driver record doesn't exist, return updated user info
+    const { data: updatedUser } = await supabaseAdmin
+      .from('users')
+      .select('id, full_name, name, email, phone, avatar_url')
+      .eq('id', req.user.id)
+      .single();
+
+    return res.json({
+      success: true,
+      data: {
+        id: null,
+        user: updatedUser,
+        status: 'pending',
+        vehicle_type: null,
+        vehicle_number: null,
+        license_number: null,
+        is_available: false,
+        rating: 0,
+        total_deliveries: 0
+      }
+    });
+  }
 }));
 
 // ============================================
@@ -366,21 +435,26 @@ router.post('/me/avatar',
       });
     }
 
-    // Delete old avatar
+    // Delete old avatar if exists
     const { data: oldUser } = await supabaseAdmin
       .from('users')
       .select('avatar_url')
       .eq('id', req.user.id)
-      .single();
+      .maybeSingle();
 
     if (oldUser?.avatar_url) {
       await deleteImage(oldUser.avatar_url);
     }
 
-    await supabaseAdmin
+    // Update user avatar
+    const { error: updateError } = await supabaseAdmin
       .from('users')
       .update({ avatar_url: req.uploadedImageUrl })
       .eq('id', req.user.id);
+
+    if (updateError) {
+      throw updateError;
+    }
 
     res.json({
       success: true,

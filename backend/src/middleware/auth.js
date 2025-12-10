@@ -211,22 +211,24 @@ export async function requireDriver(req, res, next) {
       .from('drivers')
       .select('*')
       .eq('user_id', req.user.id)
-      .single();
+      .maybeSingle(); // Use maybeSingle instead of single to avoid error when not found
 
-    if (error || !driver) {
-      return res.status(403).json({ 
-        success: false, 
-        message: 'Жолоочийн мэдээлэл олдсонгүй' 
-      });
+    // Driver record is optional - allow access even if driver doesn't exist or isn't approved
+    // This allows drivers to access the app before approval
+    if (error) {
+      // If there's an actual error (not just "not found"), log it but still allow access
+      console.error('Error fetching driver:', error);
+      req.driver = null;
+      return next();
     }
 
-    if (driver.status !== 'approved') {
-      return res.status(403).json({ 
-        success: false, 
-        message: 'Таны бүртгэл баталгаажаагүй байна' 
-      });
+    if (!driver) {
+      // Driver record doesn't exist yet - allow access but set driver to null
+      req.driver = null;
+      return next();
     }
 
+    // Allow access regardless of approval status
     req.driver = driver;
     next();
   } catch (error) {

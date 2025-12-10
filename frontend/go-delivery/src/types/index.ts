@@ -101,7 +101,14 @@ export interface LoginRequest {
 
 export interface LoginResponse {
     token: string;
-    driver: Driver;
+    user: {
+        id: string;
+        name: string;
+        phone: string;
+        email?: string;
+        role: string;
+    };
+    driver?: Driver | null;
 }
 
 // Notification Types

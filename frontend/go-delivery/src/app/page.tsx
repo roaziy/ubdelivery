@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { IoCall, IoLockClosed, IoEye, IoEyeOff } from 'react-icons/io5';
 import { useNotifications } from '@/components/ui/Notification';
+import { authService } from '@/lib/services';
 
 export default function DriverLoginPage() {
     const router = useRouter();
@@ -37,24 +38,45 @@ export default function DriverLoginPage() {
 
         setIsLoading(true);
 
-        // Mock login - replace with actual API call
         try {
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            // Clean phone number (remove any non-digits, but keep 8 digits)
+            const cleanPhone = phone.replace(/\D/g, '');
             
-            // Mock success
-            if (phone === '99001122' && password === '123456') {
-                sessionStorage.setItem('driver_token', 'mock_driver_token_123');
-                sessionStorage.setItem('driver_info', JSON.stringify({
-                    id: 'driver_001',
-                    name: 'Одхүү Батцэцэг',
-                    phone: '99001122',
-                }));
-                notify.success('Амжилттай', 'Тавтай морил, Одхүү!');
+            const response = await authService.login({
+                phone: cleanPhone,
+                password: password,
+            });
+
+            if (response.success && response.data) {
+                // Store token and user info
+                const { token, user, driver } = response.data;
+                
+                if (token) {
+                    sessionStorage.setItem('driver_token', token);
+                }
+                
+                if (user) {
+                    sessionStorage.setItem('driver_info', JSON.stringify({
+                        id: user.id,
+                        name: user.name || user.full_name || '',
+                        full_name: user.full_name || user.name || '',
+                        phone: user.phone,
+                        email: user.email,
+                        role: user.role,
+                    }));
+                }
+                
+                if (driver) {
+                    sessionStorage.setItem('driver_data', JSON.stringify(driver));
+                }
+
+                notify.success('Амжилттай', `Тавтай морил, ${user?.name || 'Хэрэглэгч'}!`);
                 setTimeout(() => router.push('/dashboard'), 500);
             } else {
-                notify.error('Алдаа', 'Утасны дугаар эсвэл нууц үг буруу байна');
+                notify.error('Алдаа', response.error || 'Утасны дугаар эсвэл нууц үг буруу байна');
             }
-        } catch {
+        } catch (error) {
+            console.error('Login error:', error);
             notify.error('Сүлжээний алдаа', 'Дахин оролдоно уу');
         } finally {
             setIsLoading(false);

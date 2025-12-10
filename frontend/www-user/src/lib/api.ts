@@ -296,13 +296,17 @@ export const FoodService = {
 // ============ CART SERVICES ============
 export const CartService = {
     // Get current cart
-    get: async (): Promise<ApiResponse<Cart>> => {
-        const response = await fetchApi<Cart>('/cart');
+    get: async (): Promise<ApiResponse<Cart & { _raw?: any }>> => {
+        const response = await fetchApi<any>('/cart');
         
         if (response.success && response.data) {
+            const transformed = transformCart(response.data);
             return {
                 success: true,
-                data: transformCart(response.data)
+                data: {
+                    ...transformed,
+                    _raw: response.data // Preserve raw data for restaurant logo
+                } as any
             };
         }
         
@@ -565,13 +569,13 @@ function transformFoods(items: any[]): FoodItem[] {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function transformCart(data: any): Cart {
-    const items: CartItem[] = data.items?.map((item: { id: string; quantity: number; food: { id: string; name: string; price: number; image_url?: string }; }) => ({
+    const items: CartItem[] = data.items?.map((item: any) => ({
         id: item.id,
-        foodId: item.food?.id,
+        foodId: item.food?.id || item.food_id,
         name: item.food?.name || '',
         price: parseFloat(item.food?.price?.toString() || '0'),
         quantity: item.quantity,
-        restaurantId: data.restaurant_id,
+        restaurantId: data.restaurant_id || data.restaurant?.id,
         restaurantName: data.restaurant?.name || '',
         image: item.food?.image_url,
     })) || [];

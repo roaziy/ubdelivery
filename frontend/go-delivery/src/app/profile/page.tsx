@@ -1,45 +1,156 @@
 'use client'
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import DriverLayout from '@/components/layout/DriverLayout';
 import { IoCamera, IoCall, IoMail, IoStar, IoLogOut, IoChevronForward } from 'react-icons/io5';
-import { mockDriver } from '@/lib/mockData';
 import { useNotifications } from '@/components/ui/Notification';
+import { authService, profileService } from '@/lib/services';
+import { transformDriver } from '@/lib/transformers';
+import { Driver } from '@/types';
 
 export default function ProfilePage() {
     const router = useRouter();
     const notify = useNotifications();
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const [driver, setDriver] = useState(mockDriver);
+    const [driver, setDriver] = useState<Driver | null>(null);
     const [isEditing, setIsEditing] = useState(false);
-    const [editedName, setEditedName] = useState(driver.name);
+    const [editedName, setEditedName] = useState('');
+    const [loading, setLoading] = useState(true);
 
-    const handleLogout = () => {
+    useEffect(() => {
+        const token = sessionStorage.getItem('driver_token');
+        if (!token) {
+            router.push('/');
+            return;
+        }
+        fetchProfile();
+    }, [router]);
+
+    const getDefaultDriverFromStorage = (): Driver | null => {
+        const driverInfo = sessionStorage.getItem('driver_info');
+        if (driverInfo) {
+            try {
+                const userInfo = JSON.parse(driverInfo);
+                // Try multiple possible name fields
+                const name = userInfo.name || userInfo.full_name || userInfo.fullName || '';
+                return {
+                    id: userInfo.id || '',
+                    name: name,
+                    phone: userInfo.phone || '',
+                    email: userInfo.email || null,
+                    avatar: null,
+                    vehicleType: 'motorcycle',
+                    vehiclePlate: '',
+                    isOnline: false,
+                    isApproved: false,
+                    currentLat: null,
+                    currentLng: null,
+                    rating: 0,
+                    totalDeliveries: 0,
+                    createdAt: new Date().toISOString(),
+                };
+            } catch (e) {
+                console.error('Failed to parse driver info:', e);
+            }
+        }
+        return null;
+    };
+
+    const fetchProfile = async () => {
+        setLoading(true);
+        try {
+            const response = await authService.getProfile();
+            if (response.success && response.data) {
+                const transformed = transformDriver(response.data);
+                setDriver(transformed);
+                setEditedName(transformed.name);
+            } else {
+                // If API fails, try to get user info from sessionStorage
+                const defaultDriver = getDefaultDriverFromStorage();
+                if (defaultDriver) {
+                    setDriver(defaultDriver);
+                    setEditedName(defaultDriver.name);
+                } else {
+                    notify.error('Алдаа', response.error || 'Профайл авахад алдаа гарлаа');
+                }
+            }
+        } catch (error) {
+            console.error('Failed to fetch profile:', error);
+            // Try to get user info from sessionStorage as fallback
+            const defaultDriver = getDefaultDriverFromStorage();
+            if (defaultDriver) {
+                setDriver(defaultDriver);
+                setEditedName(defaultDriver.name);
+            } else {
+                notify.error('Алдаа', 'Профайл авахад алдаа гарлаа');
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleLogout = async () => {
+        try {
+            await authService.logout();
+        } catch (error) {
+            console.error('Logout error:', error);
+        }
         sessionStorage.removeItem('driver_token');
         sessionStorage.removeItem('driver_info');
+        sessionStorage.removeItem('driver_data');
         notify.info('Гарлаа', 'Амжилттай гарлаа');
         setTimeout(() => router.push('/'), 500);
     };
 
-    const handleSaveProfile = () => {
-        setDriver({ ...driver, name: editedName });
-        setIsEditing(false);
-        notify.success('Амжилттай', 'Профайл хадгалагдлаа');
-        // TODO: API call to update profile
+    const handleSaveProfile = async () => {
+        if (!driver) return;
+        
+        try {
+            const response = await profileService.updateProfile({ fullName: editedName });
+            if (response.success && response.data) {
+                const transformed = transformDriver(response.data);
+                setDriver(transformed);
+                setIsEditing(false);
+                notify.success('Амжилттай', 'Профайл хадгалагдлаа');
+            } else {
+                notify.error('Алдаа', response.error || 'Профайл шинэчлэхэд алдаа гарлаа');
+            }
+        } catch (error) {
+            notify.error('Алдаа', 'Профайл шинэчлэхэд алдаа гарлаа');
+        }
     };
 
-    const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                setDriver({ ...driver, avatar: e.target?.result as string });
+        if (!file || !driver) return;
+
+        // Validate file
+        if (!file.type.startsWith('image/')) {
+            notify.error('Алдаа', 'Зөвхөн зураг оруулна уу');
+            return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            notify.error('Алдаа', 'Файлын хэмжээ 5MB-аас хэтрэхгүй байх ёстой');
+            return;
+        }
+
+        try {
+            const formData = new FormData();
+            formData.append('image', file);
+            
+            const response = await profileService.uploadAvatar(formData);
+            if (response.success && response.data) {
+                setDriver({ ...driver, avatar: response.data.url });
                 notify.success('Амжилттай', 'Зураг шинэчлэгдлээ');
-            };
-            reader.readAsDataURL(file);
-            // TODO: Upload to server
+                fetchProfile(); // Refresh profile
+            } else {
+                notify.error('Алдаа', response.error || 'Зураг хадгалахад алдаа гарлаа');
+            }
+        } catch (error) {
+            notify.error('Алдаа', 'Зураг хадгалахад алдаа гарлаа');
         }
     };
 
@@ -52,6 +163,26 @@ export default function ProfilePage() {
         }
     };
 
+    if (loading) {
+        return (
+            <DriverLayout>
+                <div className="bg-white rounded-2xl p-8 text-center">
+                    <p className="text-gray-400">Уншиж байна...</p>
+                </div>
+            </DriverLayout>
+        );
+    }
+
+    if (!driver) {
+        return (
+            <DriverLayout>
+                <div className="bg-white rounded-2xl p-8 text-center">
+                    <p className="text-gray-400">Профайл олдсонгүй</p>
+                </div>
+            </DriverLayout>
+        );
+    }
+
     return (
         <DriverLayout>
             {/* Profile Header */}
@@ -63,7 +194,7 @@ export default function ProfilePage() {
                             <img src={driver.avatar} alt={driver.name} className="w-full h-full rounded-full object-cover" />
                         ) : (
                             <span className="text-3xl font-bold text-gray-400">
-                                {driver.name.charAt(0)}
+                                {(driver.name || driver.phone || 'Х').charAt(0).toUpperCase()}
                             </span>
                         )}
                     </div>
@@ -93,7 +224,7 @@ export default function ProfilePage() {
                         />
                     </div>
                 ) : (
-                    <h2 className="text-xl font-bold mb-1">{driver.name}</h2>
+                    <h2 className="text-xl font-bold mb-1">{driver.name || 'Хэрэглэгч'}</h2>
                 )}
                 
                 <p className="text-gray-500 text-sm">{driver.phone}</p>

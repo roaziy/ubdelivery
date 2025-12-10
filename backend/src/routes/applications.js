@@ -91,10 +91,12 @@ router.get('/:id', verifyToken, requireAdmin, asyncHandler(async (req, res) => {
 // SUBMIT RESTAURANT APPLICATION (Public)
 // ============================================
 
-// Custom middleware to make documents optional for restaurant applications
+// Custom middleware to make documents optional for restaurant and driver applications
 const uploadDocumentsOptional = (req, res, next) => {
-  req.requireFile = false; // Mark file as optional
-  uploadAndProcess('documents', 'document', 'applications')(req, res, next);
+  // Set requireFile to false BEFORE calling uploadAndProcess
+  req.requireFile = false;
+  // Call the upload middleware
+  return uploadAndProcess('documents', 'document', 'applications')(req, res, next);
 };
 
 router.post('/restaurant', 
@@ -176,7 +178,7 @@ router.post('/restaurant',
 // ============================================
 
 router.post('/driver',
-  uploadAndProcess('documents', 'document', 'applications'),
+  uploadDocumentsOptional,
   asyncHandler(async (req, res) => {
     const {
       fullName, full_name, name,

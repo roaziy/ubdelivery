@@ -87,6 +87,29 @@ export default function CartSection() {
         couponCode: "",
     });
 
+    // Auto-populate address from location when checkout opens
+    useEffect(() => {
+        if (viewState === 'checkout') {
+            const userLocation = sessionStorage.getItem('userLocation');
+            if (userLocation) {
+                try {
+                    const location = JSON.parse(userLocation);
+                    if (location.address) {
+                        setFormData(prev => {
+                            // Only update if address is empty
+                            if (!prev.address) {
+                                return { ...prev, address: location.address };
+                            }
+                            return prev;
+                        });
+                    }
+                } catch (error) {
+                    console.error('Failed to parse user location:', error);
+                }
+            }
+        }
+    }, [viewState]);
+
     // Fetch cart data
     useEffect(() => {
         const fetchCart = async () => {
@@ -103,6 +126,13 @@ export default function CartSection() {
                 if (response.success && response.data) {
                     // Transform API cart data to RestaurantCart format
                     const transformedData = transformCartData(response.data);
+                    
+                    // Get restaurant logo from the raw API response
+                    const rawData = (response.data as any)._raw || response.data;
+                    if (rawData.restaurant?.logo_url && transformedData.length > 0) {
+                        transformedData[0].logo = rawData.restaurant.logo_url;
+                    }
+                    
                     setCartData(transformedData);
                 } else {
                     setCartData([]);
@@ -119,33 +149,36 @@ export default function CartSection() {
 
     // Transform Cart API data to RestaurantCart format
     const transformCartData = (cart: Cart): RestaurantCart[] => {
-        // Group items by restaurant
-        const restaurantMap = new Map<string, RestaurantCart>();
+        if (!cart.items || cart.items.length === 0) {
+            return [];
+        }
+
+        // Get restaurant info from first item (all items are from same restaurant)
+        const firstItem = cart.items[0];
+        const restaurantId = firstItem.restaurantId || 'default';
+        const restaurantName = firstItem.restaurantName || 'Рестоуран';
         
-        cart.items.forEach(item => {
-            const restaurantId = item.restaurantId || 'default';
-            if (!restaurantMap.has(restaurantId)) {
-                restaurantMap.set(restaurantId, {
-                    id: parseInt(restaurantId) || 1,
-                    name: item.restaurantName || 'Рестоуран',
-                    hours: '09:00 - 20:00',
-                    items: []
-                });
-            }
-            
-            const restaurant = restaurantMap.get(restaurantId)!;
-            restaurant.items.push({
-                id: parseInt(item.id) || parseInt(item.foodId.toString()) || 1,
+        // Fetch restaurant logo from API if needed
+        // For now, we'll get it from the cart response if available
+        // The backend should include restaurant.logo_url in the cart response
+        
+        const restaurantCart: RestaurantCart = {
+            id: parseInt(restaurantId) || 1,
+            name: restaurantName,
+            hours: '09:00 - 20:00', // This should come from API
+            logo: undefined, // Will be set from API response
+            items: cart.items.map(item => ({
+                id: parseInt(item.id) || parseInt(item.foodId?.toString() || '1'),
                 name: item.name,
                 restaurant: item.restaurantName || '',
                 price: item.price,
                 quantity: item.quantity,
                 deliveryFee: 0,
                 image: item.image
-            });
-        });
+            }))
+        };
         
-        return Array.from(restaurantMap.values());
+        return [restaurantCart];
     };
 
     const isEmpty = cartData.length === 0 || cartData.every(r => r.items.length === 0);
@@ -176,11 +209,38 @@ export default function CartSection() {
             
             if (item) {
                 const newQuantity = Math.max(1, item.quantity + delta);
-                await CartService.updateQuantity(itemId.toString(), newQuantity);
+                const response = await CartService.updateQuantity(itemId.toString(), newQuantity);
+                
+                // Refresh cart after update to get latest data
+                if (response.success) {
+                    const cartResponse = await CartService.get();
+                    if (cartResponse.success && cartResponse.data) {
+                        const transformedData = transformCartData(cartResponse.data);
+                        const rawData = (cartResponse.data as any)._raw || cartResponse.data;
+                        if (rawData.restaurant?.logo_url && transformedData.length > 0) {
+                            transformedData[0].logo = rawData.restaurant.logo_url;
+                        }
+                        setCartData(transformedData);
+                    }
+                }
             }
         } catch (error) {
             console.error('Failed to update quantity:', error);
             notify.error('Алдаа', 'Тоо хэмжээг өөрчлөхөд алдаа гарлаа');
+            // Refresh cart on error to get correct state
+            try {
+                const cartResponse = await CartService.get();
+                if (cartResponse.success && cartResponse.data) {
+                    const transformedData = transformCartData(cartResponse.data);
+                    const rawData = (cartResponse.data as any)._raw || cartResponse.data;
+                    if (rawData.restaurant?.logo_url && transformedData.length > 0) {
+                        transformedData[0].logo = rawData.restaurant.logo_url;
+                    }
+                    setCartData(transformedData);
+                }
+            } catch (refreshError) {
+                console.error('Failed to refresh cart:', refreshError);
+            }
         }
     };
 
@@ -248,6 +308,63 @@ export default function CartSection() {
         }
     };
 
+    const handleRemoveItem = async (restaurantId: number, itemId: number) => {
+        // Optimistic update - remove item from UI immediately
+        setCartData(prev => prev.map(restaurant => {
+            if (restaurant.id === restaurantId) {
+                return {
+                    ...restaurant,
+                    items: restaurant.items.filter(item => item.id !== itemId)
+                };
+            }
+            return restaurant;
+        }));
+
+        // API call
+        try {
+            const response = await CartService.removeItem(itemId.toString());
+            if (!response.success) {
+                notify.error('Алдаа', response.error || 'Бараа устгахад алдаа гарлаа');
+                // Refresh cart on error to get correct state
+                const cartResponse = await CartService.get();
+                if (cartResponse.success && cartResponse.data) {
+                    const transformedData = transformCartData(cartResponse.data);
+                    const rawData = (cartResponse.data as any)._raw || cartResponse.data;
+                    if (rawData.restaurant?.logo_url && transformedData.length > 0) {
+                        transformedData[0].logo = rawData.restaurant.logo_url;
+                    }
+                    setCartData(transformedData);
+                }
+            } else {
+                notify.success('Амжилттай', 'Бараа сагснаас устгагдлаа');
+                
+                // Refresh cart to get updated state
+                const cartResponse = await CartService.get();
+                if (cartResponse.success && cartResponse.data) {
+                    const transformedData = transformCartData(cartResponse.data);
+                    const rawData = (cartResponse.data as any)._raw || cartResponse.data;
+                    if (rawData.restaurant?.logo_url && transformedData.length > 0) {
+                        transformedData[0].logo = rawData.restaurant.logo_url;
+                    }
+                    setCartData(transformedData);
+                }
+            }
+        } catch (error) {
+            console.error('Failed to remove item:', error);
+            notify.error('Алдаа', 'Бараа устгахад алдаа гарлаа');
+            // Refresh cart on error
+            const cartResponse = await CartService.get();
+            if (cartResponse.success && cartResponse.data) {
+                const transformedData = transformCartData(cartResponse.data);
+                const rawData = (cartResponse.data as any)._raw || cartResponse.data;
+                if (rawData.restaurant?.logo_url && transformedData.length > 0) {
+                    transformedData[0].logo = rawData.restaurant.logo_url;
+                }
+                setCartData(transformedData);
+            }
+        }
+    };
+
     // Render cart items grouped by restaurant
     const renderCartItems = () => (
         <>
@@ -256,6 +373,7 @@ export default function CartSection() {
                     key={restaurant.id}
                     restaurant={restaurant}
                     onQuantityChange={(itemId, delta) => handleQuantityChange(restaurant.id, itemId, delta)}
+                    onRemoveItem={(itemId) => handleRemoveItem(restaurant.id, itemId)}
                     onOrder={handleOrder}
                 />
             ))}

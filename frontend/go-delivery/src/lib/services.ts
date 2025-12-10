@@ -51,19 +51,38 @@ export const profileService = {
 
     uploadAvatar: async (formData: FormData): Promise<ApiResponse<{ url: string }>> => {
         const token = typeof window !== 'undefined' 
-            ? sessionStorage.getItem('auth_token') 
+            ? sessionStorage.getItem('driver_token') 
             : null;
         
-        const response = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/drivers/me/avatar`, 
-            {
-                method: 'POST',
-                headers: token ? { Authorization: `Bearer ${token}` } : {},
-                body: formData,
+        try {
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/drivers/me/avatar`, 
+                {
+                    method: 'POST',
+                    headers: token ? { Authorization: `Bearer ${token}` } : {},
+                    body: formData,
+                }
+            );
+            const data = await response.json();
+            
+            if (!response.ok) {
+                return {
+                    success: false,
+                    error: data.message || data.error || 'Зураг хадгалахад алдаа гарлаа'
+                };
             }
-        );
-        const data = await response.json();
-        return { success: response.ok, data: data.data };
+            
+            return {
+                success: true,
+                data: data.data || { url: data.url }
+            };
+        } catch (error) {
+            console.error('Avatar upload error:', error);
+            return {
+                success: false,
+                error: 'Сүлжээний алдаа. Дахин оролдоно уу.'
+            };
+        }
     },
 
     updateBankInfo: async (data: {

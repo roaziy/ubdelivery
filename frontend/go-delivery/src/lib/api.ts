@@ -41,13 +41,15 @@ async function apiRequest<T>(
         if (!response.ok) {
             return {
                 success: false,
-                error: data.message || 'Something went wrong',
+                error: data.message || data.error || 'Something went wrong',
             };
         }
 
+        // Backend returns { success: true, data: {...} } or just { data: {...} }
         return {
-            success: true,
-            data,
+            success: data.success !== false,
+            data: data.data || data,
+            message: data.message,
         };
     } catch (error) {
         console.error('API Error:', error);

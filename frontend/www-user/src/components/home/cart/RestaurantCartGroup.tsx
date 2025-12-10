@@ -7,16 +7,18 @@ export interface RestaurantCart {
     id: number;
     name: string;
     hours: string;
+    logo?: string;
     items: CartItem[];
 }
 
 interface RestaurantCartGroupProps {
     restaurant: RestaurantCart;
     onQuantityChange: (itemId: number, delta: number) => void;
+    onRemoveItem?: (itemId: number) => void;
     onOrder: () => void;
 }
 
-export default function RestaurantCartGroup({ restaurant, onQuantityChange, onOrder }: RestaurantCartGroupProps) {
+export default function RestaurantCartGroup({ restaurant, onQuantityChange, onRemoveItem, onOrder }: RestaurantCartGroupProps) {
     const calculateTotal = () => {
         return restaurant.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     };
@@ -28,7 +30,22 @@ export default function RestaurantCartGroup({ restaurant, onQuantityChange, onOr
             
             {/* Restaurant Header */}
             <div className="flex items-center gap-3 mb-4 pt-6">
-                <div className="w-12 h-12 bg-gray-200 rounded-xl"></div>
+                <div className="w-12 h-12 bg-gray-200 rounded-xl flex-shrink-0 overflow-hidden">
+                    {restaurant.logo ? (
+                        <img 
+                            src={restaurant.logo} 
+                            alt={restaurant.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = 'none';
+                            }}
+                        />
+                    ) : (
+                        <div className="w-full h-full bg-gray-300 flex items-center justify-center text-gray-400 text-xs">
+                            Лого
+                        </div>
+                    )}
+                </div>
                 <div>
                     <h3 className="font-semibold">{restaurant.name}</h3>
                     <div className="flex items-center gap-1 text-xs text-gray-500">
@@ -45,6 +62,7 @@ export default function RestaurantCartGroup({ restaurant, onQuantityChange, onOr
                         key={item.id}
                         item={item}
                         onQuantityChange={(delta) => onQuantityChange(item.id, delta)}
+                        onRemove={onRemoveItem ? () => onRemoveItem(item.id) : undefined}
                     />
                 ))}
             </div>
