@@ -129,7 +129,7 @@ router.post('/restaurant',
       .insert({
         type: 'restaurant',
         name,
-        owner_name: ownerName || owner_name,
+        owner_name: ownerName || owner_name || name, // Use restaurant name as fallback
         phone,
         email,
         address,

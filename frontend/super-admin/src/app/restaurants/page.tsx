@@ -8,7 +8,6 @@ import PasswordChangeModal from '@/components/ui/PasswordChangeModal';
 import { useNotifications } from '@/components/ui/Notification';
 import { Restaurant } from '@/types';
 import { RestaurantService } from '@/lib/services';
-import { mockRestaurants } from '@/lib/mockData';
 
 export default function RestaurantsPage() {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
@@ -21,9 +20,14 @@ export default function RestaurantsPage() {
     const fetchData = async () => {
       try {
         const response = await RestaurantService.getAllRestaurants();
-        if (response.success) setRestaurants(response.data!);
-      } catch {
-        setRestaurants(mockRestaurants);
+        if (response.success && response.data) {
+          const data = response.data as any;
+          const items = data.items || data;
+          setRestaurants(Array.isArray(items) ? items : []);
+        }
+      } catch (error) {
+        console.error('Error fetching restaurants:', error);
+        setRestaurants([]);
       } finally {
         setLoading(false);
       }
@@ -44,7 +48,7 @@ export default function RestaurantsPage() {
   };
 
   const filteredRestaurants = restaurants.filter((r) =>
-    r.name.toLowerCase().includes(searchQuery.toLowerCase())
+    (r.name || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const getStatusColor = (status: string) => {
@@ -123,13 +127,13 @@ export default function RestaurantsPage() {
                   </td>
                 </tr>
               ) : (
-                filteredRestaurants.map((restaurant) => (
+                filteredRestaurants.map((restaurant: any) => (
                   <tr key={restaurant.id} className="border-b border-gray-100 last:border-b-0">
-                    <td className="py-3 px-4 text-sm font-medium">{restaurant.name}</td>
-                    <td className="py-3 px-4 text-sm text-gray-500">{restaurant.cuisineType}</td>
-                    <td className="py-3 px-4 text-sm">{restaurant.rating.toFixed(1)}</td>
-                    <td className="py-3 px-4 text-sm text-gray-500">{restaurant.totalOrders}</td>
-                    <td className="py-3 px-4 text-sm font-medium">₮{restaurant.totalRevenue.toLocaleString()}</td>
+                    <td className="py-3 px-4 text-sm font-medium">{restaurant.name || '-'}</td>
+                    <td className="py-3 px-4 text-sm text-gray-500">{restaurant.cuisineType || restaurant.cuisine_type || '-'}</td>
+                    <td className="py-3 px-4 text-sm">{(restaurant.rating ?? 0).toFixed(1)}</td>
+                    <td className="py-3 px-4 text-sm text-gray-500">{restaurant.totalOrders ?? restaurant.total_orders ?? 0}</td>
+                    <td className="py-3 px-4 text-sm font-medium">₮{(restaurant.totalRevenue ?? restaurant.total_revenue ?? 0).toLocaleString()}</td>
                     <td className="py-3 px-4">
                       <span className={`text-sm ${getStatusColor(restaurant.status)}`}>
                         {getStatusLabel(restaurant.status)}

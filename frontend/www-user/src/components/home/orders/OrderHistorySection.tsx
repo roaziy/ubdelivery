@@ -5,9 +5,8 @@ import { useRouter } from "next/navigation";
 import { IoChevronBack, IoChevronForward } from "react-icons/io5";
 import OrderItemCard, { OrderItem } from "@/components/home/cart/OrderItemCard";
 import RatingModal from "./RatingModal";
-import { OrderService, ReviewService } from "@/lib/api";
+import { OrderService, ReviewService, AuthService } from "@/lib/api";
 import { Order } from "@/lib/types";
-import { mockOrders, simulateDelay } from "@/lib/mockData";
 import { useNotifications } from "@/components/ui/Notification";
 import { Skeleton } from "@/components/ui/Skeleton";
 
@@ -69,24 +68,32 @@ export default function OrderHistorySection() {
     // Fetch orders
     useEffect(() => {
         const fetchOrders = async () => {
+            // Don't fetch if not logged in
+            if (!AuthService.isLoggedIn()) {
+                setLoading(false);
+                setOrders([]);
+                return;
+            }
+            
             setLoading(true);
             try {
-                const response = await OrderService.getMyOrders({ page: currentPage });
+                const response = await OrderService.getMyOrders({ 
+                    page: currentPage, 
+                    status: 'delivered,cancelled' 
+                });
                 if (response.success && response.data) {
                     // Transform API orders to HistoryOrder format
                     const transformedOrders = response.data.items.map(order => transformOrder(order));
                     setOrders(transformedOrders);
                     setTotalPages(response.data.totalPages);
                 } else {
-                    await simulateDelay(800);
-                    setOrders(sampleHistoryOrders);
-                    setTotalPages(Math.ceil(sampleHistoryOrders.length / itemsPerPage));
+                    setOrders([]);
+                    setTotalPages(1);
                 }
             } catch (error) {
                 console.error('Failed to fetch orders:', error);
-                await simulateDelay(800);
-                setOrders(sampleHistoryOrders);
-                setTotalPages(Math.ceil(sampleHistoryOrders.length / itemsPerPage));
+                setOrders([]);
+                setTotalPages(1);
             } finally {
                 setLoading(false);
             }

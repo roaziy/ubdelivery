@@ -6,6 +6,8 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useNotifications } from "@/components/ui/Notification";
 import Footer from "../../../components/LandingPage/footer/footer";
+import { verifyOTP, setupRecaptcha, sendOTP } from "@/lib/firebase";
+import { AuthService } from "@/lib/api";
 
 export default function VerifyPage() {
     const router = useRouter();
@@ -14,6 +16,7 @@ export default function VerifyPage() {
     const [phoneNumber, setPhoneNumber] = useState("");
     const [countdown, setCountdown] = useState(59);
     const [canResend, setCanResend] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
     useEffect(() => {
@@ -49,6 +52,11 @@ export default function VerifyPage() {
         if (value && index < 5) {
             inputRefs.current[index + 1]?.focus();
         }
+
+        // Auto-submit when all digits entered
+        if (newOtp.every(d => d !== '') && newOtp.join('').length === 6) {
+            setTimeout(() => handleSubmit(undefined, newOtp.join('')), 100);
+        }
     };
 
     const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -71,32 +79,68 @@ export default function VerifyPage() {
         inputRefs.current[focusIndex]?.focus();
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        const otpCode = otp.join('');
-        if (otpCode.length === 6) {
-            // For demo purposes, accept any 6-digit code
-            // In production, you would verify with your backend
-            sessionStorage.setItem('isLoggedIn', 'true');
-            notify.success('Амжилттай', 'Нэвтрэлт амжилттай боллоо');
-            router.push('/home');
-        } else {
-            notify.error('Алдаа', 'Код буруу байна');
+    const handleSubmit = async (e?: React.FormEvent, codeOverride?: string) => {
+        if (e) e.preventDefault();
+        
+        const otpCode = codeOverride || otp.join('');
+        if (otpCode.length !== 6) {
+            notify.error('Алдаа', '6 оронтой код оруулна уу');
+            return;
+        }
+
+        setIsLoading(true);
+
+        try {
+            // Verify OTP with Firebase
+            const firebaseResult = await verifyOTP(otpCode);
+            
+            if (!firebaseResult.success || !firebaseResult.token) {
+                notify.error('Алдаа', firebaseResult.error || 'Код буруу байна');
+                setIsLoading(false);
+                return;
+            }
+
+            // Now verify with backend and create/login user
+            const backendResult = await AuthService.verifyOtp(firebaseResult.token);
+            
+            if (backendResult.success) {
+                sessionStorage.setItem('isLoggedIn', 'true');
+                notify.success('Амжилттай', 'Нэвтрэлт амжилттай боллоо');
+                router.push('/home');
+            } else {
+                notify.error('Алдаа', backendResult.error || 'Нэвтрэхэд алдаа гарлаа');
+            }
+        } catch {
+            notify.error('Алдаа', 'Сервертэй холбогдоход алдаа гарлаа');
+        } finally {
+            setIsLoading(false);
         }
     };
 
-    const handleResend = () => {
-        if (canResend) {
-            setCountdown(59);
-            setCanResend(false);
-            notify.info('Код илгээгдлээ', 'Шинэ код таны утас руу илгээгдлээ');
-            // Here you would call your API to resend the OTP
-        }
-    };
+    const handleResend = async () => {
+        if (!canResend || !phoneNumber) return;
 
-    // Format phone number for display (e.g., 99049990)
-    const formatPhoneDisplay = (phone: string) => {
-        return phone;
+        setIsLoading(true);
+        
+        try {
+            // Setup new reCAPTCHA verifier
+            setupRecaptcha('resend-button');
+            
+            const result = await sendOTP(phoneNumber);
+            
+            if (result.success) {
+                setCountdown(59);
+                setCanResend(false);
+                setOtp(Array(6).fill(""));
+                notify.info('Код илгээгдлээ', 'Шинэ код таны утас руу илгээгдлээ');
+            } else {
+                notify.error('Алдаа', result.error || 'Код дахин илгээхэд алдаа гарлаа');
+            }
+        } catch {
+            notify.error('Алдаа', 'Сервертэй холбогдоход алдаа гарлаа');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -120,7 +164,7 @@ export default function VerifyPage() {
 
                     {/* Instructions */}
                     <p className="text-sm text-gray-600 text-center mb-8">
-                        Таны <span className="font-semibold">{formatPhoneDisplay(phoneNumber)}</span> утас руу 6-н оронтой код илгээлээ. Кодоо оруулна уу.
+                        Таны <span className="font-semibold">+976 {phoneNumber}</span> утас руу 6-н оронтой код илгээлээ. Кодоо оруулна уу.
                     </p>
 
                     {/* OTP Input */}
@@ -137,6 +181,7 @@ export default function VerifyPage() {
                                     onKeyDown={(e) => handleKeyDown(index, e)}
                                     className="w-[46px] h-[54px] bg-white text-center text-lg font-semibold border border-gray-300 rounded-full outline-none focus:border-mainGreen focus:ring-1 focus:ring-mainGreen transition-all"
                                     maxLength={1}
+                                    disabled={isLoading}
                                 />
                             ))}
                         </div>
@@ -144,18 +189,37 @@ export default function VerifyPage() {
                         {/* Submit Button */}
                         <button
                             type="submit"
-                            disabled={otp.join('').length < 6}
+                            disabled={otp.join('').length < 6 || isLoading}
                             draggable={false}
-                            className="w-full bg-mainGreen text-white py-3 rounded-full hover:bg-green-600 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full bg-mainGreen text-white py-3 rounded-full hover:bg-green-600 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         >
-                            Үргэлжлүүлэх
+                            {isLoading ? (
+                                <>
+                                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                                        <circle 
+                                            className="opacity-25" 
+                                            cx="12" cy="12" r="10" 
+                                            stroke="currentColor" strokeWidth="4" fill="none"
+                                        />
+                                        <path 
+                                            className="opacity-75" 
+                                            fill="currentColor" 
+                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                                        />
+                                    </svg>
+                                    Шалгаж байна...
+                                </>
+                            ) : (
+                                'Үргэлжлүүлэх'
+                            )}
                         </button>
 
                         {/* Resend */}
                         <button
+                            id="resend-button"
                             type="button"
                             onClick={handleResend}
-                            disabled={!canResend}
+                            disabled={!canResend || isLoading}
                             draggable={false}
                             className="w-full py-3 border border-gray-300 rounded-full text-sm text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >

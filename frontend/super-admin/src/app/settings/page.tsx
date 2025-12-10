@@ -1,18 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FiSave } from 'react-icons/fi';
 import AdminLayout from '@/components/layout/AdminLayout';
 import { useNotifications } from '@/components/ui/Notification';
+import { authService } from '@/lib/services';
 
 export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState<'profile' | 'platform'>('profile');
   const notify = useNotifications();
   
   const [profileData, setProfileData] = useState({
-    name: 'Admin User',
-    email: 'admin@ubdelivery.com',
+    name: '',
+    email: '',
     currentPassword: '',
     newPassword: '',
   });
@@ -20,16 +22,59 @@ export default function SettingsPage() {
   const [platformSettings, setPlatformSettings] = useState({
     platformName: 'UB Delivery',
     supportEmail: 'support@ubdelivery.com',
-    deliveryFee: 2.99,
+    deliveryFee: 3000,
     serviceFeePercent: 5,
-    minOrderAmount: 10,
+    minOrderAmount: 10000,
   });
+
+  // Load user data
+  useEffect(() => {
+    const loadUserData = async () => {
+      setLoading(true);
+      try {
+        // First check sessionStorage
+        const storedUser = sessionStorage.getItem('admin_user');
+        if (storedUser) {
+          const user = JSON.parse(storedUser);
+          setProfileData(prev => ({
+            ...prev,
+            name: user.name || '',
+            email: user.email || '',
+          }));
+        }
+
+        // Then try to fetch from API
+        const response = await authService.getProfile();
+        if (response.success && response.data) {
+          const user = response.data;
+          setProfileData(prev => ({
+            ...prev,
+            name: user.name || user.full_name || '',
+            email: user.email || '',
+          }));
+        }
+      } catch (error) {
+        console.error('Failed to load profile:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadUserData();
+  }, []);
 
   const handleSave = async () => {
     setSaving(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setSaving(false);
-    notify.success('Амжилттай', 'Тохиргоо амжилттай хадгалагдлаа');
+    try {
+      // TODO: Implement actual save logic when backend endpoint is ready
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      notify.success('Амжилттай', 'Тохиргоо амжилттай хадгалагдлаа');
+    } catch (error) {
+      console.error('Save error:', error);
+      notify.error('Алдаа', 'Тохиргоо хадгалахад алдаа гарлаа');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -64,44 +109,53 @@ export default function SettingsPage() {
         <div className="bg-white rounded-2xl border border-gray-100 p-6">
           {activeSection === 'profile' && (
             <div className="space-y-6 max-w-md">
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-2">Нэр</label>
-                <input
-                  type="text"
-                  value={profileData.name}
-                  onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-full focus:outline-none focus:border-mainGreen"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-2">И-мэйл</label>
-                <input
-                  type="email"
-                  value={profileData.email}
-                  onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-full focus:outline-none focus:border-mainGreen"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-2">Одоогийн нууц үг</label>
-                <input
-                  type="password"
-                  value={profileData.currentPassword}
-                  onChange={(e) => setProfileData({ ...profileData, currentPassword: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-full focus:outline-none focus:border-mainGreen"
-                  placeholder="Нууц үг солих бол оруулна уу"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-2">Шинэ нууц үг</label>
-                <input
-                  type="password"
-                  value={profileData.newPassword}
-                  onChange={(e) => setProfileData({ ...profileData, newPassword: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-full focus:outline-none focus:border-mainGreen"
-                  placeholder="Шинэ нууц үг оруулна уу"
-                />
-              </div>
+              {loading ? (
+                <div className="space-y-4">
+                  <div className="h-12 bg-gray-100 rounded-full animate-pulse" />
+                  <div className="h-12 bg-gray-100 rounded-full animate-pulse" />
+                </div>
+              ) : (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-2">Нэр</label>
+                    <input
+                      type="text"
+                      value={profileData.name}
+                      onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-full focus:outline-none focus:border-mainGreen"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-2">И-мэйл</label>
+                    <input
+                      type="email"
+                      value={profileData.email}
+                      onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-full focus:outline-none focus:border-mainGreen"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-2">Одоогийн нууц үг</label>
+                    <input
+                      type="password"
+                      value={profileData.currentPassword}
+                      onChange={(e) => setProfileData({ ...profileData, currentPassword: e.target.value })}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-full focus:outline-none focus:border-mainGreen"
+                      placeholder="Нууц үг солих бол оруулна уу"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-2">Шинэ нууц үг</label>
+                    <input
+                      type="password"
+                      value={profileData.newPassword}
+                      onChange={(e) => setProfileData({ ...profileData, newPassword: e.target.value })}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-full focus:outline-none focus:border-mainGreen"
+                      placeholder="Шинэ нууц үг оруулна уу"
+                    />
+                  </div>
+                </>
+              )}
             </div>
           )}
 
@@ -157,7 +211,7 @@ export default function SettingsPage() {
 
           <button
             onClick={handleSave}
-            disabled={saving}
+            disabled={saving || loading}
             className="mt-6 flex items-center gap-2 px-6 py-3 bg-mainGreen text-white rounded-full font-medium hover:bg-green-600 disabled:opacity-50"
           >
             <FiSave size={18} />

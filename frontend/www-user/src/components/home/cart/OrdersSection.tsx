@@ -6,8 +6,7 @@ import { IoChevronBack, IoChevronForward } from "react-icons/io5";
 import { FaRegClock } from "react-icons/fa";
 import OrderGroup, { Order } from "./OrderGroup";
 import EmptyOrders from "./EmptyOrders";
-import { OrderService } from "@/lib/api";
-import { mockOrders, simulateDelay } from "@/lib/mockData";
+import { OrderService, AuthService } from "@/lib/api";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { useNotifications } from "@/components/ui/Notification";
 
@@ -48,14 +47,24 @@ export default function OrdersSection({ onViewTracking }: OrdersSectionProps) {
 
     useEffect(() => {
         const fetchOrders = async () => {
+            // Don't fetch if not logged in
+            if (!AuthService.isLoggedIn()) {
+                setLoading(false);
+                setOrders([]);
+                return;
+            }
+            
             setLoading(true);
             try {
-                const response = await OrderService.getActive();
+                // Get active orders (pending, confirmed, preparing, ready, picked_up)
+                const response = await OrderService.getMyOrders({ 
+                    status: 'pending,confirmed,preparing,ready,picked_up' 
+                });
                 if (response.success && response.data) {
                     // Transform API orders to local Order format
-                    const transformedOrders: Order[] = response.data.map(order => ({
+                    const transformedOrders: Order[] = response.data.items.map(order => ({
                         id: parseInt(order.id),
-                        orderId: order.id,
+                        orderId: order.orderNumber || order.id,
                         restaurantName: order.restaurantName || 'Рестоуран',
                         status: order.status as Order['status'],
                         items: order.items.map(item => ({
@@ -69,13 +78,11 @@ export default function OrdersSection({ onViewTracking }: OrdersSectionProps) {
                     }));
                     setOrders(transformedOrders);
                 } else {
-                    await simulateDelay(800);
-                    setOrders(sampleOrders);
+                    setOrders([]);
                 }
             } catch (error) {
                 console.error('Failed to fetch orders:', error);
-                await simulateDelay(800);
-                setOrders(sampleOrders);
+                setOrders([]);
             } finally {
                 setLoading(false);
             }

@@ -4,8 +4,6 @@ import { useState, useEffect } from "react";
 import { IoClose } from "react-icons/io5";
 import { IoWarningOutline } from "react-icons/io5";
 import { AuthService } from "@/lib/api";
-import { User } from "@/lib/types";
-import { mockUser, simulateDelay } from "@/lib/mockData";
 import { useNotifications } from "@/components/ui/Notification";
 import { Skeleton } from "@/components/ui/Skeleton";
 
@@ -35,31 +33,36 @@ export default function ProfileForm({ initialData, onLogout, onDeleteAccount }: 
     // Fetch user profile data
     useEffect(() => {
         const fetchProfile = async () => {
+            // Check for stored user first
+            const storedUser = AuthService.getStoredUser();
+            if (storedUser) {
+                setFormData({
+                    username: storedUser.name || '',
+                    email: storedUser.email || '',
+                    eBarimtCode: storedUser.eBarimtCode || '',
+                });
+            }
+            
             setLoading(true);
             try {
                 const response = await AuthService.getCurrentUser();
                 if (response.success && response.data) {
                     setFormData({
-                        username: response.data.name || '',
-                        email: response.data.email || '',
-                        eBarimtCode: response.data.eBarimtCode || '',
-                    });
-                } else {
-                    await simulateDelay(500);
-                    setFormData({
-                        username: mockUser.name || '',
-                        email: mockUser.email || '',
+                        username: response.data.user?.name || '',
+                        email: response.data.user?.email || '',
                         eBarimtCode: '',
                     });
                 }
             } catch (error) {
                 console.error('Failed to fetch profile:', error);
-                await simulateDelay(500);
-                setFormData({
-                    username: mockUser.name || '',
-                    email: mockUser.email || '',
-                    eBarimtCode: '',
-                });
+                // Keep the stored user data if API fails
+                if (!storedUser) {
+                    setFormData({
+                        username: '',
+                        email: '',
+                        eBarimtCode: '',
+                    });
+                }
             } finally {
                 setLoading(false);
             }

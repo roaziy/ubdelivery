@@ -427,3 +427,129 @@ CREATE POLICY "Users can manage own cart items" ON cart_items FOR ALL USING (
         WHERE user_id::text = auth.uid()::text
     )
 );
+-- =============================================
+-- ADDITIONAL TABLES (Added for full functionality)
+-- =============================================
+-- Bank accounts for drivers and restaurants
+CREATE TABLE IF NOT EXISTS bank_accounts (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    driver_id UUID REFERENCES drivers(id) ON DELETE CASCADE,
+    restaurant_id UUID REFERENCES restaurants(id) ON DELETE CASCADE,
+    bank_name VARCHAR(100) NOT NULL,
+    account_number VARCHAR(50) NOT NULL,
+    account_name VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    CONSTRAINT bank_accounts_driver_or_restaurant CHECK (
+        (
+            driver_id IS NOT NULL
+            AND restaurant_id IS NULL
+        )
+        OR (
+            driver_id IS NULL
+            AND restaurant_id IS NOT NULL
+        )
+    )
+);
+CREATE INDEX idx_bank_accounts_driver ON bank_accounts(driver_id);
+CREATE INDEX idx_bank_accounts_restaurant ON bank_accounts(restaurant_id);
+-- Notification settings per user
+CREATE TABLE IF NOT EXISTS notification_settings (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE UNIQUE,
+    push_enabled BOOLEAN DEFAULT true,
+    email_enabled BOOLEAN DEFAULT true,
+    sms_enabled BOOLEAN DEFAULT true,
+    order_updates BOOLEAN DEFAULT true,
+    promotions BOOLEAN DEFAULT true,
+    news BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+CREATE INDEX idx_notification_settings_user ON notification_settings(user_id);
+-- System settings for admin
+CREATE TABLE IF NOT EXISTS system_settings (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    key VARCHAR(100) UNIQUE NOT NULL,
+    value TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+-- Add missing columns to existing tables
+ALTER TABLE applications
+ADD COLUMN IF NOT EXISTS owner_name VARCHAR(255);
+ALTER TABLE applications
+ADD COLUMN IF NOT EXISTS cuisine_type VARCHAR(100);
+ALTER TABLE applications
+ADD COLUMN IF NOT EXISTS vehicle_type VARCHAR(50);
+ALTER TABLE applications
+ADD COLUMN IF NOT EXISTS vehicle_number VARCHAR(50);
+ALTER TABLE applications
+ADD COLUMN IF NOT EXISTS license_number VARCHAR(100);
+ALTER TABLE applications
+ADD COLUMN IF NOT EXISTS experience INTEGER DEFAULT 0;
+ALTER TABLE applications
+ADD COLUMN IF NOT EXISTS admin_notes TEXT;
+ALTER TABLE applications
+ADD COLUMN IF NOT EXISTS name VARCHAR(255);
+ALTER TABLE drivers
+ADD COLUMN IF NOT EXISTS current_latitude DECIMAL(10, 8);
+ALTER TABLE drivers
+ADD COLUMN IF NOT EXISTS current_longitude DECIMAL(11, 8);
+ALTER TABLE drivers
+ADD COLUMN IF NOT EXISTS last_location_update TIMESTAMP WITH TIME ZONE;
+ALTER TABLE drivers
+ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true;
+ALTER TABLE users
+ADD COLUMN IF NOT EXISTS full_name VARCHAR(255);
+ALTER TABLE users
+ADD COLUMN IF NOT EXISTS last_login TIMESTAMP WITH TIME ZONE;
+ALTER TABLE restaurants
+ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true;
+ALTER TABLE restaurants
+ADD COLUMN IF NOT EXISTS review_count INTEGER DEFAULT 0;
+ALTER TABLE restaurants
+ADD COLUMN IF NOT EXISTS minimum_order DECIMAL(10, 2) DEFAULT 0;
+ALTER TABLE restaurants
+ADD COLUMN IF NOT EXISTS delivery_fee DECIMAL(10, 2) DEFAULT 3000;
+ALTER TABLE restaurants
+ADD COLUMN IF NOT EXISTS delivery_time INTEGER DEFAULT 30;
+ALTER TABLE orders
+ADD COLUMN IF NOT EXISTS order_number VARCHAR(20);
+ALTER TABLE orders
+ADD COLUMN IF NOT EXISTS total_amount DECIMAL(10, 2);
+ALTER TABLE orders
+ADD COLUMN IF NOT EXISTS payment_method VARCHAR(50) DEFAULT 'cash';
+ALTER TABLE orders
+ADD COLUMN IF NOT EXISTS payment_status VARCHAR(50) DEFAULT 'pending';
+ALTER TABLE orders
+ADD COLUMN IF NOT EXISTS delivery_notes TEXT;
+ALTER TABLE orders
+ADD COLUMN IF NOT EXISTS estimated_delivery_time TIMESTAMP WITH TIME ZONE;
+ALTER TABLE orders
+ADD COLUMN IF NOT EXISTS cancellation_reason TEXT;
+ALTER TABLE notifications
+ADD COLUMN IF NOT EXISTS read_at TIMESTAMP WITH TIME ZONE;
+-- =============================================
+-- AUTO ORDER NUMBER TRIGGER
+-- =============================================
+CREATE OR REPLACE FUNCTION set_order_number() RETURNS TRIGGER AS $$
+DECLARE today_count INTEGER;
+BEGIN
+SELECT COUNT(*) + 1 INTO today_count
+FROM orders
+WHERE DATE(created_at) = CURRENT_DATE;
+NEW.order_number := '#' || LPAD(today_count::TEXT, 4, '0');
+RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+DROP TRIGGER IF EXISTS trigger_set_order_number ON orders;
+CREATE TRIGGER trigger_set_order_number BEFORE
+INSERT ON orders FOR EACH ROW
+    WHEN (NEW.order_number IS NULL) EXECUTE FUNCTION set_order_number();
+-- =============================================
+-- POLICIES FOR NEW TABLES
+-- =============================================
+ALTER TABLE bank_accounts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE notification_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE system_settings ENABLE ROW LEVEL SECURITY;

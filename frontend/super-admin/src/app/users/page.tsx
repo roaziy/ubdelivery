@@ -5,7 +5,6 @@ import { FiSearch, FiPause, FiPlay, FiUser } from 'react-icons/fi';
 import AdminLayout from '@/components/layout/AdminLayout';
 import { User } from '@/types';
 import { UserService } from '@/lib/services';
-import { mockUsers } from '@/lib/mockData';
 import { useNotifications } from '@/components/ui/Notification';
 
 export default function UsersPage() {
@@ -18,9 +17,14 @@ export default function UsersPage() {
     const fetchData = async () => {
       try {
         const response = await UserService.getAllUsers();
-        if (response.success) setUsers(response.data!);
-      } catch {
-        setUsers(mockUsers);
+        if (response.success && response.data) {
+          const data = response.data as any;
+          const items = data.items || data;
+          setUsers(Array.isArray(items) ? items : []);
+        }
+      } catch (error) {
+        console.error('Error fetching users:', error);
+        setUsers([]);
       } finally {
         setLoading(false);
       }
@@ -29,20 +33,25 @@ export default function UsersPage() {
   }, []);
 
   const handleToggleStatus = async (id: string, currentStatus: string, userName: string) => {
-    if (currentStatus === 'active') {
-      await UserService.suspendUser(id);
-      setUsers((prev) => prev.map((u) => u.id === id ? { ...u, status: 'suspended' as const } : u));
-      notify.warning('Түдгэлзүүлсэн', `${userName} хэрэглэгч түдгэлзүүлэгдлээ`);
-    } else {
-      await UserService.activateUser(id);
-      setUsers((prev) => prev.map((u) => u.id === id ? { ...u, status: 'active' as const } : u));
-      notify.success('Идэвхжүүлсэн', `${userName} хэрэглэгч идэвхжүүлэгдлээ`);
+    try {
+      if (currentStatus === 'active') {
+        await UserService.suspendUser(id);
+        setUsers((prev) => prev.map((u) => u.id === id ? { ...u, status: 'suspended' as const } : u));
+        notify.warning('Түдгэлзүүлсэн', `${userName} хэрэглэгч түдгэлзүүлэгдлээ`);
+      } else {
+        await UserService.activateUser(id);
+        setUsers((prev) => prev.map((u) => u.id === id ? { ...u, status: 'active' as const } : u));
+        notify.success('Идэвхжүүлсэн', `${userName} хэрэглэгч идэвхжүүлэгдлээ`);
+      }
+    } catch (error) {
+      console.error('Error toggling status:', error);
+      notify.error('Алдаа', 'Төлөв өөрчлөхөд алдаа гарлаа');
     }
   };
 
-  const filteredUsers = users.filter((u) =>
-    u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    u.email.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredUsers = users.filter((u: any) =>
+    (u.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (u.email || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const getStatusColor = (status: string) => {
@@ -121,13 +130,13 @@ export default function UsersPage() {
                   </td>
                 </tr>
               ) : (
-                filteredUsers.map((user) => (
+                filteredUsers.map((user: any) => (
                   <tr key={user.id} className="border-b border-gray-100 last:border-b-0">
-                    <td className="py-3 px-4 text-sm font-medium">{user.name}</td>
-                    <td className="py-3 px-4 text-sm text-gray-500">{user.email}</td>
-                    <td className="py-3 px-4 text-sm text-gray-500">{user.phone}</td>
-                    <td className="py-3 px-4 text-sm text-gray-500">{user.totalOrders}</td>
-                    <td className="py-3 px-4 text-sm font-medium">₮{user.totalSpent.toLocaleString()}</td>
+                    <td className="py-3 px-4 text-sm font-medium">{user.name || '-'}</td>
+                    <td className="py-3 px-4 text-sm text-gray-500">{user.email || '-'}</td>
+                    <td className="py-3 px-4 text-sm text-gray-500">{user.phone || '-'}</td>
+                    <td className="py-3 px-4 text-sm text-gray-500">{user.totalOrders ?? user.total_orders ?? 0}</td>
+                    <td className="py-3 px-4 text-sm font-medium">₮{(user.totalSpent ?? user.total_spent ?? 0).toLocaleString()}</td>
                     <td className="py-3 px-4">
                       <span className={`text-sm ${getStatusColor(user.status)}`}>
                         {getStatusLabel(user.status)}
@@ -135,7 +144,7 @@ export default function UsersPage() {
                     </td>
                     <td className="py-3 px-4">
                       <button
-                        onClick={() => handleToggleStatus(user.id, user.status, user.name)}
+                        onClick={() => handleToggleStatus(user.id, user.status, user.name || 'Хэрэглэгч')}
                         className={`p-2 rounded-full ${
                           user.status === 'active'
                             ? 'bg-red-100 text-red-500 hover:bg-red-200'

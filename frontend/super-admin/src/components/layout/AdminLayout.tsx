@@ -35,8 +35,13 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     useEffect(() => {
+        const token = sessionStorage.getItem('admin_token');
         const auth = sessionStorage.getItem('adminAuthenticated');
-        if (!auth) {
+        if (!token || !auth) {
+            // Clear any stale data
+            sessionStorage.removeItem('admin_token');
+            sessionStorage.removeItem('admin_user');
+            sessionStorage.removeItem('adminAuthenticated');
             router.push('/');
             return;
         }
@@ -44,6 +49,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     }, [router]);
 
     const handleLogout = () => {
+        sessionStorage.removeItem('admin_token');
+        sessionStorage.removeItem('admin_user');
         sessionStorage.removeItem('adminAuthenticated');
         router.push('/');
     };

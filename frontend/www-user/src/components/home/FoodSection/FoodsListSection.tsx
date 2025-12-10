@@ -4,8 +4,7 @@ import { useState, useEffect } from "react";
 import { FaStar } from "react-icons/fa6";
 import { IoIosAdd } from "react-icons/io";
 import { FoodItem, FoodCategory } from "@/lib/types";
-import { FoodService, CartService } from "@/lib/api";
-import { mockFoods, mockCategories, simulateDelay } from "@/lib/mockData";
+import { FoodService, CartService, AuthService } from "@/lib/api";
 import { FoodCardSkeleton, CategorySkeleton } from "@/components/ui/Skeleton";
 import { useNotifications } from "@/components/ui/Notification";
 import FoodDetailModal from "@/components/home/FoodSection/FoodDetailModal";
@@ -33,13 +32,11 @@ export default function FoodsListSection() {
                 const response = await FoodService.getCategories();
                 if (response.success && response.data) {
                     setCategories([{ id: 'all', name: 'Бүх хоол', icon: '🍽️' }, ...response.data]);
-                } else {
-                    await simulateDelay(500);
-                    setCategories([{ id: 'all', name: 'Бүх хоол', icon: '🍽️' }, ...mockCategories as FoodCategory[]]);
                 }
-            } catch {
-                await simulateDelay(500);
-                setCategories([{ id: 'all', name: 'Бүх хоол', icon: '🍽️' }, ...mockCategories as FoodCategory[]]);
+            } catch (error) {
+                console.error('Error fetching categories:', error);
+                // Set default categories
+                setCategories([{ id: 'all', name: 'Бүх хоол', icon: '🍽️' }]);
             } finally {
                 setCategoriesLoading(false);
             }
@@ -61,14 +58,13 @@ export default function FoodsListSection() {
                     setFoods(response.data.items);
                     setTotalPages(response.data.totalPages);
                 } else {
-                    await simulateDelay(800);
-                    setFoods(mockFoods as FoodItem[]);
-                    setTotalPages(Math.ceil(mockFoods.length / itemsPerPage));
+                    setFoods([]);
+                    setTotalPages(1);
                 }
-            } catch {
-                await simulateDelay(800);
-                setFoods(mockFoods as FoodItem[]);
-                setTotalPages(Math.ceil(mockFoods.length / itemsPerPage));
+            } catch (error) {
+                console.error('Error fetching foods:', error);
+                setFoods([]);
+                setTotalPages(1);
             } finally {
                 setLoading(false);
             }
@@ -110,9 +106,16 @@ export default function FoodsListSection() {
 
     const handleAddToCart = async (e: React.MouseEvent, food: FoodItem) => {
         e.stopPropagation();
+        
+        // Check if user is logged in
+        if (!AuthService.isLoggedIn()) {
+            notify.warning('Нэвтрэх шаардлагатай', 'Сагсанд нэмэхийн тулд эхлээд нэвтэрнэ үү');
+            return;
+        }
+        
         setAddingToCart(food.id);
         try {
-            const response = await CartService.addFood(parseInt(food.id), 1);
+            const response = await CartService.addItem(food.id, 1);
             if (response.success) {
                 notify.success('Сагсанд нэмэгдлээ', `${food.name} сагсанд нэмэгдлээ`);
             } else {

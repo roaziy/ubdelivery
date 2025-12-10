@@ -7,7 +7,6 @@ import { FaRegClock } from "react-icons/fa";
 import { FaStar } from "react-icons/fa6";
 import { Restaurant } from "@/lib/types";
 import { RestaurantService } from "@/lib/api";
-import { mockRestaurants, simulateDelay } from "@/lib/mockData";
 import { RestaurantCardSkeleton } from "@/components/ui/Skeleton";
 import dynamic from 'next/dynamic';
 
@@ -84,21 +83,21 @@ export default function RestaurantsSection() {
     
     const itemsPerPage = 20;
 
-    // Fetch featured restaurants
+    // Fetch featured restaurants (top rated)
     useEffect(() => {
         const fetchFeatured = async () => {
             setFeaturedLoading(true);
             try {
-                const response = await RestaurantService.getFeatured();
+                const response = await RestaurantService.getAll({
+                    page: 1,
+                    pageSize: 4,
+                    sortBy: 'rating'
+                });
                 if (response.success && response.data) {
-                    setFeaturedRestaurants(response.data.slice(0, 4));
-                } else {
-                    await simulateDelay(500);
-                    setFeaturedRestaurants(mockRestaurants.slice(0, 4) as Restaurant[]);
+                    setFeaturedRestaurants(response.data.items);
                 }
-            } catch {
-                await simulateDelay(500);
-                setFeaturedRestaurants(mockRestaurants.slice(0, 4) as Restaurant[]);
+            } catch (error) {
+                console.error('Error fetching featured restaurants:', error);
             } finally {
                 setFeaturedLoading(false);
             }
@@ -120,19 +119,13 @@ export default function RestaurantsSection() {
                     setAllRestaurants(response.data.items);
                     setTotalPages(response.data.totalPages);
                 } else {
-                    await simulateDelay(800);
-                    const filtered = searchQuery 
-                        ? mockRestaurants.filter(r => 
-                            r.name.toLowerCase().includes(searchQuery.toLowerCase())
-                          )
-                        : mockRestaurants;
-                    setAllRestaurants(filtered as Restaurant[]);
-                    setTotalPages(Math.ceil(filtered.length / itemsPerPage));
+                    setAllRestaurants([]);
+                    setTotalPages(1);
                 }
-            } catch {
-                await simulateDelay(800);
-                setAllRestaurants(mockRestaurants as Restaurant[]);
-                setTotalPages(Math.ceil(mockRestaurants.length / itemsPerPage));
+            } catch (error) {
+                console.error('Error fetching restaurants:', error);
+                setAllRestaurants([]);
+                setTotalPages(1);
             } finally {
                 setLoading(false);
             }

@@ -15,7 +15,8 @@ import {
     LoginResponse,
     ApplicationStatus,
     RefundStatus,
-    PayoutStatus
+    PayoutStatus,
+    RevenueData
 } from '@/types';
 
 // ============ AUTH SERVICES ============
@@ -289,7 +290,7 @@ export const payoutService = {
 // ============ ANALYTICS SERVICES ============
 export const analyticsService = {
     getPlatformStats: async (): Promise<ApiResponse<PlatformStats>> => {
-        return api.get<PlatformStats>('/admin/analytics/stats');
+        return api.get<PlatformStats>('/dashboard/admin');
     },
 
     getDailyStats: async (params?: {
@@ -301,219 +302,192 @@ export const analyticsService = {
         if (params?.dateTo) searchParams.append('dateTo', params.dateTo);
         
         const query = searchParams.toString() ? `?${searchParams.toString()}` : '';
-        return api.get<DailyStats[]>(`/admin/analytics/daily${query}`);
+        return api.get<DailyStats[]>(`/dashboard/charts/orders${query}`);
+    },
+
+    getFinanceSummary: async (params?: {
+        period?: string;
+        startDate?: string;
+        endDate?: string;
+    }): Promise<ApiResponse<{
+        totalOrders: number;
+        completedOrders: number;
+        cancelledOrders: number;
+        totalRevenue: number;
+        totalDeliveryFees: number;
+        averageOrderValue: number;
+        platformCommission: number;
+    }>> => {
+        const searchParams = new URLSearchParams();
+        if (params?.period) searchParams.append('period', params.period);
+        if (params?.startDate) searchParams.append('startDate', params.startDate);
+        if (params?.endDate) searchParams.append('endDate', params.endDate);
+        
+        const query = searchParams.toString() ? `?${searchParams.toString()}` : '';
+        return api.get(`/admin/finance/summary${query}`);
     },
 };
 
-// ============ MOCK-COMPATIBLE WRAPPER SERVICES ============
-// These provide a simple interface with mock data fallback for development
-
-import {
-    mockAdminUser,
-    mockRestaurantApplications,
-    mockDriverApplications,
-    mockRestaurants,
-    mockDrivers,
-    mockUsers,
-    mockOrders,
-    mockRefundRequests,
-    mockPayouts,
-    mockPlatformStats,
-    mockRevenueData,
-} from './mockData';
-import { RevenueData } from '@/types';
-
-// Helper to simulate API delay
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+// ============ REAL API SERVICES (Aliases) ============
+// These match the naming convention used in the components
 
 export const AuthService = {
     login: async (data: LoginRequest): Promise<ApiResponse<AdminUser>> => {
-        await delay(500);
-        // Mock login - accept any username containing 'admin'
-        if (data.username.includes('admin')) {
-            return { success: true, data: mockAdminUser };
+        const response = await authService.login(data);
+        if (response.success && response.data) {
+            // Store token
+            sessionStorage.setItem('admin_token', response.data.token);
+            sessionStorage.setItem('admin_user', JSON.stringify(response.data.user));
+            return { success: true, data: response.data.user as unknown as AdminUser };
         }
-        return { success: false, error: 'Invalid credentials' };
+        return { success: false, error: response.error };
     },
 };
 
 export const StatsService = {
     getPlatformStats: async (): Promise<ApiResponse<PlatformStats>> => {
-        await delay(300);
-        return { success: true, data: mockPlatformStats };
+        return analyticsService.getPlatformStats();
     },
 };
 
 export const ApplicationService = {
     getRestaurantApplications: async (): Promise<ApiResponse<RestaurantApplication[]>> => {
-        await delay(300);
-        return { success: true, data: mockRestaurantApplications };
+        const response = await restaurantApplicationService.getApplications({ status: 'pending' });
+        if (response.success && response.data) {
+            return { success: true, data: response.data.items };
+        }
+        return { success: false, error: response.error };
     },
 
     getDriverApplications: async (): Promise<ApiResponse<DriverApplication[]>> => {
-        await delay(300);
-        return { success: true, data: mockDriverApplications };
+        const response = await driverApplicationService.getApplications({ status: 'pending' });
+        if (response.success && response.data) {
+            return { success: true, data: response.data.items };
+        }
+        return { success: false, error: response.error };
     },
 
     approveRestaurant: async (id: string): Promise<ApiResponse<RestaurantApplication>> => {
-        await delay(500);
-        const app = mockRestaurantApplications.find(a => a.id === id);
-        if (app) {
-            return { success: true, data: { ...app, status: 'approved' } };
-        }
-        return { success: false, error: 'Application not found' };
+        return restaurantApplicationService.approveApplication(id);
     },
 
     rejectRestaurant: async (id: string, reason: string): Promise<ApiResponse<RestaurantApplication>> => {
-        await delay(500);
-        const app = mockRestaurantApplications.find(a => a.id === id);
-        if (app) {
-            return { success: true, data: { ...app, status: 'rejected', rejectionReason: reason } };
-        }
-        return { success: false, error: 'Application not found' };
+        return restaurantApplicationService.rejectApplication(id, reason);
     },
 
     approveDriver: async (id: string): Promise<ApiResponse<DriverApplication>> => {
-        await delay(500);
-        const app = mockDriverApplications.find(a => a.id === id);
-        if (app) {
-            return { success: true, data: { ...app, status: 'approved' } };
-        }
-        return { success: false, error: 'Application not found' };
+        return driverApplicationService.approveApplication(id);
     },
 
     rejectDriver: async (id: string, reason: string): Promise<ApiResponse<DriverApplication>> => {
-        await delay(500);
-        const app = mockDriverApplications.find(a => a.id === id);
-        if (app) {
-            return { success: true, data: { ...app, status: 'rejected', rejectionReason: reason } };
-        }
-        return { success: false, error: 'Application not found' };
+        return driverApplicationService.rejectApplication(id, reason);
     },
 };
 
 export const RestaurantService = {
     getAllRestaurants: async (): Promise<ApiResponse<Restaurant[]>> => {
-        await delay(300);
-        return { success: true, data: mockRestaurants };
+        const response = await restaurantService.getRestaurants();
+        if (response.success && response.data) {
+            return { success: true, data: response.data.items };
+        }
+        return { success: false, error: response.error };
     },
 
     suspendRestaurant: async (id: string): Promise<ApiResponse<Restaurant>> => {
-        await delay(500);
-        const restaurant = mockRestaurants.find(r => r.id === id);
-        if (restaurant) {
-            return { success: true, data: { ...restaurant, status: 'suspended' } };
-        }
-        return { success: false, error: 'Restaurant not found' };
+        return restaurantService.toggleActive(id, false);
     },
 
     activateRestaurant: async (id: string): Promise<ApiResponse<Restaurant>> => {
-        await delay(500);
-        const restaurant = mockRestaurants.find(r => r.id === id);
-        if (restaurant) {
-            return { success: true, data: { ...restaurant, status: 'active' } };
-        }
-        return { success: false, error: 'Restaurant not found' };
+        return restaurantService.toggleActive(id, true);
     },
 };
 
 export const DriverService = {
     getAllDrivers: async (): Promise<ApiResponse<Driver[]>> => {
-        await delay(300);
-        return { success: true, data: mockDrivers };
+        const response = await driverService.getDrivers();
+        if (response.success && response.data) {
+            return { success: true, data: response.data.items };
+        }
+        return { success: false, error: response.error };
     },
 
     suspendDriver: async (id: string): Promise<ApiResponse<Driver>> => {
-        await delay(500);
-        const driver = mockDrivers.find(d => d.id === id);
-        if (driver) {
-            return { success: true, data: { ...driver, status: 'suspended' } };
-        }
-        return { success: false, error: 'Driver not found' };
+        return driverService.toggleActive(id, false);
     },
 
     activateDriver: async (id: string): Promise<ApiResponse<Driver>> => {
-        await delay(500);
-        const driver = mockDrivers.find(d => d.id === id);
-        if (driver) {
-            return { success: true, data: { ...driver, status: 'active' } };
-        }
-        return { success: false, error: 'Driver not found' };
+        return driverService.toggleActive(id, true);
     },
 };
 
 export const UserService = {
     getAllUsers: async (): Promise<ApiResponse<User[]>> => {
-        await delay(300);
-        return { success: true, data: mockUsers };
+        const response = await userService.getUsers();
+        if (response.success && response.data) {
+            return { success: true, data: response.data.items };
+        }
+        return { success: false, error: response.error };
     },
 
     suspendUser: async (id: string): Promise<ApiResponse<User>> => {
-        await delay(500);
-        const user = mockUsers.find(u => u.id === id);
-        if (user) {
-            return { success: true, data: { ...user, status: 'suspended' } };
-        }
-        return { success: false, error: 'User not found' };
+        return userService.updateUser(id, { isActive: false } as Partial<User>);
     },
 
     activateUser: async (id: string): Promise<ApiResponse<User>> => {
-        await delay(500);
-        const user = mockUsers.find(u => u.id === id);
-        if (user) {
-            return { success: true, data: { ...user, status: 'active' } };
-        }
-        return { success: false, error: 'User not found' };
+        return userService.updateUser(id, { isActive: true } as Partial<User>);
     },
 };
 
 export const OrderService = {
     getAllOrders: async (): Promise<ApiResponse<Order[]>> => {
-        await delay(300);
-        return { success: true, data: mockOrders };
+        const response = await orderService.getOrders();
+        if (response.success && response.data) {
+            return { success: true, data: response.data.items };
+        }
+        return { success: false, error: response.error };
     },
 };
 
 export const FinanceService = {
     getRefundRequests: async (): Promise<ApiResponse<RefundRequest[]>> => {
-        await delay(300);
-        return { success: true, data: mockRefundRequests };
+        const response = await refundService.getRefunds();
+        if (response.success && response.data) {
+            return { success: true, data: response.data.items };
+        }
+        return { success: false, error: response.error };
     },
 
     getPayouts: async (): Promise<ApiResponse<Payout[]>> => {
-        await delay(300);
-        return { success: true, data: mockPayouts };
+        const response = await payoutService.getPayouts();
+        if (response.success && response.data) {
+            return { success: true, data: response.data.items };
+        }
+        return { success: false, error: response.error };
     },
 
     getRevenueData: async (): Promise<ApiResponse<RevenueData[]>> => {
-        await delay(300);
-        return { success: true, data: mockRevenueData };
+        const response = await analyticsService.getDailyStats();
+        if (response.success && response.data) {
+            // Transform to RevenueData format
+            const revenueData = response.data.map(item => ({
+                date: item.date,
+                revenue: item.revenue,
+                orders: item.orders,
+            }));
+            return { success: true, data: revenueData };
+        }
+        return { success: false, error: response.error };
     },
 
     approveRefund: async (id: string): Promise<ApiResponse<RefundRequest>> => {
-        await delay(500);
-        const refund = mockRefundRequests.find(r => r.id === id);
-        if (refund) {
-            return { success: true, data: { ...refund, status: 'approved' } };
-        }
-        return { success: false, error: 'Refund not found' };
+        return refundService.approveRefund(id);
     },
 
     rejectRefund: async (id: string, reason: string): Promise<ApiResponse<RefundRequest>> => {
-        await delay(500);
-        const refund = mockRefundRequests.find(r => r.id === id);
-        if (refund) {
-            return { success: true, data: { ...refund, status: 'rejected', adminNotes: reason } };
-        }
-        return { success: false, error: 'Refund not found' };
+        return refundService.rejectRefund(id, reason);
     },
 
     processPayout: async (id: string): Promise<ApiResponse<Payout>> => {
-        await delay(500);
-        const payout = mockPayouts.find(p => p.id === id);
-        if (payout) {
-            return { success: true, data: { ...payout, status: 'processing' } };
-        }
-        return { success: false, error: 'Payout not found' };
+        return payoutService.processPayout(id);
     },
 };

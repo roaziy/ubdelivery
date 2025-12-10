@@ -3,52 +3,72 @@
 import { useState } from "react";
 import Header from "@/components/LandingPage/header/header";
 import Footer from "@/components/LandingPage/footer/footer";
+import { useNotifications } from "@/components/ui/Notification";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
-interface SubmitResult {
-  success: boolean;
-  message?: string;
-}
-
 export default function Collaborate() {
+  const notify = useNotifications();
   const [registrationType, setRegistrationType] = useState<"restaurant" | "driver">("restaurant");
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitResult, setSubmitResult] = useState<SubmitResult | null>(null);
   const [formData, setFormData] = useState({
     businessName: "",
     phoneNumber: "",
-    businessPhoneNumber: "",
     email: "",
     address: "",
     coordinates: "",
     additionalInfo: "",
     firstName: "",
-    lastName: ""
+    lastName: "",
+    vehicleType: "",
+    vehicleNumber: "",
+    licenseNumber: "",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setSubmitResult(null);
 
     try {
       const formDataToSend = new FormData();
 
       if (registrationType === "restaurant") {
+        // Validate required fields
+        if (!formData.businessName || !formData.phoneNumber) {
+          notify.error('Алдаа', 'Нэр болон утасны дугаар заавал бөглөнө үү');
+          setIsSubmitting(false);
+          return;
+        }
+
         formDataToSend.append('name', formData.businessName);
         formDataToSend.append('phone', formData.phoneNumber);
         formDataToSend.append('email', formData.email);
         formDataToSend.append('address', formData.address);
         formDataToSend.append('message', formData.additionalInfo);
+        
+        // Parse coordinates if provided
+        if (formData.coordinates) {
+          formDataToSend.append('coordinates', formData.coordinates);
+        }
       } else {
+        // Validate required fields for driver
+        if (!formData.firstName || !formData.lastName || !formData.phoneNumber) {
+          notify.error('Алдаа', 'Нэр, овог болон утасны дугаар заавал бөглөнө үү');
+          setIsSubmitting(false);
+          return;
+        }
+
         const fullName = `${formData.lastName} ${formData.firstName}`.trim();
         formDataToSend.append('name', fullName);
         formDataToSend.append('phone', formData.phoneNumber);
         formDataToSend.append('email', formData.email);
         formDataToSend.append('message', formData.additionalInfo);
+        formDataToSend.append('vehicleType', formData.vehicleType);
+        formDataToSend.append('vehicleNumber', formData.vehicleNumber);
+        formDataToSend.append('licenseNumber', formData.licenseNumber);
+        
         if (profileImageFile) {
           formDataToSend.append('documents', profileImageFile);
         }
@@ -66,41 +86,38 @@ export default function Collaborate() {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        setSubmitResult({ 
-          success: true, 
-          message: 'Таны хүсэлт амжилттай илгээгдлээ! Бид тантай удахгүй холбогдоно.' 
-        });
+        notify.success(
+          'Амжилттай илгээгдлээ!', 
+          'Таны хүсэлт амжилттай илгээгдлээ. Бид тантай удахгүй холбогдоно.'
+        );
+        
         // Reset form
         setFormData({
           businessName: "",
           phoneNumber: "",
-          businessPhoneNumber: "",
           email: "",
           address: "",
           coordinates: "",
           additionalInfo: "",
           firstName: "",
-          lastName: ""
+          lastName: "",
+          vehicleType: "",
+          vehicleNumber: "",
+          licenseNumber: "",
         });
         setProfileImage(null);
         setProfileImageFile(null);
       } else {
-        setSubmitResult({ 
-          success: false, 
-          message: data.message || 'Хүсэлт илгээхэд алдаа гарлаа' 
-        });
+        notify.error('Алдаа', data.message || 'Хүсэлт илгээхэд алдаа гарлаа');
       }
     } catch {
-      setSubmitResult({ 
-        success: false, 
-        message: 'Сервертэй холбогдоход алдаа гарлаа' 
-      });
+      notify.error('Алдаа', 'Сервертэй холбогдоход алдаа гарлаа');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
@@ -110,7 +127,13 @@ export default function Collaborate() {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.type === "image/png" || file.type === "image/jpeg") {
+      if (file.type === "image/png" || file.type === "image/jpeg" || file.type === "image/webp") {
+        // Check file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+          notify.error('Алдаа', 'Файлын хэмжээ 5MB-аас хэтрэхгүй байх ёстой');
+          return;
+        }
+        
         setProfileImageFile(file);
         const reader = new FileReader();
         reader.onloadend = () => {
@@ -118,7 +141,7 @@ export default function Collaborate() {
         };
         reader.readAsDataURL(file);
       } else {
-        alert("Зөвхөн PNG эсвэл JPEG формат зөвшөөрөгдөнө");
+        notify.error('Алдаа', 'Зөвхөн PNG, JPEG эсвэл WebP формат зөвшөөрөгдөнө');
       }
     }
   };
@@ -165,55 +188,58 @@ export default function Collaborate() {
               <>
                 <div>
                   <label className="block text-sm font-medium text-center mb-2">
-                    Байгууллагын нэр
+                    Байгууллагын нэр <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     name="businessName"
-                    value={formData.businessName || ""}
+                    value={formData.businessName}
                     onChange={handleChange}
-                    placeholder="ubdelivery.xyz"
+                    placeholder="Ресторан нэр"
+                    required
                     className="w-full px-4 py-3 border border-[#D8D9D7] rounded-[12px] focus:outline-none focus:ring-2 focus:ring-mainGreen"
                   />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-center  mb-2">
-                      Утасны дугаар
+                    <label className="block text-sm font-medium text-center mb-2">
+                      Утасны дугаар <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="tel"
                       name="phoneNumber"
-                      value={formData.phoneNumber || ""}
+                      value={formData.phoneNumber}
                       onChange={handleChange}
                       placeholder="70117011"
+                      required
+                      maxLength={8}
                       className="w-full px-4 py-3 border border-[#D8D9D7] rounded-[12px] focus:outline-none focus:ring-2 focus:ring-mainGreen"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-center  mb-2">
+                    <label className="block text-sm font-medium text-center mb-2">
                       Цахим шуудан
                     </label>
                     <input
                       type="email"
                       name="email"
-                      value={formData.email || ""}
+                      value={formData.email}
                       onChange={handleChange}
-                      placeholder="contact@ubdelivery.xyz"
+                      placeholder="contact@example.mn"
                       className="w-full px-4 py-3 border border-[#D8D9D7] rounded-[12px] focus:outline-none focus:ring-2 focus:ring-mainGreen"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-center  mb-2">
+                  <label className="block text-sm font-medium text-center mb-2">
                     Албан ёсны хаяг
                   </label>
                   <input
                     type="text"
                     name="address"
-                    value={formData.address || ""}
+                    value={formData.address}
                     onChange={handleChange}
                     placeholder="СХД-ийн 3-р хороо..."
                     className="w-full px-4 py-3 border border-[#D8D9D7] rounded-[12px] focus:outline-none focus:ring-2 focus:ring-mainGreen"
@@ -221,28 +247,31 @@ export default function Collaborate() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-center  mb-2">
-                    Google Maps аарын coordinate
+                  <label className="block text-sm font-medium text-center mb-2">
+                    Google Maps координат
                   </label>
                   <input
                     type="text"
                     name="coordinates"
-                    value={formData.coordinates || ""}
+                    value={formData.coordinates}
                     onChange={handleChange}
-                    placeholder="47°55'04.4&quot;N 106°56'11.7&quot;E"
+                    placeholder="47.918, 106.917"
                     className="w-full px-4 py-3 border border-[#D8D9D7] rounded-[12px] focus:outline-none focus:ring-2 focus:ring-mainGreen"
                   />
+                  <p className="text-xs text-gray-500 mt-1 text-center">
+                    Google Maps дээр байршилаа сонгоод coordinate-ийг хуулна уу
+                  </p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-center  mb-2">
+                  <label className="block text-sm font-medium text-center mb-2">
                     Нэмэлт мэдээлэл
                   </label>
                   <textarea
                     name="additionalInfo"
-                    value={formData.additionalInfo || ""}
+                    value={formData.additionalInfo}
                     onChange={handleChange}
-                    placeholder="Нэмэлт мэдээлэл"
+                    placeholder="Ресторантай холбоотой нэмэлт мэдээлэл..."
                     rows={4}
                     className="w-full px-4 py-3 border border-[#D8D9D7] rounded-[12px] focus:outline-none focus:ring-2 focus:ring-mainGreen resize-none"
                   />
@@ -253,27 +282,29 @@ export default function Collaborate() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-center mb-2">
-                      Таны овог
+                      Овог <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
                       name="lastName"
-                      value={formData.lastName || ""}
+                      value={formData.lastName}
                       onChange={handleChange}
                       placeholder="Овог"
+                      required
                       className="w-full px-4 py-3 border border-[#D8D9D7] rounded-[12px] focus:outline-none focus:ring-2 focus:ring-mainGreen"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-center mb-2">
-                      Таны нэр
+                      Нэр <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
                       name="firstName"
-                      value={formData.firstName || ""}
+                      value={formData.firstName}
                       onChange={handleChange}
                       placeholder="Нэр"
+                      required
                       className="w-full px-4 py-3 border border-[#D8D9D7] rounded-[12px] focus:outline-none focus:ring-2 focus:ring-mainGreen"
                     />
                   </div>
@@ -282,14 +313,16 @@ export default function Collaborate() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-center mb-2">
-                      Утасны дугаар
+                      Утасны дугаар <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="tel"
                       name="phoneNumber"
-                      value={formData.phoneNumber || ""}
+                      value={formData.phoneNumber}
                       onChange={handleChange}
                       placeholder="70117011"
+                      required
+                      maxLength={8}
                       className="w-full px-4 py-3 border border-[#D8D9D7] rounded-[12px] focus:outline-none focus:ring-2 focus:ring-mainGreen"
                     />
                   </div>
@@ -300,9 +333,55 @@ export default function Collaborate() {
                     <input
                       type="email"
                       name="email"
-                      value={formData.email || ""}
+                      value={formData.email}
                       onChange={handleChange}
-                      placeholder="contact@ubdelivery.xyz"
+                      placeholder="contact@example.mn"
+                      className="w-full px-4 py-3 border border-[#D8D9D7] rounded-[12px] focus:outline-none focus:ring-2 focus:ring-mainGreen"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-center mb-2">
+                      Тээврийн хэрэгслийн төрөл
+                    </label>
+                    <select
+                      name="vehicleType"
+                      value={formData.vehicleType}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 border border-[#D8D9D7] rounded-[12px] focus:outline-none focus:ring-2 focus:ring-mainGreen bg-white"
+                    >
+                      <option value="">Сонгох</option>
+                      <option value="motorcycle">Мотоцикл</option>
+                      <option value="car">Автомашин</option>
+                      <option value="bicycle">Дугуй</option>
+                      <option value="scooter">Скутер</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-center mb-2">
+                      Улсын дугаар
+                    </label>
+                    <input
+                      type="text"
+                      name="vehicleNumber"
+                      value={formData.vehicleNumber}
+                      onChange={handleChange}
+                      placeholder="0000 УБА"
+                      className="w-full px-4 py-3 border border-[#D8D9D7] rounded-[12px] focus:outline-none focus:ring-2 focus:ring-mainGreen"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-center mb-2">
+                      Жолооны үнэмлэх №
+                    </label>
+                    <input
+                      type="text"
+                      name="licenseNumber"
+                      value={formData.licenseNumber}
+                      onChange={handleChange}
+                      placeholder="А00000000"
                       className="w-full px-4 py-3 border border-[#D8D9D7] rounded-[12px] focus:outline-none focus:ring-2 focus:ring-mainGreen"
                     />
                   </div>
@@ -314,9 +393,9 @@ export default function Collaborate() {
                   </label>
                   <textarea
                     name="additionalInfo"
-                    value={formData.additionalInfo || ""}
+                    value={formData.additionalInfo}
                     onChange={handleChange}
-                    placeholder="Нэмэлт мэдээлэл"
+                    placeholder="Хүргэлтийн туршлага, ур чадвар..."
                     rows={4}
                     className="w-full px-4 py-3 border border-[#D8D9D7] rounded-[12px] focus:outline-none focus:ring-2 focus:ring-mainGreen resize-none"
                   />
@@ -324,40 +403,45 @@ export default function Collaborate() {
 
                 <div className="flex flex-col items-center">
                   <label className="block text-sm font-medium text-center mb-2">
-                    Профайл зураг байршуулах
+                    Жолооны үнэмлэхний зураг
                   </label>
                   <input
                     type="file"
-                    accept="image/png, image/jpeg"
+                    accept="image/png, image/jpeg, image/webp"
                     onChange={handleImageUpload}
                     className="hidden"
                     id="profileImage"
                   />
                   <label
                     htmlFor="profileImage"
-                    className="w-[125px] h-[125px] flex flex-col items-center justify-center border border-[#D8D9D7] rounded-[12px] text-center text-gray-400 text-xs cursor-pointer hover:bg-gray-50 transition-colors overflow-hidden"
+                    className="w-[200px] h-[125px] flex flex-col items-center justify-center border-2 border-dashed border-[#D8D9D7] rounded-[12px] text-center text-gray-400 text-xs cursor-pointer hover:bg-gray-50 hover:border-mainGreen transition-colors overflow-hidden"
                   >
                     {profileImage ? (
-                      <img src={profileImage} alt="Profile preview" className="w-full h-full object-cover" />
+                      <img src={profileImage} alt="Preview" className="w-full h-full object-cover" />
                     ) : (
                       <>
-                        512x512px PNG<br />
-                        эсвэл JPEG
+                        <svg className="w-8 h-8 mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        <span>PNG, JPEG эсвэл WebP</span>
+                        <span className="text-[10px] mt-1">Хамгийн ихдээ 5MB</span>
                       </>
                     )}
                   </label>
+                  {profileImage && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setProfileImage(null);
+                        setProfileImageFile(null);
+                      }}
+                      className="mt-2 text-sm text-red-500 hover:text-red-700"
+                    >
+                      Зураг устгах
+                    </button>
+                  )}
                 </div>
               </>
-            )}
-
-            {submitResult && (
-              <div className={`p-4 rounded-[12px] text-center ${
-                submitResult.success 
-                  ? 'bg-green-100 text-green-800 border border-green-300' 
-                  : 'bg-red-100 text-red-800 border border-red-300'
-              }`}>
-                {submitResult.message}
-              </div>
             )}
 
             <button

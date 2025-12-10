@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { MdOutlineEmail, MdOutlinePassword } from "react-icons/md";
 import { useNotifications } from "@/components/ui/Notification";
+import { authService } from "@/lib/services";
 
 export default function Home() {
     const router = useRouter();
@@ -28,12 +29,29 @@ export default function Home() {
 
         setIsLoading(true);
         
-        setTimeout(() => {
-            sessionStorage.setItem('adminAuthenticated', 'true');
-            notify.success('Амжилттай нэвтэрлээ', 'Тавтай морил, Админ!');
-            setTimeout(() => router.push('/dashboard'), 500);
+        try {
+            const response = await authService.login({
+                email: formData.email,
+                password: formData.password
+            });
+
+            if (response.success && response.data) {
+                // Store the token
+                sessionStorage.setItem('admin_token', response.data.token);
+                sessionStorage.setItem('admin_user', JSON.stringify(response.data.user));
+                sessionStorage.setItem('adminAuthenticated', 'true');
+                
+                notify.success('Амжилттай нэвтэрлээ', `Тавтай морил, ${response.data.user.name || 'Админ'}!`);
+                router.push('/dashboard');
+            } else {
+                notify.error('Нэвтрэх амжилтгүй', response.error || 'Имэйл эсвэл нууц үг буруу байна');
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            notify.error('Алдаа гарлаа', 'Сервертэй холбогдоход алдаа гарлаа');
+        } finally {
             setIsLoading(false);
-        }, 500);
+        }
     };
 
     return (
@@ -61,7 +79,7 @@ export default function Home() {
                                 type="text"
                                 value={formData.email}
                                 onChange={(e) => handleChange('email', e.target.value)}
-                                placeholder="superadmin"
+                                placeholder="Имэйл хаяг"
                                 className="flex-1 outline-none text-sm bg-transparent"
                             />
                         </div>
@@ -85,14 +103,17 @@ export default function Home() {
                     <button
                         type="submit"
                         disabled={isLoading}
-                        className="w-full bg-mainGreen text-white py-3 rounded-full font-medium hover:bg-green-600 transition-colors disabled:opacity-70"
+                        className="w-full bg-mainGreen text-white py-3 rounded-full font-medium hover:bg-green-600 transition-colors disabled:opacity-70 flex items-center justify-center gap-2"
                     >
+                        {isLoading && (
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        )}
                         {isLoading ? "Нэвтэрч байна..." : "Нэвтрэх"}
                     </button>
 
-                    {/* Demo hint */}
+                    {/* Info */}
                     <p className="text-center text-gray-400 text-xs mt-4">
-                        Демо: superadmin / ямар ч нууц үг
+                        Суперадмин эрхээр нэвтэрнэ үү
                     </p>
                     <p className="text-center text-gray-400 text-xs mt-1">
                         © 2025 UB Delivery. Бүх эрх хуулиар хамгаалагдсан.

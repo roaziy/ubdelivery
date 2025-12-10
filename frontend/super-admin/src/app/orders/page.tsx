@@ -5,7 +5,6 @@ import { FiSearch, FiShoppingBag } from 'react-icons/fi';
 import AdminLayout from '@/components/layout/AdminLayout';
 import { Order } from '@/types';
 import { OrderService } from '@/lib/services';
-import { mockOrders } from '@/lib/mockData';
 
 type StatusFilter = 'all' | 'pending' | 'preparing' | 'delivered' | 'cancelled';
 
@@ -19,9 +18,14 @@ export default function OrdersPage() {
     const fetchData = async () => {
       try {
         const response = await OrderService.getAllOrders();
-        if (response.success) setOrders(response.data!);
-      } catch {
-        setOrders(mockOrders);
+        if (response.success && response.data) {
+          const data = response.data as any;
+          const items = data.items || data;
+          setOrders(Array.isArray(items) ? items : []);
+        }
+      } catch (error) {
+        console.error('Error fetching orders:', error);
+        setOrders([]);
       } finally {
         setLoading(false);
       }
@@ -29,10 +33,10 @@ export default function OrdersPage() {
     fetchData();
   }, []);
 
-  const filteredOrders = orders.filter((order) => {
+  const filteredOrders = orders.filter((order: any) => {
     const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
-    const matchesSearch = order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.restaurantName.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = (order.id || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (order.restaurantName || order.restaurant_name || order.restaurant?.name || '').toLowerCase().includes(searchQuery.toLowerCase());
     return matchesStatus && matchesSearch;
   });
 
@@ -123,15 +127,15 @@ export default function OrdersPage() {
                   </td>
                 </tr>
               ) : (
-                filteredOrders.map((order) => (
+                filteredOrders.map((order: any) => (
                   <tr key={order.id} className="border-b border-gray-100 last:border-b-0">
-                    <td className="py-3 px-4 text-sm font-medium">#{order.id}</td>
-                    <td className="py-3 px-4 text-sm">{order.restaurantName}</td>
-                    <td className="py-3 px-4 text-sm text-gray-500">{order.customerName}</td>
-                    <td className="py-3 px-4 text-sm text-gray-500">{order.driverName || '-'}</td>
-                    <td className="py-3 px-4 text-sm font-medium">₮{order.totalAmount.toLocaleString()}</td>
+                    <td className="py-3 px-4 text-sm font-medium">#{order.order_number || order.id}</td>
+                    <td className="py-3 px-4 text-sm">{order.restaurantName || order.restaurant_name || order.restaurant?.name || '-'}</td>
+                    <td className="py-3 px-4 text-sm text-gray-500">{order.customerName || order.customer_name || order.user?.name || '-'}</td>
+                    <td className="py-3 px-4 text-sm text-gray-500">{order.driverName || order.driver_name || order.driver?.name || '-'}</td>
+                    <td className="py-3 px-4 text-sm font-medium">₮{(order.totalAmount ?? order.total_amount ?? order.total ?? 0).toLocaleString()}</td>
                     <td className="py-3 px-4 text-sm text-gray-500">
-                      {new Date(order.createdAt).toLocaleDateString()}
+                      {order.createdAt || order.created_at ? new Date(order.createdAt || order.created_at).toLocaleDateString() : '-'}
                     </td>
                     <td className="py-3 px-4">
                       <span className={`text-sm ${getStatusColor(order.status)}`}>

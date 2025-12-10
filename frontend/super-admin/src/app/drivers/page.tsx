@@ -7,7 +7,6 @@ import PasswordChangeModal from '@/components/ui/PasswordChangeModal';
 import { useNotifications } from '@/components/ui/Notification';
 import { Driver } from '@/types';
 import { DriverService } from '@/lib/services';
-import { mockDrivers } from '@/lib/mockData';
 
 export default function DriversPage() {
   const [drivers, setDrivers] = useState<Driver[]>([]);
@@ -20,9 +19,14 @@ export default function DriversPage() {
     const fetchData = async () => {
       try {
         const response = await DriverService.getAllDrivers();
-        if (response.success) setDrivers(response.data!);
-      } catch {
-        setDrivers(mockDrivers);
+        if (response.success && response.data) {
+          const data = response.data as any;
+          const items = data.items || data;
+          setDrivers(Array.isArray(items) ? items : []);
+        }
+      } catch (error) {
+        console.error('Error fetching drivers:', error);
+        setDrivers([]);
       } finally {
         setLoading(false);
       }
@@ -31,19 +35,24 @@ export default function DriversPage() {
   }, []);
 
   const handleToggleStatus = async (id: string, currentStatus: string, name: string) => {
-    if (currentStatus === 'active') {
-      await DriverService.suspendDriver(id);
-      setDrivers((prev) => prev.map((d) => d.id === id ? { ...d, status: 'suspended' as const } : d));
-      notify.warning('Түдгэлзүүлсэн', `${name} жолооч түдгэлзүүлэгдлээ`);
-    } else {
-      await DriverService.activateDriver(id);
-      setDrivers((prev) => prev.map((d) => d.id === id ? { ...d, status: 'active' as const } : d));
-      notify.success('Идэвхжүүлсэн', `${name} жолооч идэвхжүүлэгдлээ`);
+    try {
+      if (currentStatus === 'active') {
+        await DriverService.suspendDriver(id);
+        setDrivers((prev) => prev.map((d) => d.id === id ? { ...d, status: 'suspended' as const } : d));
+        notify.warning('Түдгэлзүүлсэн', `${name} жолооч түдгэлзүүлэгдлээ`);
+      } else {
+        await DriverService.activateDriver(id);
+        setDrivers((prev) => prev.map((d) => d.id === id ? { ...d, status: 'active' as const } : d));
+        notify.success('Идэвхжүүлсэн', `${name} жолооч идэвхжүүлэгдлээ`);
+      }
+    } catch (error) {
+      console.error('Error toggling status:', error);
+      notify.error('Алдаа', 'Төлөв өөрчлөхөд алдаа гарлаа');
     }
   };
 
-  const filteredDrivers = drivers.filter((d) =>
-    d.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredDrivers = drivers.filter((d: any) =>
+    (d.name || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const getStatusColor = (status: string) => {
@@ -128,14 +137,14 @@ export default function DriversPage() {
                   </td>
                 </tr>
               ) : (
-                filteredDrivers.map((driver) => (
+                filteredDrivers.map((driver: any) => (
                   <tr key={driver.id} className="border-b border-gray-100 last:border-b-0">
-                    <td className="py-3 px-4 text-sm font-medium">{driver.name}</td>
-                    <td className="py-3 px-4 text-sm text-gray-500">{driver.vehicleModel}</td>
-                    <td className="py-3 px-4 text-sm text-gray-500">{driver.phone}</td>
-                    <td className="py-3 px-4 text-sm">{driver.rating.toFixed(1)}</td>
-                    <td className="py-3 px-4 text-sm text-gray-500">{driver.totalDeliveries}</td>
-                    <td className="py-3 px-4 text-sm font-medium">₮{driver.totalEarnings.toLocaleString()}</td>
+                    <td className="py-3 px-4 text-sm font-medium">{driver.name || '-'}</td>
+                    <td className="py-3 px-4 text-sm text-gray-500">{driver.vehicleModel || driver.vehicle_model || driver.vehicle_type || '-'}</td>
+                    <td className="py-3 px-4 text-sm text-gray-500">{driver.phone || '-'}</td>
+                    <td className="py-3 px-4 text-sm">{(driver.rating ?? 0).toFixed(1)}</td>
+                    <td className="py-3 px-4 text-sm text-gray-500">{driver.totalDeliveries ?? driver.total_deliveries ?? 0}</td>
+                    <td className="py-3 px-4 text-sm font-medium">₮{(driver.totalEarnings ?? driver.total_earnings ?? 0).toLocaleString()}</td>
                     <td className="py-3 px-4">
                       <span className={`text-sm ${getStatusColor(driver.status)}`}>
                         {getStatusLabel(driver.status)}
@@ -151,7 +160,7 @@ export default function DriversPage() {
                           <FiKey size={16} />
                         </button>
                         <button
-                          onClick={() => handleToggleStatus(driver.id, driver.status, driver.name)}
+                          onClick={() => handleToggleStatus(driver.id, driver.status, driver.name || 'Жолооч')}
                           className={`p-2 rounded-full ${
                             driver.status === 'active'
                               ? 'bg-red-100 text-red-500 hover:bg-red-200'

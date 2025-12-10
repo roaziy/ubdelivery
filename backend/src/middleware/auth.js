@@ -178,6 +178,25 @@ export async function requireRestaurantOwner(req, res, next) {
   }
 }
 
+// Admin middleware
+export function requireAdmin(req, res, next) {
+  if (!req.user) {
+    return res.status(401).json({ 
+      success: false, 
+      message: 'Нэвтрэх шаардлагатай' 
+    });
+  }
+
+  if (req.user.role !== 'super_admin') {
+    return res.status(403).json({ 
+      success: false, 
+      message: 'Зөвхөн админ энэ үйлдлийг хийх эрхтэй' 
+    });
+  }
+
+  next();
+}
+
 // Driver middleware
 export async function requireDriver(req, res, next) {
   try {

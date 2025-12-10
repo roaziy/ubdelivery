@@ -36,18 +36,21 @@ async function apiRequest<T>(
             headers,
         });
 
-        const data = await response.json();
+        const responseData = await response.json();
 
         if (!response.ok) {
             return {
                 success: false,
-                error: data.message || 'Something went wrong',
+                error: responseData.message || 'Something went wrong',
             };
         }
 
+        // Backend returns { success, data, message } format
+        // Return the data property if it exists, otherwise return the whole response
         return {
-            success: true,
-            data,
+            success: responseData.success ?? true,
+            data: responseData.data ?? responseData,
+            message: responseData.message,
         };
     } catch (error) {
         console.error('API Error:', error);

@@ -2,23 +2,48 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { IoChevronBack } from "react-icons/io5";
-import Footer from "../../components/LandingPage/footer/footer";
-
 import { FaPhoneAlt } from "react-icons/fa";
+import Footer from "../../components/LandingPage/footer/footer";
+import { useNotifications } from "@/components/ui/Notification";
+import { setupRecaptcha, sendOTP } from "@/lib/firebase";
 
 export default function LoginPage() {
     const router = useRouter();
+    const notify = useNotifications();
     const [phoneNumber, setPhoneNumber] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    useEffect(() => {
+        // Setup reCAPTCHA when component mounts
+        setupRecaptcha('send-otp-button');
+    }, []);
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (phoneNumber.length >= 8) {
-            // Store phone number in session/localStorage for verification page
-            sessionStorage.setItem('phoneNumber', phoneNumber);
-            router.push('/login/verify');
+        
+        if (phoneNumber.length < 8) {
+            notify.error('Алдаа', 'Утасны дугаар буруу байна');
+            return;
+        }
+
+        setIsLoading(true);
+
+        try {
+            const result = await sendOTP(phoneNumber);
+            
+            if (result.success) {
+                notify.success('Амжилттай', 'Баталгаажуулах код илгээгдлээ');
+                router.push('/login/verify');
+            } else {
+                notify.error('Алдаа', result.error || 'OTP илгээхэд алдаа гарлаа');
+            }
+        } catch {
+            notify.error('Алдаа', 'Сервертэй холбогдоход алдаа гарлаа');
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -53,14 +78,17 @@ export default function LoginPage() {
                     <form onSubmit={handleSubmit} className="w-full space-y-6 mt-4">
                         <div className="relative">
                             <div className="flex items-center border border-gray-300 bg-white rounded-full px-4 py-4">
+                                <span className="text-gray-500 mr-2">+976</span>
+                                <span className="text-gray-300 mr-2">|</span>
                                 <span className="text-gray-500 mr-2"><FaPhoneAlt size={13}/></span>
                                 <input
                                     type="tel"
                                     value={phoneNumber}
                                     onChange={handlePhoneChange}
-                                    placeholder="Та утасны дугаараа оруулна уу"
+                                    placeholder="Утасны дугаараа оруулна уу"
                                     className="flex-1 outline-none text-sm bg-transparent"
                                     maxLength={8}
+                                    disabled={isLoading}
                                 />
                             </div>
                         </div>
@@ -76,15 +104,37 @@ export default function LoginPage() {
                                 БУЦАХ
                             </Link>
                             <button
+                                id="send-otp-button"
                                 type="submit"
-                                disabled={phoneNumber.length < 8}
-                                className="flex-1 bg-mainGreen text-white py-4 rounded-full hover:bg-green-600 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                disabled={phoneNumber.length < 8 || isLoading}
+                                className="flex-1 bg-mainGreen text-white py-4 rounded-full hover:bg-green-600 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                 draggable={false}
                             >
-                                Үргэлжлүүлэх
+                                {isLoading ? (
+                                    <>
+                                        <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                                            <circle 
+                                                className="opacity-25" 
+                                                cx="12" cy="12" r="10" 
+                                                stroke="currentColor" strokeWidth="4" fill="none"
+                                            />
+                                            <path 
+                                                className="opacity-75" 
+                                                fill="currentColor" 
+                                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                                            />
+                                        </svg>
+                                        Илгээж байна...
+                                    </>
+                                ) : (
+                                    'Үргэлжлүүлэх'
+                                )}
                             </button>
                         </div>
                     </form>
+
+                    {/* reCAPTCHA container (invisible) */}
+                    <div id="recaptcha-container"></div>
                 </div>
             </main>
             <Footer />

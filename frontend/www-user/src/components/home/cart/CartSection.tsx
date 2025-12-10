@@ -5,9 +5,7 @@ import { useRouter } from "next/navigation";
 import { IoChevronBack, IoClose, IoMail } from "react-icons/io5";
 import { FaPhone } from "react-icons/fa6";
 import { useNotifications } from "@/components/ui/Notification";
-import { CartService, OrderService } from "@/lib/api";
-import { Cart, CartItem as CartItemType } from "@/lib/types";
-import { mockCart, simulateDelay } from "@/lib/mockData";
+import { CartService, AuthService } from "@/lib/api";
 import { Skeleton } from "@/components/ui/Skeleton";
 
 // Import sub-components
@@ -91,6 +89,13 @@ export default function CartSection() {
     // Fetch cart data
     useEffect(() => {
         const fetchCart = async () => {
+            // Don't fetch if not logged in
+            if (!AuthService.isLoggedIn()) {
+                setLoading(false);
+                setCartData([]);
+                return;
+            }
+            
             setLoading(true);
             try {
                 const response = await CartService.get();
@@ -99,14 +104,11 @@ export default function CartSection() {
                     const transformedData = transformCartData(response.data);
                     setCartData(transformedData);
                 } else {
-                    // Fallback to mock data
-                    await simulateDelay(800);
-                    setCartData(sampleCartData);
+                    setCartData([]);
                 }
             } catch (error) {
                 console.error('Failed to fetch cart:', error);
-                await simulateDelay(800);
-                setCartData(sampleCartData);
+                setCartData([]);
             } finally {
                 setLoading(false);
             }

@@ -5,10 +5,22 @@ import { FiSearch, FiCheck, FiX } from 'react-icons/fi';
 import { MdStorefront } from 'react-icons/md';
 import { FiTruck } from 'react-icons/fi';
 import AdminLayout from '@/components/layout/AdminLayout';
-import { RestaurantApplication, DriverApplication } from '@/types';
-import { ApplicationService } from '@/lib/services';
-import { mockRestaurantApplications, mockDriverApplications } from '@/lib/mockData';
+import { restaurantApplicationService, driverApplicationService } from '@/lib/services';
 import { useNotifications } from '@/components/ui/Notification';
+
+interface Application {
+  id: string;
+  name: string;
+  owner_name?: string;
+  phone: string;
+  email?: string;
+  address?: string;
+  type: string;
+  status: string;
+  vehicle_type?: string;
+  cuisine_type?: string;
+  created_at?: string;
+}
 
 type TabType = 'restaurants' | 'drivers';
 
@@ -16,22 +28,29 @@ export default function ApplicationsPage() {
   const notify = useNotifications();
   const [activeTab, setActiveTab] = useState<TabType>('restaurants');
   const [searchQuery, setSearchQuery] = useState('');
-  const [restaurantApps, setRestaurantApps] = useState<RestaurantApplication[]>([]);
-  const [driverApps, setDriverApps] = useState<DriverApplication[]>([]);
+  const [restaurantApps, setRestaurantApps] = useState<Application[]>([]);
+  const [driverApps, setDriverApps] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
-        const [restaurantRes, driverRes] = await Promise.all([
-          ApplicationService.getRestaurantApplications(),
-          ApplicationService.getDriverApplications(),
-        ]);
-        if (restaurantRes.success) setRestaurantApps(restaurantRes.data!);
-        if (driverRes.success) setDriverApps(driverRes.data!);
-      } catch {
-        setRestaurantApps(mockRestaurantApplications);
-        setDriverApps(mockDriverApplications);
+        // Fetch restaurant applications
+        const restaurantRes = await restaurantApplicationService.getApplications();
+        if (restaurantRes.success && restaurantRes.data) {
+          const items = restaurantRes.data.items || restaurantRes.data;
+          setRestaurantApps(Array.isArray(items) ? (items as unknown as Application[]) : []);
+        }
+
+        // Fetch driver applications
+        const driverRes = await driverApplicationService.getApplications();
+        if (driverRes.success && driverRes.data) {
+          const items = driverRes.data.items || driverRes.data;
+          setDriverApps(Array.isArray(items) ? (items as unknown as Application[]) : []);
+        }
+      } catch (error) {
+        console.error('Error fetching applications:', error);
       } finally {
         setLoading(false);
       }
@@ -40,35 +59,59 @@ export default function ApplicationsPage() {
   }, []);
 
   const handleApprove = async (id: string, type: 'restaurant' | 'driver', name: string) => {
-    if (type === 'restaurant') {
-      await ApplicationService.approveRestaurant(id);
-      setRestaurantApps((prev) => prev.map((a) => a.id === id ? { ...a, status: 'approved' as const } : a));
-      notify.success('Зөвшөөрөгдлөө', `${name} ресторан зөвшөөрөгдлөө`);
-    } else {
-      await ApplicationService.approveDriver(id);
-      setDriverApps((prev) => prev.map((a) => a.id === id ? { ...a, status: 'approved' as const } : a));
-      notify.success('Зөвшөөрөгдлөө', `${name} жолооч зөвшөөрөгдлөө`);
+    try {
+      if (type === 'restaurant') {
+        const res = await restaurantApplicationService.approveApplication(id);
+        if (res.success) {
+          setRestaurantApps((prev) => prev.map((a) => a.id === id ? { ...a, status: 'approved' } : a));
+          notify.success('Зөвшөөрөгдлөө', `${name} ресторан зөвшөөрөгдлөө`);
+        } else {
+          notify.error('Алдаа', res.error || 'Зөвшөөрөхөд алдаа гарлаа');
+        }
+      } else {
+        const res = await driverApplicationService.approveApplication(id);
+        if (res.success) {
+          setDriverApps((prev) => prev.map((a) => a.id === id ? { ...a, status: 'approved' } : a));
+          notify.success('Зөвшөөрөгдлөө', `${name} жолооч зөвшөөрөгдлөө`);
+        } else {
+          notify.error('Алдаа', res.error || 'Зөвшөөрөхөд алдаа гарлаа');
+        }
+      }
+    } catch (error) {
+      console.error('Approve error:', error);
+      notify.error('Алдаа', 'Зөвшөөрөхөд алдаа гарлаа');
     }
   };
 
   const handleReject = async (id: string, type: 'restaurant' | 'driver', name: string) => {
-    if (type === 'restaurant') {
-      await ApplicationService.rejectRestaurant(id, 'Does not meet requirements');
-      setRestaurantApps((prev) => prev.map((a) => a.id === id ? { ...a, status: 'rejected' as const } : a));
-      notify.error('Татгалзсан', `${name} ресторан татгалзагдлаа`);
-    } else {
-      await ApplicationService.rejectDriver(id, 'Does not meet requirements');
-      setDriverApps((prev) => prev.map((a) => a.id === id ? { ...a, status: 'rejected' as const } : a));
-      notify.error('Татгалзсан', `${name} жолооч татгалзагдлаа`);
+    try {
+      if (type === 'restaurant') {
+        const res = await restaurantApplicationService.rejectApplication(id, 'Шаардлага хангаагүй');
+        if (res.success) {
+          setRestaurantApps((prev) => prev.map((a) => a.id === id ? { ...a, status: 'rejected' } : a));
+          notify.error('Татгалзсан', `${name} ресторан татгалзагдлаа`);
+        }
+      } else {
+        const res = await driverApplicationService.rejectApplication(id, 'Шаардлага хангаагүй');
+        if (res.success) {
+          setDriverApps((prev) => prev.map((a) => a.id === id ? { ...a, status: 'rejected' } : a));
+          notify.error('Татгалзсан', `${name} жолооч татгалзагдлаа`);
+        }
+      }
+    } catch (error) {
+      console.error('Reject error:', error);
+      notify.error('Алдаа', 'Татгалзахад алдаа гарлаа');
     }
   };
 
+  // Safe filter with null checks
   const filteredRestaurants = restaurantApps.filter((a) =>
-    a.restaurantName.toLowerCase().includes(searchQuery.toLowerCase())
+    (a.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (a.owner_name || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const filteredDrivers = driverApps.filter((a) =>
-    a.driverName.toLowerCase().includes(searchQuery.toLowerCase())
+    (a.name || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const getStatusColor = (status: string) => {
@@ -158,10 +201,10 @@ export default function ApplicationsPage() {
                 ) : (
                   filteredRestaurants.map((app) => (
                     <tr key={app.id} className="border-b border-gray-100 last:border-b-0">
-                      <td className="py-3 px-4 text-sm font-medium">{app.restaurantName}</td>
-                      <td className="py-3 px-4 text-sm text-gray-500">{app.ownerName}</td>
-                      <td className="py-3 px-4 text-sm text-gray-500">{app.email}</td>
-                      <td className="py-3 px-4 text-sm text-gray-500">{app.phone}</td>
+                      <td className="py-3 px-4 text-sm font-medium">{app.name || '-'}</td>
+                      <td className="py-3 px-4 text-sm text-gray-500">{app.owner_name || '-'}</td>
+                      <td className="py-3 px-4 text-sm text-gray-500">{app.email || '-'}</td>
+                      <td className="py-3 px-4 text-sm text-gray-500">{app.phone || '-'}</td>
                       <td className="py-3 px-4">
                         <span className={`text-sm ${getStatusColor(app.status)}`}>{getStatusLabel(app.status)}</span>
                       </td>
@@ -169,13 +212,13 @@ export default function ApplicationsPage() {
                         {app.status === 'pending' && (
                           <div className="flex gap-2">
                             <button
-                              onClick={() => handleApprove(app.id, 'restaurant', app.restaurantName)}
+                              onClick={() => handleApprove(app.id, 'restaurant', app.name || 'Ресторан')}
                               className="p-2 bg-mainGreen text-white rounded-full hover:bg-green-600"
                             >
                               <FiCheck size={16} />
                             </button>
                             <button
-                              onClick={() => handleReject(app.id, 'restaurant', app.restaurantName)}
+                              onClick={() => handleReject(app.id, 'restaurant', app.name || 'Ресторан')}
                               className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600"
                             >
                               <FiX size={16} />
@@ -208,10 +251,10 @@ export default function ApplicationsPage() {
                 ) : (
                   filteredDrivers.map((app) => (
                     <tr key={app.id} className="border-b border-gray-100 last:border-b-0">
-                      <td className="py-3 px-4 text-sm font-medium">{app.driverName}</td>
-                      <td className="py-3 px-4 text-sm text-gray-500 capitalize">{app.vehicleType}</td>
-                      <td className="py-3 px-4 text-sm text-gray-500">{app.email}</td>
-                      <td className="py-3 px-4 text-sm text-gray-500">{app.phone}</td>
+                      <td className="py-3 px-4 text-sm font-medium">{app.name || '-'}</td>
+                      <td className="py-3 px-4 text-sm text-gray-500 capitalize">{app.vehicle_type || '-'}</td>
+                      <td className="py-3 px-4 text-sm text-gray-500">{app.email || '-'}</td>
+                      <td className="py-3 px-4 text-sm text-gray-500">{app.phone || '-'}</td>
                       <td className="py-3 px-4">
                         <span className={`text-sm ${getStatusColor(app.status)}`}>{getStatusLabel(app.status)}</span>
                       </td>
@@ -219,13 +262,13 @@ export default function ApplicationsPage() {
                         {app.status === 'pending' && (
                           <div className="flex gap-2">
                             <button
-                              onClick={() => handleApprove(app.id, 'driver', app.driverName)}
+                              onClick={() => handleApprove(app.id, 'driver', app.name || 'Жолооч')}
                               className="p-2 bg-mainGreen text-white rounded-full hover:bg-green-600"
                             >
                               <FiCheck size={16} />
                             </button>
                             <button
-                              onClick={() => handleReject(app.id, 'driver', app.driverName)}
+                              onClick={() => handleReject(app.id, 'driver', app.name || 'Жолооч')}
                               className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600"
                             >
                               <FiX size={16} />

@@ -195,11 +195,17 @@ export interface DailyStats {
 
 // Auth Types
 export interface LoginRequest {
-    username: string;
+    email: string;
     password: string;
 }
 
 export interface LoginResponse {
     token: string;
-    admin: AdminUser;
+    user: {
+        id: string;
+        email: string;
+        phone?: string;
+        name: string;
+        role: string;
+    };
 }
